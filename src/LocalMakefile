@@ -2,4 +2,4 @@ src_local_files :=  ExternalSort.o
 
 -include src/LocalMakefile
 
-src_file := $(src_util_files) $(src_local_files)
+src_files := $(src_util_files) $(src_local_files)

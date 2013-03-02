@@ -1,6 +1,6 @@
 #include "util/Utility.hpp"
 
-TEST(UtilityTest, FileCreatorSimple) {
+TEST(Utility, FileCreatorSimple) {
   EXPECT_TRUE(dbi_utility::createTestFile<uint64_t>("test/testdata", 1<<10, [](uint64_t i){return i;}));
   bool check = true;
   uint64_t i = 0;
@@ -9,7 +9,7 @@ TEST(UtilityTest, FileCreatorSimple) {
   EXPECT_EQ(i , 1<<10);
 }
 
-TEST(UtilityTest, FileCreatorBorders) {
+TEST(Utility, FileCreatorBorders) {
   {
     EXPECT_TRUE(dbi_utility::createTestFile<double>("test/testdata", 1<<10 + 1, [](uint64_t i){return static_cast<double>(i);}));
     bool check = true;

@@ -8,7 +8,7 @@ utility_inc:= -I../utility/include
 utility_lib:= ../utility/libgda.a
 
 cf :=-g3 -O0 -Werror -Wall -Wextra -Wuninitialized --std=c++11 $(utility_inc) -I./src
-lf :=-g3 -O0 --std=c++0x $(engine_lib)-lpthread -I./src
+lf :=-g3 -O0 --std=c++0x -lpthread -I./src $(utility_inc)
 
 ccache_use?= ccache
 comp?= g++
@@ -22,10 +22,10 @@ $(buildDir):
 # ===============================================
 
 -include src/LocalMakefile
-src_obj:= $(addprefix $(buildDir),$(mokey_files))
+src_obj:= $(addprefix $(buildDir),$(src_files))
 
-tester: $(buildDir) $(src_obj) $(engine_lib) $(utility_lib)
-	$(comp) -o $(buildDir)$@ test/tester.cpp $(src_obj) $(lf) -lgtest
+tester: $(buildDir) $(src_obj) $(utility_lib)
+	$(comp) -o $(buildDir)$@ test/tester.cpp $(src_obj) $(lf) -lgtest $(utility_lib)
 	./bin/tester
 
 # ===============================================

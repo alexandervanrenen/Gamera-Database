@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "ExternalSortTest.cpp"
+#include "UtilityTest.cpp"
 
 using namespace std;
 

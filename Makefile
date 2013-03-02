@@ -26,6 +26,7 @@ src_obj:= $(addprefix $(buildDir),$(mokey_files))
 
 tester: $(buildDir) $(src_obj) $(engine_lib) $(utility_lib)
 	$(comp) -o $(buildDir)$@ test/tester.cpp $(src_obj) $(lf) -lgtest
+	./bin/tester
 
 # ===============================================
 #   build individual files

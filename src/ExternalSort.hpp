@@ -6,16 +6,20 @@
 #include <memory>
 #include <fstream>
 
-struct ExternalSort {
+namespace dbi {
 
-  ExternalSort(const std::string& fileName);
+  struct ExternalSort {
 
-  std::unique_ptr<uint64_t*> read(uint32_t begin, uint32_t count);
+    ExternalSort(const std::string& fileName);
 
-private:
+    std::unique_ptr<uint64_t*> read(uint32_t begin, uint32_t count);
 
-  std::string fileName;
-  std::ifstream input;
-};
+  private:
+
+    std::string fileName;
+    std::ifstream input;
+  };
+
+}
 
 #endif

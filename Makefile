@@ -14,8 +14,7 @@ ccache_use?= ccache
 comp?= g++
 comp:= $(ccache_use) $(comp)
 
-$(buildDir):
-	mkdir -p $(buildDir)
+buidl_folger=@mkdir -p $(dir $@)
 
 # ===============================================
 #   tester
@@ -24,7 +23,7 @@ $(buildDir):
 -include src/LocalMakefile
 src_obj:= $(addprefix $(buildDir),$(src_files))
 
-tester: $(buildDir) $(src_obj) $(utility_lib)
+tester: $(src_obj) $(utility_lib)
 	$(comp) -o $(buildDir)$@ test/tester.cpp $(src_obj) $(lf) -lgtest $(utility_lib)
 	./bin/tester
 
@@ -33,6 +32,7 @@ tester: $(buildDir) $(src_obj) $(utility_lib)
 # ===============================================
 
 $(buildDir)%o: $(srcDir)%cpp $(srcDir)%hpp
+	$(buidl_folger)
 	$(comp) -c -o $@ $< $(cf)
 
 # ====================================

@@ -1,1 +1,1 @@
-src_util_files :=  Utility.o
+src_util_files := util/Utility.o

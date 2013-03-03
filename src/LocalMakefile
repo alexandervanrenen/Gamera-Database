@@ -1,5 +1,5 @@
-src_local_files :=  ExternalSort.o
+src_local_files := ExternalSort.o
 
--include src/LocalMakefile
+-include src/util/LocalMakefile
 
 src_files := $(src_util_files) $(src_local_files)

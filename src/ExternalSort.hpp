@@ -5,22 +5,48 @@
 #include <cstdint>
 #include <memory>
 #include <fstream>
+#include <vector>
+#include <algorithm>
 
 namespace dbi {
 
-  struct ExternalSort {
+class ExternalSort {
+public:
+  ExternalSort();
 
-    ExternalSort(const std::string& fileName);
-    
-    void sort();
+  template<class T>
+  void simpleSort(const std::string& inputFileName, const std::string& outputFileName);
+};
 
-    std::unique_ptr<uint64_t*> read(uint32_t begin, uint32_t count);
+template<class T>
+void ExternalSort::simpleSort(const std::string& inputFileName, const std::string& outputFileName)
+{
+  // Open file
+  std::ifstream in(inputFileName, std::ios::binary);
+  if(!in.is_open() || !in.good())
+    throw;
 
-  private:
+  // Figure out file length and entry count
+  in.seekg(0, std::ios::end);
+  uint64_t fileLength = static_cast<uint64_t>(in.tellg());
+  in.seekg(0, std::ios::beg);
+  if(fileLength % sizeof(T) != 0)
+    throw;
+  uint64_t entryCount = fileLength / sizeof(T);
 
-    std::string fileName;
-    std::ifstream input;
-  };
+  // Read into buffer
+  std::vector<T> buffer(entryCount);
+  in.read(reinterpret_cast<char*>(buffer.data()), fileLength);
+
+  // Sort
+  std::sort(buffer.begin(), buffer.end());
+
+  // Open output and write data
+  std::ofstream out(outputFileName, std::ios::binary);
+  if(!out.is_open() || !out.good())
+    throw;
+  out.write(reinterpret_cast<char*>(buffer.data()), fileLength);
+}
 
 }
 

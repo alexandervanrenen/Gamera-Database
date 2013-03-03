@@ -44,4 +44,9 @@ void ExternalSort::simpleSort(const std::string& inputFileName, const std::strin
   simpleSortImpl<uint64_t>(inputFileName, outputFileName);
 }
 
+void ExternalSort::complexSort(const std::string& /*inputFileName*/, const std::string& /*outputFileName*/, uint64_t /*maxMemory*/)
+{
+  
+}
+
 }

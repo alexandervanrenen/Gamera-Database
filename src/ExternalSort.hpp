@@ -2,7 +2,7 @@
 #define __ExternalSort
 
 #include <string>
-#include <cstdint>
+#include <stdint.h>
 #include <memory>
 #include <fstream>
 #include <vector>
@@ -12,13 +12,13 @@ namespace dbi {
 
 class ExternalSort {
 public:
-  ExternalSort();
+   ExternalSort();
 
-  /// Assumes enough available memory
-  void simpleSort(const std::string& inputFileName, const std::string& outputFileName);
+   /// Assumes enough available memory
+   void simpleSort(const std::string& inputFileName, const std::string& outputFileName);
 
-  /// For huge files, takes up only the specified amount of memory
-  void complexSort(const std::string& inputFileName, const std::string& outputFileName, uint64_t maxMemory);
+   /// For huge files, takes up only the specified amount of memory
+   void complexSort(const std::string& inputFileName, const std::string& outputFileName, uint64_t maxMemory);
 };
 
 }

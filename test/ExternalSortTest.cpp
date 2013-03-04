@@ -32,16 +32,15 @@ TEST(ExternalSort, Simple) {
 }
 
 TEST(ExternalSort, Complex) {
-   EXPECT_TRUE(dbi_utility::createTestFile("bin/externalsortinput", 1<<10, [&](uint64_t i) {return rand();}));
+   EXPECT_TRUE(dbi_utility::createTestFile("bin/data", 1<<5, [&](uint64_t i) {return rand() % 64;}));
    dbi::ExternalSort sorty;
-   sorty.complexSort(std::string("bin/externalsortinput"), std::string("bin/externalsortoutput"), 1024);
+   sorty.complexSort(std::string("bin/data"), 8*8);
 
    uint64_t last = 0;
    bool check = true;
    uint64_t i = 0;
-   EXPECT_TRUE(dbi_utility::foreachInFile("bin/externalsortoutput", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
+   EXPECT_TRUE(dbi_utility::foreachInFile("bin/data", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
    EXPECT_TRUE(check);
    EXPECT_EQ(i , 1<<10);
-   remove("bin/externalsortinput");
-   remove("bin/externalsortoutput");
+   remove("bin/data");
 }

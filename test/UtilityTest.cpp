@@ -7,6 +7,7 @@ TEST(Utility, FileCreatorSimple) {
    EXPECT_TRUE(dbiu::foreachInFile("bin/testdata", [&](uint64_t data) {check&=data==i++;}));
    EXPECT_TRUE(check);
    EXPECT_EQ(i , 1<<10);
+   remove("bin/testdata");
 }
 
 TEST(Utility, FileCreatorBorders) {
@@ -17,6 +18,7 @@ TEST(Utility, FileCreatorBorders) {
       EXPECT_TRUE(dbiu::foreachInFile("bin/testdata", [&](double data) {check&=data==i++;}));
       EXPECT_TRUE(check);
       EXPECT_EQ(i , 1<<10 + 1);
+      remove("bin/testdata");
    }
 
    {
@@ -26,6 +28,7 @@ TEST(Utility, FileCreatorBorders) {
       EXPECT_TRUE(dbiu::foreachInFile("bin/testdata", [&](double data) {check&=data==i++;}));
       EXPECT_TRUE(check);
       EXPECT_EQ(i , 1<<10 - 1);
+      remove("bin/testdata");
    }
 
    {
@@ -35,6 +38,7 @@ TEST(Utility, FileCreatorBorders) {
       EXPECT_TRUE(dbiu::foreachInFile("bin/testdata", [&](double data) {check&=data==i++;}));
       EXPECT_TRUE(check);
       EXPECT_EQ(i , 1);
+      remove("bin/testdata");
    }
 
    {
@@ -44,5 +48,6 @@ TEST(Utility, FileCreatorBorders) {
       EXPECT_TRUE(dbiu::foreachInFile("bin/testdata", [&](double data) {check&=data==i++;}));
       EXPECT_TRUE(check);
       EXPECT_EQ(i , 0);
+      remove("bin/testdata");
    }
 }

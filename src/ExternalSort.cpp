@@ -10,6 +10,7 @@
 #include <list>
 #include <memory>
 #include <cstdio>
+#include <chrono>
 
 namespace dbi {
 
@@ -20,37 +21,37 @@ ExternalSort::ExternalSort()
 }
 
 template<class T>
-void simpleSortImpl(const std::string& inputFileName, const std::string& outputFileName)
+void simpleSortImpl(const string& inputFileName, const string& outputFileName)
 {
    // Open file
-   std::ifstream in(inputFileName, std::ios::binary);
+   ifstream in(inputFileName, ios::binary);
    if (!in.is_open() || !in.good())
       throw;
 
    // Figure out file length and entry count
-   in.seekg(0, std::ios::end);
+   in.seekg(0, ios::end);
    uint64_t fileLength = static_cast<uint64_t>(in.tellg());
-   in.seekg(0, std::ios::beg);
+   in.seekg(0, ios::beg);
    if (fileLength % sizeof(T) != 0)
       throw;
    uint64_t entryCount = fileLength / sizeof(T);
 
    // Read into buffer
-   std::vector<T> buffer(entryCount);
+   vector<T> buffer(entryCount);
    in.read(reinterpret_cast<char*>(buffer.data()), fileLength);
 
    // Sort
-   std::sort(buffer.begin(), buffer.end());
+   sort(buffer.begin(), buffer.end());
 
    // Open output and write data
-   std::ofstream out(outputFileName, std::ios::binary);
+   ofstream out(outputFileName, ios::binary);
    if (!out.is_open() || !out.good())
       throw;
    out.write(reinterpret_cast<char*>(buffer.data()), fileLength);
 }
 
 template<class T>
-void complexSortImpl(const std::string& fileName, uint64_t maxMemory, uint64_t pageSize)
+void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSize)
 {
    // Check input and calculate constants
    assert(maxMemory % pageSize == 0);
@@ -62,6 +63,7 @@ void complexSortImpl(const std::string& fileName, uint64_t maxMemory, uint64_t p
    list<unique_ptr<Run<T>>> runs;
 
    // Create runs
+   auto startRunPhase = chrono::high_resolution_clock::now();
    auto originalFile = make_shared<fstream>(fileName, ios::binary | ios::out | ios::in);
    for (uint64_t runId=0; true; runId++) {
       // Read data
@@ -69,8 +71,10 @@ void complexSortImpl(const std::string& fileName, uint64_t maxMemory, uint64_t p
       originalFile->read(buffer.begin(), maxMemory);
       int64_t readBytes = originalFile->tellg() - position;
       originalFile->clear();
-      if (readBytes <= 0)
+      if (readBytes <= 0) {
+         cout << "created runs: " << runId << endl;
          break;
+      }
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
@@ -80,8 +84,10 @@ void complexSortImpl(const std::string& fileName, uint64_t maxMemory, uint64_t p
       auto run = dbiu::make_unique<Run<T>>(0, readBytes, runFileName);
       runs.push_back(move(run));
    }
+   auto endRunPhase = chrono::high_resolution_clock::now();
 
    // Merge runs
+   auto startMergePhase = chrono::high_resolution_clock::now();
    while (runs.size() > 1) {
       // Create working set
       vector<unique_ptr<Run<T>>> workRuns;
@@ -125,14 +131,18 @@ void complexSortImpl(const std::string& fileName, uint64_t maxMemory, uint64_t p
       targetRun->flush();
       runs.push_back(move(targetRun));
    }
+   auto endMergePhase = chrono::high_resolution_clock::now();
+
+   cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << " ms" << endl;
+   cout << "merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << " ms" << endl;
 }
 
-void ExternalSort::simpleSort(const std::string& inputFileName, const std::string& outputFileName)
+void ExternalSort::simpleSort(const string& inputFileName, const string& outputFileName)
 {
    simpleSortImpl<uint64_t>(inputFileName, outputFileName);
 }
 
-void ExternalSort::complexSort(const std::string& fileName, uint64_t maxMemory, uint64_t pageSize)
+void ExternalSort::complexSort(const string& fileName, uint64_t maxMemory, uint64_t pageSize)
 {
    complexSortImpl<uint64_t>(fileName, maxMemory, pageSize);
 }

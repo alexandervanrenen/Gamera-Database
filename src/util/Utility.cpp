@@ -1,6 +1,6 @@
 #include "Utility.hpp"
 
-namespace dbi_utility {
+namespace dbiu {
 
 template<class T>
 bool createTestFileImpl(const std::string& fileName, uint64_t count, std::function<

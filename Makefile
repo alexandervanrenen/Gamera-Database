@@ -4,8 +4,8 @@ buildDir:= bin/
 srcDir:= src/
 testDir:= test/
 
-utility_inc:= -I../../utility/include
-utility_lib:= ../../utility/libgda.a
+utility_inc:= -I../utility/include
+utility_lib:= ../utility/libgda.a
 
 cf :=-g3 -O0 -Werror -Wall -Wextra -Wuninitialized --std=c++11 $(utility_inc) -I./src
 lf :=-g3 -O0 --std=c++0x -lpthread -I./src $(utility_inc)

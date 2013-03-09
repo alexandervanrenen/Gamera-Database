@@ -17,7 +17,7 @@ struct Page {
       assert(pageSize != 0);
    }
 
-   T get(uint64_t id)
+   T get(uint64_t id) const
    {
       assert(id*sizeof(T) < pageSize);
       return *reinterpret_cast<T*>(memory + (id * sizeof(T)));

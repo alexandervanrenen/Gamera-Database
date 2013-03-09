@@ -11,10 +11,15 @@
 #include <memory>
 #include <cstdio>
 #include <chrono>
+#include <set>
+#include <queue>
 
 namespace dbi {
 
 using namespace std;
+
+/// Enable or disable performance reporting
+static const bool showPerformance = true;
 
 ExternalSort::ExternalSort()
 {
@@ -62,7 +67,7 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
    BufferManager<T> buffer(maxMemory, pageSize);
    list<unique_ptr<Run<T>>> runs;
 
-   // Create runs
+   // Phase I: Create runs
    auto startRunPhase = chrono::high_resolution_clock::now();
    auto originalFile = make_shared<fstream>(fileName, ios::binary | ios::out | ios::in);
    for (uint64_t runId=0; true; runId++) {
@@ -71,10 +76,8 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
       originalFile->read(buffer.begin(), maxMemory);
       int64_t readBytes = originalFile->tellg() - position;
       originalFile->clear();
-      if (readBytes <= 0) {
-         cout << "created runs: " << runId << endl;
+      if (readBytes <= 0)
          break;
-      }
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
@@ -85,30 +88,32 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
       runs.push_back(move(run));
    }
    auto endRunPhase = chrono::high_resolution_clock::now();
+   uint64_t initialRunCount = runs.size();
 
-   // Merge runs
+   // Phase II: Merge runs
    auto startMergePhase = chrono::high_resolution_clock::now();
    while (runs.size() > 1) {
-      // Create working set
+      // Select runs for this merge phase
       vector<unique_ptr<Run<T>>> workRuns;
       uint64_t totalBytes = 0;
       for (uint64_t i = 0; i < availablePages - 1 && !runs.empty(); i++) {
          auto run = move(runs.front());
          runs.pop_front();
-         run->prepareForReading();
          run->assignPage(buffer.getPage(i));
+         run->prepareForReading();
          totalBytes += run->size();
          workRuns.push_back(move(run));
       }
-      auto targetFileName = fileName + ((runs.size()==0) ? "" : "_merge_" + to_string(runs.size()));
-      auto targetFile = make_shared<fstream>(targetFileName, ios::binary | ios::out);
-      auto targetRun = dbiu::make_unique<Run<T>>(0, totalBytes, targetFileName);
-      targetRun->prepareForWriting();
-      targetRun->assignPage(buffer.getPage(availablePages - 1), false);
 
-      // Merge
-      for (uint64_t entry = 0; entry < totalBytes / sizeof(T); entry++) {
-         // Find minimal value
+      // Set up output stream
+      auto targetFileName = fileName + ((runs.size()==0) ? "" : "_merge_" + to_string(runs.size()));
+      auto targetRun = dbiu::make_unique<Run<T>>(0, totalBytes, targetFileName);
+      targetRun->assignPage(buffer.getPage(availablePages - 1));
+      targetRun->prepareForWriting();
+
+      // Merge selected runs
+      while(!workRuns.empty()) {
+         // Find run with min value -- using linear search (faster till at least 1024 entries)
          T minValue = workRuns[0]->peekNext();
          uint64_t minIndex = 0;
          for (uint64_t i = 1; i < workRuns.size(); i++) {
@@ -133,8 +138,11 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
    }
    auto endMergePhase = chrono::high_resolution_clock::now();
 
-   cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << " ms" << endl;
-   cout << "merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << " ms" << endl;
+   if(showPerformance) {
+      cout << "run count: " << initialRunCount << endl;
+      cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << " ms" << endl;
+      cout << "merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << " ms" << endl;
+   }
 }
 
 void ExternalSort::simpleSort(const string& inputFileName, const string& outputFileName)

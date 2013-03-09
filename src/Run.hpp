@@ -16,16 +16,9 @@ struct Run {
    {
    }
 
-   int64_t getBytes()
-   {
-      return end - positionInFile;
-   }
-
-   void assignPage(std::unique_ptr<Page<T>> page, bool load = true)
+   void assignPage(std::unique_ptr<Page<T>> page)
    {
       this->page = std::move(page);
-      if(load)
-         loadNextPage();
    }
 
    bool hasNext()
@@ -35,9 +28,9 @@ struct Run {
       return positionInPage < validEntries;
    }
 
-   T peekNext()
+   T peekNext() const
    {
-      assert(hasNext());
+      assert(positionInPage < validEntries);
       return page->get(positionInPage);
    }
 
@@ -49,8 +42,7 @@ struct Run {
 
    void add(const T& data)
    {
-      page->set(positionInPage, data);
-      positionInPage++;
+      page->set(positionInPage++, data);
       if (positionInPage >= page->entryCount())
          writePage();
    }
@@ -68,6 +60,7 @@ struct Run {
       positionInFile = start;
       positionInPage = 0;
       validEntries = 0;
+      loadNextPage();
    }
 
    void prepareForWriting()
@@ -90,7 +83,7 @@ struct Run {
    }
 
 private:
-   std::string fileName;
+   const std::string fileName;
    const int64_t start;
    const int64_t end;
    uint64_t positionInFile;

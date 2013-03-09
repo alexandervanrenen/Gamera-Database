@@ -18,9 +18,6 @@ namespace dbi {
 
 using namespace std;
 
-/// Enable or disable performance reporting
-static const bool showPerformance = true;
-
 ExternalSort::ExternalSort()
 {
 }
@@ -56,11 +53,11 @@ void simpleSortImpl(const string& inputFileName, const string& outputFileName)
 }
 
 template<class T>
-void createRunsPhase(const string& fileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs)
+void createRunsPhase(const string& inputFileName, const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs)
 {
    // Phase I: Create runs
    uint64_t ioTime = 0;
-   fstream originalFile(fileName, ios::binary | ios::out | ios::in);
+   fstream originalFile(inputFileName, ios::binary | ios::out | ios::in);
    for (uint64_t runId=0; true; runId++) {
       // Read data
       int64_t position = originalFile.tellg();
@@ -75,22 +72,22 @@ void createRunsPhase(const string& fileName, BufferManager<T>& buffer, list<uniq
 
       // End of file
       if(readSuccessfull) {
-         // Terminate
-         if(readBytes <= 0)
-            break;
-
          // Trivial case -- buffer is larger than file
          if(runId == 0) {
             sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
-            fstream resultFile(fileName, ios::binary | ios::out);
+            fstream resultFile(outputFileName, ios::binary | ios::out);
             resultFile.write(buffer.begin(), readBytes);
             return;
          }
+         
+         // Terminate
+         if(readBytes <= 0)
+            break;
       }
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
-      auto runFileName = fileName + to_string(runId);
+      auto runFileName = outputFileName + to_string(runId);
       fstream runFile(runFileName, ios::binary | ios::out);
       runFile.write(buffer.begin(), readBytes);
       auto run = dbiu::make_unique<Run<T>>(0, readBytes, runFileName);
@@ -148,7 +145,7 @@ void mergeRuns(const string& fileName, BufferManager<T>& buffer, list<unique_ptr
 }
 
 template<class T>
-void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSize)
+void complexSortImpl(const string& inputFileName, const string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance)
 {
    // Check input and calculate constants
    assert(maxMemory % pageSize == 0);
@@ -161,13 +158,13 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
 
    // Phase I: Create runs
    auto startRunPhase = chrono::high_resolution_clock::now();
-   createRunsPhase(fileName, buffer, runs);
+   createRunsPhase(inputFileName, outputFileName, buffer, runs);
    uint64_t initialRunCount = runs.size();
    auto endRunPhase = chrono::high_resolution_clock::now();
 
    // Phase II: Merge runs
    auto startMergePhase = chrono::high_resolution_clock::now();
-   mergeRuns(fileName, buffer, runs, availablePages);
+   mergeRuns(outputFileName, buffer, runs, availablePages);
    auto endMergePhase = chrono::high_resolution_clock::now();
 
    if(showPerformance) {
@@ -182,9 +179,9 @@ void ExternalSort::simpleSort(const string& inputFileName, const string& outputF
    simpleSortImpl<uint64_t>(inputFileName, outputFileName);
 }
 
-void ExternalSort::complexSort(const string& fileName, uint64_t maxMemory, uint64_t pageSize)
+void ExternalSort::complexSort(const string& inputFileName, const string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance)
 {
-   complexSortImpl<uint64_t>(fileName, maxMemory, pageSize);
+   complexSortImpl<uint64_t>(inputFileName, outputFileName, pageSize, maxMemory, showPerformance);
 }
 
 }

@@ -69,15 +69,35 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
 
    // Phase I: Create runs
    auto startRunPhase = chrono::high_resolution_clock::now();
-   auto originalFile = make_shared<fstream>(fileName, ios::binary | ios::out | ios::in);
+   uint64_t ioTime = 0;
+   fstream originalFile(fileName, ios::binary | ios::out | ios::in);
    for (uint64_t runId=0; true; runId++) {
       // Read data
-      int64_t position = originalFile->tellg();
-      originalFile->read(buffer.begin(), maxMemory);
-      int64_t readBytes = originalFile->tellg() - position;
-      originalFile->clear();
-      if (readBytes <= 0)
-         break;
+      int64_t position = originalFile.tellg();
+      auto start = chrono::high_resolution_clock::now();
+      originalFile.read(buffer.begin(), maxMemory);
+      originalFile.peek(); // Detect end of file
+      bool readSuccessfull = originalFile.eof();
+      auto end = chrono::high_resolution_clock::now();
+      ioTime += chrono::duration_cast<chrono::nanoseconds>(end-start).count();
+      originalFile.clear();
+      int64_t readBytes = originalFile.tellg() - position;
+
+      // End of file
+      if(readSuccessfull) {
+         cout << readBytes << " " << runId << " " << maxMemory << endl;
+         // Terminate
+         if(readBytes <= 0)
+            break;
+
+         // Trivial case -- buffer is larger than file
+         if(runId == 0) {
+            sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
+            fstream resultFile(fileName, ios::binary | ios::out);
+            resultFile.write(buffer.begin(), readBytes);
+            return;
+         }
+      }
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
@@ -140,7 +160,7 @@ void complexSortImpl(const string& fileName, uint64_t maxMemory, uint64_t pageSi
 
    if(showPerformance) {
       cout << "run count: " << initialRunCount << endl;
-      cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << " ms" << endl;
+      cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms (" << ioTime/1000 << ")" << endl;
       cout << "merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << " ms" << endl;
    }
 }

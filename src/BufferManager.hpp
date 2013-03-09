@@ -29,6 +29,11 @@ public:
       return dbiu::make_unique<Page<T>>(buffer.data() + (id * pageSize), pageSize);
    }
 
+   uint64_t size() const
+   {
+      return buffer.size();
+   }
+
 private:
    std::vector<char> buffer;
    uint64_t pageSize;

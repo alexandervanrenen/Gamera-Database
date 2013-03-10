@@ -58,18 +58,20 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 {
    // Phase I: Create runs
    uint64_t ioTime = 0;
-   fstream originalFile(inputFileName, ios::binary | ios::out | ios::in);
+   string runFileName = outputFileName + "run";
+   fstream inputFile(inputFileName, ios::binary | ios::in);
+   fstream outputFile(runFileName, ios::binary | ios::out);
    for (uint64_t runId=0; true; runId++) {
       // Read data
-      int64_t position = originalFile.tellg();
+      int64_t position = inputFile.tellg();
       auto start = chrono::high_resolution_clock::now();
-      originalFile.read(buffer.begin(), buffer.size());
-      originalFile.peek(); // Detect end of file
-      bool readSuccessfull = originalFile.eof();
+      inputFile.read(buffer.begin(), buffer.size());
+      inputFile.peek(); // Detect end of file
+      bool readSuccessfull = inputFile.eof();
       auto end = chrono::high_resolution_clock::now();
       ioTime += chrono::duration_cast<chrono::nanoseconds>(end-start).count();
-      originalFile.clear();
-      int64_t readBytes = originalFile.tellg() - position;
+      inputFile.clear();
+      int64_t readBytes = inputFile.tellg() - position;
 
       // End of file
       if(readSuccessfull) {
@@ -80,7 +82,7 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
             resultFile.write(buffer.begin(), readBytes);
             return;
          }
-         
+
          // Terminate
          if(readBytes <= 0)
             break;
@@ -88,11 +90,9 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
-      auto runFileName = outputFileName + to_string(runId);
-      fstream runFile(runFileName, ios::binary | ios::out);
-      runFile.write(buffer.begin(), readBytes);
-      auto run = dbiu::make_unique<Run<T>>(0, readBytes, runFileName);
+      auto run = dbiu::make_unique<Run<T>>(outputFile.tellg(), readBytes, runFileName);
       runs.push_back(move(run));
+      outputFile.write(buffer.begin(), readBytes);
    }
 }
 

@@ -32,7 +32,7 @@ public:
       // Remove
       T value = data[minIndex]->getNext();
       if (!data[minIndex]->hasNext()) {
-         remove(data[minIndex]->getFileName().c_str());
+         // remove(data[minIndex]->getFileName().c_str());
          data.erase(data.begin() + minIndex);
       }
 

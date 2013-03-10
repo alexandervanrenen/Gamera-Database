@@ -97,34 +97,55 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 }
 
 template<class T>
-void mergeRuns(const string& fileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs, uint64_t availablePages)
+void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, list<unique_ptr<Run<T>>>& ouputRuns, const std::string& outputFileName, uint32_t availablePages)
 {
-   while (runs.size() > 1) {
-      // Select runs for this merge phase
-      RunHeap<T> runHeap;
-      uint64_t totalBytes = 0;
-      for (uint64_t i = 0; i < availablePages - 1 && !runs.empty(); i++) {
-         auto run = move(runs.front());
-         runs.pop_front();
-         run->assignPage(buffer.getPage(i));
-         run->prepareForReading();
-         totalBytes += run->size();
-         runHeap.push(move(run));
+   RunHeap<T> runHeap;
+   uint64_t totalBytes = 0;
+   for (uint64_t i = 0; i < availablePages - 1 && !inputRuns.empty(); i++) {
+      auto run = move(inputRuns.front());
+      inputRuns.pop_front();
+      run->assignPage(buffer.getPage(i));
+      run->prepareForReading();
+      totalBytes += run->size();
+      runHeap.push(move(run));
+   }
+
+   // Set up output stream
+   auto targetRun = dbiu::make_unique<Run<T>>(0, totalBytes, outputFileName);
+   targetRun->assignPage(buffer.getPage(availablePages - 1));
+   targetRun->prepareForWriting();
+
+   // Merge selected inputRuns
+   while(runHeap.hasMore())
+      targetRun->add(runHeap.getMin());
+
+   // Add target run back to all inputRuns
+   targetRun->flush();
+   ouputRuns.push_back(move(targetRun));
+}
+
+template<class T>
+void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs, uint64_t availablePages)
+{
+   int fileIndex = 0;
+   while(!runs.empty()) {
+      // Find nice merge strategy
+      uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));
+      uint32_t openSlots = (availablePages-1) - (runs.size() % (availablePages-1));
+      if(minimalNumberOfMerges <= openSlots) {
+         // We can finish in this merge
+         list<unique_ptr<Run<T>>> nextLevelRuns;
+         while(runs.size() >= (availablePages-1))
+            singleMergePhase(buffer, runs, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+         singleMergePhase(buffer, runs, nextLevelRuns, outputFileName, availablePages);
+         runs.clear();
+      } else {
+         // Just create the next level
+         list<unique_ptr<Run<T>>> nextLevelRuns;
+         while(!runs.empty())
+            singleMergePhase(buffer, runs, nextLevelRuns, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+         runs = move(nextLevelRuns);
       }
-
-      // Set up output stream
-      auto targetFileName = fileName + ((runs.size()==0) ? "" : "_merge_" + to_string(runs.size()));
-      auto targetRun = dbiu::make_unique<Run<T>>(0, totalBytes, targetFileName);
-      targetRun->assignPage(buffer.getPage(availablePages - 1));
-      targetRun->prepareForWriting();
-
-      // Merge selected runs
-      while(runHeap.hasMore())
-         targetRun->add(runHeap.getMin());
-
-      // Add target run back to all runs
-      targetRun->flush();
-      runs.push_back(move(targetRun));
    }
 }
 

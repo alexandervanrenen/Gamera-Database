@@ -28,6 +28,14 @@ tester: $(src_obj) $(utility_lib)
 	./bin/tester
 
 # ===============================================
+#   performance collector
+# ===============================================
+
+perf: $(src_obj) $(utility_lib)
+	$(comp) -o $(buildDir)$@ test/perf.cpp $(src_obj) $(lf) -lgtest $(utility_lib)
+	./bin/perf
+
+# ===============================================
 #   build individual files
 # ===============================================
 

@@ -80,3 +80,7 @@ TEST(ExternalSort, ComplexBig_512_Pages) {
 TEST(ExternalSort, ComplexBig_1024_Pages) {
    runComplexSort(1<<size, 1024, 1024*1024, showPerformance);
 }
+
+TEST(ExternalSort, ComplexBig_large) {
+   runComplexSort(1<<20, 256, 1024, showPerformance);
+}

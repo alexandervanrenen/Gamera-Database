@@ -44,6 +44,11 @@ public:
 		return !data.empty();
 	}
 
+	uint32_t size()
+	{
+		return data.size();
+	}
+
 private:
 	std::vector<std::unique_ptr<Run<T>>> data;
 };

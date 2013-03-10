@@ -152,9 +152,10 @@ void complexSortImpl(const string& inputFileName, const string& outputFileName, 
    auto endMergePhase = chrono::high_resolution_clock::now();
 
    if(showPerformance) {
-      cout << "run count: " << initialRunCount << endl;
-      cout << "run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms"  << endl;
-      cout << "merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << "ms" << endl;
+      cout << "Run count: " << initialRunCount << endl;
+      cout << "Run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms"  << endl;
+      cout << "Merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << "ms" << endl;
+      cout << "Both phases: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startRunPhase).count() << "ms" << endl;
    }
 }
 

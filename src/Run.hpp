@@ -51,6 +51,7 @@ struct Run {
    {
       if (positionInPage != 0)
          writePage();
+      file = nullptr;
    }
 
    void prepareForReading()

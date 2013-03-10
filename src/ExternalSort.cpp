@@ -2,6 +2,7 @@
 #include "Page.hpp"
 #include "BufferManager.hpp"
 #include "Run.hpp"
+#include "RunHeap.hpp"
 #include "util/Utility.hpp"
 #include <stdio.h>
 #include <fstream>
@@ -100,7 +101,7 @@ void mergeRuns(const string& fileName, BufferManager<T>& buffer, list<unique_ptr
 {
    while (runs.size() > 1) {
       // Select runs for this merge phase
-      vector<unique_ptr<Run<T>>> workRuns;
+      RunHeap<T> runHeap;
       uint64_t totalBytes = 0;
       for (uint64_t i = 0; i < availablePages - 1 && !runs.empty(); i++) {
          auto run = move(runs.front());
@@ -108,7 +109,7 @@ void mergeRuns(const string& fileName, BufferManager<T>& buffer, list<unique_ptr
          run->assignPage(buffer.getPage(i));
          run->prepareForReading();
          totalBytes += run->size();
-         workRuns.push_back(move(run));
+         runHeap.push(move(run));
       }
 
       // Set up output stream
@@ -118,27 +119,10 @@ void mergeRuns(const string& fileName, BufferManager<T>& buffer, list<unique_ptr
       targetRun->prepareForWriting();
 
       // Merge selected runs
-      while(!workRuns.empty()) {
-         // Find run with min value -- using linear search (faster till at least 1024 entries)
-         T minValue = workRuns[0]->peekNext();
-         uint64_t minIndex = 0;
-         for (uint64_t i = 1; i < workRuns.size(); i++) {
-            if (workRuns[i]->peekNext() < minValue) {
-               minValue = workRuns[i]->peekNext();
-               minIndex = i;
-            }
-         }
+      while(runHeap.hasMore())
+         targetRun->add(runHeap.getMin());
 
-         // Remove
-         T value = workRuns[minIndex]->getNext();
-         if (!workRuns[minIndex]->hasNext()) {
-            remove(workRuns[minIndex]->getFileName().c_str());
-            workRuns.erase(workRuns.begin() + minIndex);
-         }
-
-         // Add to result
-         targetRun->add(value);
-      }
+      // Add target run back to all runs
       targetRun->flush();
       runs.push_back(move(targetRun));
    }

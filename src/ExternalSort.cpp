@@ -5,6 +5,7 @@
 #include "OutputRun.hpp"
 #include "RunHeap.hpp"
 #include "util/Utility.hpp"
+#include "FileNameProvider.hpp"
 #include <array>
 #include <stdio.h>
 #include <fstream>
@@ -124,33 +125,10 @@ void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputR
    targetRun.flush();
 }
 
-class RunName {
-public:
-   RunName(const std::string& nameBase)
-   {
-      for(auto& iter : names)
-         iter = nameBase + iter;
-   }
-
-   const string& getNext() {
-      id = (id+1) % names.size();
-      return names[id];
-   }
-
-   void removeAll() {
-      for(auto& iter : names)
-         remove(iter.c_str());
-   }
-
-private:
-   uint8_t id = 0;
-   array<string, 2> names {{"yin", "yang"}};
-};
-
 template<class T>
 void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs, uint64_t availablePages)
 {
-   RunName runName(outputFileName);
+   FileNameProvider runName(outputFileName);
    while(!runs.empty()) {
       // Find nice merge strategy
       uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));

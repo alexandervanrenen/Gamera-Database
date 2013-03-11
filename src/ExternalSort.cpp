@@ -17,49 +17,50 @@
 #include <chrono>
 #include <set>
 #include <queue>
+#include <algorithm>
 
 namespace dbi {
 
 using namespace std;
 
-ExternalSort::ExternalSort()
+ExternalSort::ExternalSort(const string& inputFileName, const string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance)
+: inputFileName(inputFileName)
+, outputFileName(outputFileName)
+, availablePages(maxMemory / pageSize)
+, showPerformance(showPerformance)
+, buffer(maxMemory, pageSize)
 {
+   // Check input
+   assert(maxMemory % pageSize == 0);
+   assert(maxMemory >= 3*pageSize);
 }
 
-template<class T>
-void simpleSortImpl(const string& inputFileName, const string& outputFileName)
-{
-   // Open file
-   ifstream in(inputFileName, ios::binary);
-   if (!in.is_open() || !in.good())
-      throw;
-
-   // Figure out file length and entry count
-   in.seekg(0, ios::end);
-   uint64_t fileLength = static_cast<uint64_t>(in.tellg());
-   in.seekg(0, ios::beg);
-   if (fileLength % sizeof(T) != 0)
-      throw;
-   uint64_t entryCount = fileLength / sizeof(T);
-
-   // Read into buffer
-   vector<T> buffer(entryCount);
-   in.read(reinterpret_cast<char*>(buffer.data()), fileLength);
-
-   // Sort
-   sort(buffer.begin(), buffer.end());
-
-   // Open output and write data
-   ofstream out(outputFileName, ios::binary);
-   if (!out.is_open() || !out.good())
-      throw;
-   out.write(reinterpret_cast<char*>(buffer.data()), fileLength);
-}
-
-template<class T>
-void createRunsPhase(const string& inputFileName, const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs)
+void ExternalSort::run()
 {
    // Phase I: Create runs
+   auto startRunPhase = chrono::high_resolution_clock::now();
+   auto runs = createRunsPhase();
+   uint64_t initialRunCount = runs.size();
+   auto endRunPhase = chrono::high_resolution_clock::now();
+
+   // Phase II: Merge runs
+   auto startMergePhase = chrono::high_resolution_clock::now();
+   mergeRuns(runs);
+   auto endMergePhase = chrono::high_resolution_clock::now();
+
+   // Phase A: Show Performance
+   if(showPerformance) {
+      cout << "Run count: " << initialRunCount << endl;
+      cout << "Run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms"  << endl;
+      cout << "Merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << "ms" << endl;
+      cout << "Both phases: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startRunPhase).count() << "ms" << endl;
+   }
+}
+
+list<unique_ptr<Run<uint64_t>>> ExternalSort::createRunsPhase()
+{
+   // Phase I: Create runs
+   list<unique_ptr<Run<uint64_t>>> runs;
    uint64_t ioTime = 0;
    string runFileName = outputFileName + "yin";
    fstream inputFile(inputFileName, ios::binary | ios::in);
@@ -80,10 +81,10 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
       if(readSuccessfull) {
          // Trivial case -- buffer is larger than file
          if(runId == 0) {
-            sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
+            sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(uint64_t));
             fstream resultFile(outputFileName, ios::binary | ios::out);
             resultFile.write(buffer.begin(), readBytes);
-            return;
+            return runs;
          }
 
          // Terminate
@@ -92,17 +93,17 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
       }
 
       // Sort and write
-      sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(T));
-      auto run = dbiu::make_unique<Run<T>>(outputFile.tellg(), readBytes, runFileName);
+      sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(uint64_t));
+      auto run = dbiu::make_unique<Run<uint64_t>>(outputFile.tellg(), readBytes, runFileName);
       runs.push_back(move(run));
       outputFile.write(buffer.begin(), readBytes);
    }
+      return runs;
 }
 
-template<class T>
-void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, uint32_t numJoins, OutputRun<T>& targetRun)
+void ExternalSort::singleMergePhase(list<unique_ptr<Run<uint64_t>>>& inputRuns, uint32_t numJoins, OutputRun<uint64_t>& targetRun)
 {
-   RunHeap<T> runHeap;
+   RunHeap<uint64_t> runHeap;
    uint64_t totalBytes = 0;
    for (uint64_t i = 0; i < numJoins && !inputRuns.empty(); i++) {
       auto run = move(inputRuns.front());
@@ -125,8 +126,7 @@ void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputR
    targetRun.flush();
 }
 
-template<class T>
-void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs, uint64_t availablePages)
+void ExternalSort::mergeRuns(list<unique_ptr<Run<uint64_t>>>& runs)
 {
    FileNameProvider runName(outputFileName);
    while(!runs.empty()) {
@@ -137,29 +137,29 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
          // Postpone as much work as possible
          unusedSlots -= minimalNumberOfMerges;
          string fileName = runName.getNext();
-         OutputRun<T> targetRun1(fileName, true);
-         singleMergePhase(buffer, runs, (availablePages-1)-unusedSlots, targetRun1);
+         OutputRun<uint64_t> targetRun1(fileName, true);
+         singleMergePhase(runs, (availablePages-1)-unusedSlots, targetRun1);
          runs.push_back(targetRun1.createRun());
 
          // We can finish in this merge
-         list<unique_ptr<Run<T>>> nextLevelRuns;
+         list<unique_ptr<Run<uint64_t>>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
-            OutputRun<T> targetRun(fileName, true);
-            singleMergePhase(buffer, runs, (availablePages-1), targetRun);
+            OutputRun<uint64_t> targetRun(fileName, true);
+            singleMergePhase(runs, (availablePages-1), targetRun);
             runs.push_back(targetRun.createRun());
          }
 
          // Final merge pass
-         OutputRun<T> targetRun2(outputFileName, false);
-         singleMergePhase(buffer, runs, (availablePages-1), targetRun2);
+         OutputRun<uint64_t> targetRun2(outputFileName, false);
+         singleMergePhase(runs, (availablePages-1), targetRun2);
          runs.clear();
       } else {
          // Just create the next level
-         list<unique_ptr<Run<T>>> nextLevelRuns;
+         list<unique_ptr<Run<uint64_t>>> nextLevelRuns;
          string fileName = runName.getNext();
          while(!runs.empty()) {
-            OutputRun<T> targetRun(fileName, true);
-            singleMergePhase(buffer, runs, (availablePages-1), targetRun);
+            OutputRun<uint64_t> targetRun(fileName, true);
+            singleMergePhase(runs, (availablePages-1), targetRun);
             nextLevelRuns.push_back(targetRun.createRun());
          }
          runs = move(nextLevelRuns);
@@ -168,47 +168,6 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
 
    // Clean up temp files
    runName.removeAll();
-}
-
-template<class T>
-void complexSortImpl(const string& inputFileName, const string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance)
-{
-   // Check input and calculate constants
-   assert(maxMemory % pageSize == 0);
-   assert(maxMemory > 2*pageSize);
-   const uint64_t availablePages = maxMemory / pageSize;
-
-   // Set up buffers
-   BufferManager<T> buffer(maxMemory, pageSize);
-   list<unique_ptr<Run<T>>> runs;
-
-   // Phase I: Create runs
-   auto startRunPhase = chrono::high_resolution_clock::now();
-   createRunsPhase(inputFileName, outputFileName, buffer, runs);
-   uint64_t initialRunCount = runs.size();
-   auto endRunPhase = chrono::high_resolution_clock::now();
-
-   // Phase II: Merge runs
-   auto startMergePhase = chrono::high_resolution_clock::now();
-   mergeRuns(outputFileName, buffer, runs, availablePages);
-   auto endMergePhase = chrono::high_resolution_clock::now();
-
-   if(showPerformance) {
-      cout << "Run count: " << initialRunCount << endl;
-      cout << "Run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms"  << endl;
-      cout << "Merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << "ms" << endl;
-      cout << "Both phases: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startRunPhase).count() << "ms" << endl;
-   }
-}
-
-void ExternalSort::simpleSort(const string& inputFileName, const string& outputFileName)
-{
-   simpleSortImpl<uint64_t>(inputFileName, outputFileName);
-}
-
-void ExternalSort::complexSort(const string& inputFileName, const string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance)
-{
-   complexSortImpl<uint64_t>(inputFileName, outputFileName, pageSize, maxMemory, showPerformance);
 }
 
 }

@@ -6,6 +6,8 @@
 #include <memory>
 #include <cassert>
 
+namespace dbi {
+
 /// Fast RunHeap -- keeps track of the run with minimal next value
 template<class T>
 class RunHeap {
@@ -50,5 +52,7 @@ public:
 private:
 	std::vector<std::unique_ptr<Run<T>>> data;
 };
+
+}
 
 #endif

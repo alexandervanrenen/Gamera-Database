@@ -3,26 +3,11 @@
 #include <cstdio>
 #include <iostream>
 
-TEST(ExternalSort, Simple) {
-   EXPECT_TRUE(dbiu::createTestFile("bin/externalsortinput", 1<<10, [&](uint64_t i) {return rand();}));
-   dbi::ExternalSort sorty;
-   sorty.simpleSort("bin/externalsortinput", "bin/externalsortoutput");
-
-   uint64_t last = 0;
-   bool check = true;
-   uint64_t i = 0;
-   EXPECT_TRUE(dbiu::foreachInFile("bin/externalsortoutput", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
-   EXPECT_TRUE(check);
-   EXPECT_EQ(i , 1<<10);
-   remove("bin/externalsortinput");
-   remove("bin/externalsortoutput");
-}
-
 void runComplexSort(uint64_t entriesCount, uint64_t pageSize, uint64_t maxMemory, bool showPerformance = false)
 {
    EXPECT_TRUE(dbiu::createTestFile("bin/datain", entriesCount, [&](uint64_t i) {return rand();}));
-   dbi::ExternalSort sorty;
-   sorty.complexSort("bin/datain", "bin/dataout", pageSize, maxMemory, showPerformance);
+   dbi::ExternalSort sorty("bin/datain", "bin/dataout", pageSize, maxMemory, showPerformance);
+   sorty.run();
 
    uint64_t last = 0;
    bool check = true;

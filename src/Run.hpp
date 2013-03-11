@@ -9,6 +9,8 @@
 #include <memory>
 #include <iostream>
 
+namespace dbi {
+
 template<class T>
 struct Run {
    Run(int64_t start, int64_t bytes, const std::string& fileName)
@@ -88,5 +90,7 @@ private:
       assert(file->good());
    }
 };
+
+}
 
 #endif

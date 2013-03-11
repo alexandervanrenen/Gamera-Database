@@ -1,6 +1,7 @@
 #ifndef __OutputRun
 #define __OutputRun
 
+#include "Run.hpp"
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -8,6 +9,8 @@
 #include <list>
 #include <memory>
 #include <iostream>
+
+namespace dbi {
 
 template<class T>
 struct OutputRun {
@@ -73,5 +76,7 @@ private:
       assert(file->good());
    }
 };
+
+}
 
 #endif

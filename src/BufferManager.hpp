@@ -2,8 +2,11 @@
 #define __BufferManager
 
 #include "util/Utility.hpp"
+#include "Page.hpp"
 #include <cassert>
 #include <vector>
+
+namespace dbi {
 
 template<class T>
 class BufferManager {
@@ -38,5 +41,7 @@ private:
    std::vector<char> buffer;
    uint64_t pageSize;
 };
+
+}
 
 #endif

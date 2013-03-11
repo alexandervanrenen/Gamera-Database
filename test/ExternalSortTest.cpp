@@ -1,6 +1,7 @@
 #include "util/Utility.hpp"
 #include "ExternalSort.hpp"
 #include <cstdio>
+#include <iostream>
 
 TEST(ExternalSort, Simple) {
    EXPECT_TRUE(dbiu::createTestFile("bin/externalsortinput", 1<<10, [&](uint64_t i) {return rand();}));

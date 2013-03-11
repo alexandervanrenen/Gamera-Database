@@ -5,6 +5,7 @@
 #include "OutputRun.hpp"
 #include "RunHeap.hpp"
 #include "util/Utility.hpp"
+#include <array>
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -59,7 +60,7 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 {
    // Phase I: Create runs
    uint64_t ioTime = 0;
-   string runFileName = outputFileName + "run";
+   string runFileName = outputFileName + "yin";
    fstream inputFile(inputFileName, ios::binary | ios::in);
    fstream outputFile(runFileName, ios::binary | ios::out);
    for (uint64_t runId=0; true; runId++) {
@@ -123,10 +124,33 @@ void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputR
    targetRun.flush();
 }
 
+class RunName {
+public:
+   RunName(const std::string& nameBase)
+   {
+      for(auto& iter : names)
+         iter = nameBase + iter;
+   }
+
+   const string& getNext() {
+      id = (id+1) % names.size();
+      return names[id];
+   }
+
+   void removeAll() {
+      for(auto& iter : names)
+         remove(iter.c_str());
+   }
+
+private:
+   uint8_t id = 0;
+   array<string, 2> names {{"yin", "yang"}};
+};
+
 template<class T>
 void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& runs, uint64_t availablePages)
 {
-   int fileIndex = 0;
+   RunName runName(outputFileName);
    while(!runs.empty()) {
       // Find nice merge strategy
       uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));
@@ -134,14 +158,15 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
       if(minimalNumberOfMerges <= unusedSlots) {
          // Postpone as much work as possible
          unusedSlots -= minimalNumberOfMerges;
-         OutputRun<T> targetRun1(outputFileName + "_merge_" + to_string(fileIndex), true);
+         string fileName = runName.getNext();
+         OutputRun<T> targetRun1(fileName, true);
          singleMergePhase(buffer, runs, (availablePages-1)-unusedSlots, targetRun1);
          runs.push_back(targetRun1.createRun());
 
          // We can finish in this merge
          list<unique_ptr<Run<T>>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
-            OutputRun<T> targetRun(outputFileName + "_merge_" + to_string(fileIndex), true);
+            OutputRun<T> targetRun(fileName, true);
             singleMergePhase(buffer, runs, (availablePages-1), targetRun);
             runs.push_back(targetRun.createRun());
          }
@@ -150,22 +175,21 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
          OutputRun<T> targetRun2(outputFileName, false);
          singleMergePhase(buffer, runs, (availablePages-1), targetRun2);
          runs.clear();
-         remove((outputFileName + "_merge_" + to_string(fileIndex)).c_str());
       } else {
          // Just create the next level
          list<unique_ptr<Run<T>>> nextLevelRuns;
-         string fileName = runs.front()->getFileName();
+         string fileName = runName.getNext();
          while(!runs.empty()) {
-            assert(fileName == runs.front()->getFileName());
-            OutputRun<T> targetRun(outputFileName + "_merge_" + to_string(fileIndex), true);
+            OutputRun<T> targetRun(fileName, true);
             singleMergePhase(buffer, runs, (availablePages-1), targetRun);
             nextLevelRuns.push_back(targetRun.createRun());
          }
-         fileIndex++;
          runs = move(nextLevelRuns);
-         remove(fileName.c_str());
       }
    }
+
+   // Clean up temp files
+   runName.removeAll();
 }
 
 template<class T>

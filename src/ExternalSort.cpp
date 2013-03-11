@@ -97,11 +97,11 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 }
 
 template<class T>
-unique_ptr<Run<T>> singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, const std::string& outputFileName, uint32_t availablePages)
+unique_ptr<Run<T>> singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, uint32_t numJoins, const std::string& outputFileName)
 {
    RunHeap<T> runHeap;
    uint64_t totalBytes = 0;
-   for (uint64_t i = 0; i < availablePages - 1 && !inputRuns.empty(); i++) {
+   for (uint64_t i = 0; i < numJoins && !inputRuns.empty(); i++) {
       auto run = move(inputRuns.front());
       inputRuns.pop_front();
       run->assignPage(buffer.getPage(i));
@@ -112,7 +112,7 @@ unique_ptr<Run<T>> singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Ru
 
    // Set up output stream
    auto targetRun = dbiu::make_unique<Run<T>>(0, totalBytes, outputFileName);
-   targetRun->assignPage(buffer.getPage(availablePages - 1));
+   targetRun->assignPage(buffer.getPage(numJoins));
    targetRun->prepareForWriting();
 
    // Merge selected inputRuns
@@ -131,21 +131,28 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
    while(!runs.empty()) {
       // Find nice merge strategy
       uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));
-      uint32_t openSlots = (availablePages-1) - (runs.size() % (availablePages-1));
-      if(minimalNumberOfMerges <= openSlots) {
+      uint32_t unusedSlots = (availablePages-1) - (runs.size() % (availablePages-1));
+      if(minimalNumberOfMerges <= unusedSlots) {
+         // Postpone as much work as possible
+         unusedSlots -= minimalNumberOfMerges;
+         auto result = singleMergePhase(buffer, runs, (availablePages-1)-unusedSlots, outputFileName + "_merge_" + to_string(fileIndex++));
+         runs.push_back(move(result));
+
          // We can finish in this merge
          list<unique_ptr<Run<T>>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
-            auto result = singleMergePhase(buffer, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+            auto result = singleMergePhase(buffer, runs, (availablePages-1), outputFileName + "_merge_" + to_string(fileIndex++));
             runs.push_back(move(result));
          }
-         singleMergePhase(buffer, runs, outputFileName, availablePages);
+
+         // Final merge pass
+         singleMergePhase(buffer, runs, (availablePages-1), outputFileName);
          runs.clear();
       } else {
          // Just create the next level
          list<unique_ptr<Run<T>>> nextLevelRuns;
          while(!runs.empty()) {
-            auto result = singleMergePhase(buffer, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+            auto result = singleMergePhase(buffer, runs, (availablePages-1), outputFileName + "_merge_" + to_string(fileIndex++));
             nextLevelRuns.push_back(move(result));
          }
          runs = move(nextLevelRuns);

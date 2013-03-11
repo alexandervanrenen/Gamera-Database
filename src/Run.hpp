@@ -40,37 +40,13 @@ struct Run {
       return page->get(positionInPage++);
    }
 
-   void add(const T& data)
-   {
-      page->set(positionInPage++, data);
-      if (positionInPage >= page->entryCount())
-         writePage();
-   }
-
-   void flush()
-   {
-      if (positionInPage != 0)
-         writePage();
-      file = nullptr;
-   }
-
    void prepareForReading()
    {
-      file = dbiu::make_unique<std::fstream>(fileName, std::ios::binary | std::ios::in);
+      file = dbiu::make_unique<std::ifstream>(fileName, std::ios::binary | std::ios::in);
       assert(file->is_open() && file->good());
-      positionInFile = start;
-      positionInPage = 0;
-      validEntries = 0;
+      assert(positionInPage == 0);
+      assert(validEntries == 0);
       loadNextPage();
-   }
-
-   void prepareForWriting()
-   {
-      file = dbiu::make_unique<std::fstream>(fileName, std::ios::binary | std::ios::out);
-      assert(file->is_open() && file->good());
-      positionInFile = start;
-      positionInPage = 0;
-      validEntries = 0;
    }
 
    uint64_t size()
@@ -88,7 +64,7 @@ private:
    const int64_t start;
    const int64_t end;
    uint64_t positionInFile;
-   std::unique_ptr<std::fstream> file;
+   std::unique_ptr<std::ifstream> file;
 
    std::unique_ptr<Page<T>> page;
    uint64_t positionInPage;
@@ -108,18 +84,6 @@ private:
       validEntries = validBytes / sizeof(T);
       positionInPage = 0;
       positionInFile += validBytes;
-      assert(file->is_open());
-      assert(file->good());
-   }
-
-   void writePage()
-   {
-      assert(file->is_open());
-      assert(file->good());
-      file->seekg(positionInFile, std::ios::beg);
-      file->write(page->begin(), positionInPage * sizeof(T));
-      positionInFile += positionInPage * sizeof(T);
-      positionInPage = 0;
       assert(file->is_open());
       assert(file->good());
    }

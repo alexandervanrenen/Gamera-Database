@@ -31,10 +31,8 @@ public:
 
       // Remove
       T value = data[minIndex]->getNext();
-      if (!data[minIndex]->hasNext()) {
-         // remove(data[minIndex]->getFileName().c_str());
+      if (!data[minIndex]->hasNext())
          data.erase(data.begin() + minIndex);
-      }
 
       return value;
 	}

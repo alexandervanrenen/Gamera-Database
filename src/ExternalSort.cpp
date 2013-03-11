@@ -97,7 +97,7 @@ void createRunsPhase(const string& inputFileName, const string& outputFileName, 
 }
 
 template<class T>
-void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, list<unique_ptr<Run<T>>>& ouputRuns, const std::string& outputFileName, uint32_t availablePages)
+unique_ptr<Run<T>> singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputRuns, const std::string& outputFileName, uint32_t availablePages)
 {
    RunHeap<T> runHeap;
    uint64_t totalBytes = 0;
@@ -121,7 +121,7 @@ void singleMergePhase(BufferManager<T>& buffer, list<unique_ptr<Run<T>>>& inputR
 
    // Add target run back to all inputRuns
    targetRun->flush();
-   ouputRuns.push_back(move(targetRun));
+   return targetRun;
 }
 
 template<class T>
@@ -135,15 +135,19 @@ void mergeRuns(const string& outputFileName, BufferManager<T>& buffer, list<uniq
       if(minimalNumberOfMerges <= openSlots) {
          // We can finish in this merge
          list<unique_ptr<Run<T>>> nextLevelRuns;
-         while(runs.size() >= (availablePages-1))
-            singleMergePhase(buffer, runs, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
-         singleMergePhase(buffer, runs, nextLevelRuns, outputFileName, availablePages);
+         while(runs.size() >= (availablePages-1)) {
+            auto result = singleMergePhase(buffer, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+            runs.push_back(move(result));
+         }
+         singleMergePhase(buffer, runs, outputFileName, availablePages);
          runs.clear();
       } else {
          // Just create the next level
          list<unique_ptr<Run<T>>> nextLevelRuns;
-         while(!runs.empty())
-            singleMergePhase(buffer, runs, nextLevelRuns, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+         while(!runs.empty()) {
+            auto result = singleMergePhase(buffer, runs, outputFileName + "_merge_" + to_string(fileIndex++), availablePages);
+            nextLevelRuns.push_back(move(result));
+         }
          runs = move(nextLevelRuns);
       }
    }

@@ -1,58 +1,28 @@
 #ifndef __OutputRun
 #define __OutputRun
 
-#include "Run.hpp"
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include <cassert>
-#include <list>
 #include <memory>
-#include <iostream>
+#include <cstdint>
+#include <string>
 
 namespace dbi {
 
-struct OutputRun {
-   OutputRun(const std::string& fileName, bool append)
-   : fileName(fileName), positionInPage(0), validEntries(0), append(append)
-   {
-   }
+class Page;
+class InputRun;
 
-   void assignPage(std::unique_ptr<Page> page)
-   {
-      this->page = std::move(page);
-   }
+class OutputRun {
+public:
+   OutputRun(const std::string& fileName, bool append);
 
-   void add(uint64_t data)
-   {
-      page->set(positionInPage++, data);
-      if (positionInPage >= page->entryCount())
-         writePage();
-   }
+   void assignPage(std::unique_ptr<Page> page);
 
-   void flush()
-   {
-      if (positionInPage != 0)
-         writePage();
-      end = file->tellp();
-      file = nullptr;
-   }
+   void add(uint64_t data);
 
-   void prepareForWriting()
-   {
-      if(append)
-         file = dbiu::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::app); else
-         file = dbiu::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::out);
-      assert(file->is_open() && file->good());
-      start = file->tellp();
-      positionInPage = 0;
-      validEntries = 0;
-   }
+   void flush();
 
-   std::unique_ptr<Run> createRun()
-   {
-   	return dbiu::make_unique<Run>(start, end-start, fileName);
-   }
+   void prepareForWriting();
+
+   std::unique_ptr<InputRun> convertToInputRun();
 
 private:
    const std::string fileName;
@@ -65,15 +35,7 @@ private:
    uint64_t validEntries;
    bool append;
 
-   void writePage()
-   {
-      assert(file->is_open());
-      assert(file->good());
-      file->write(page->begin(), positionInPage * sizeof(uint64_t));
-      positionInPage = 0;
-      assert(file->is_open());
-      assert(file->good());
-   }
+   void writePage();
 };
 
 }

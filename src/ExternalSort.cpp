@@ -1,12 +1,11 @@
 #include "ExternalSort.hpp"
 #include "Page.hpp"
 #include "BufferManager.hpp"
-#include "Run.hpp"
+#include "InputRun.hpp"
 #include "OutputRun.hpp"
 #include "RunHeap.hpp"
 #include "util/Utility.hpp"
 #include "FileNameProvider.hpp"
-#include <array>
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -45,7 +44,7 @@ void ExternalSort::run()
 
    // Phase II: Merge runs
    auto startMergePhase = chrono::high_resolution_clock::now();
-   mergeRuns(runs);
+   mergeRunPhase(runs);
    auto endMergePhase = chrono::high_resolution_clock::now();
 
    // Phase A: Show Performance
@@ -57,10 +56,10 @@ void ExternalSort::run()
    }
 }
 
-list<unique_ptr<Run>> ExternalSort::createRunsPhase()
+list<unique_ptr<InputRun>> ExternalSort::createRunsPhase()
 {
    // Phase I: Create runs
-   list<unique_ptr<Run>> runs;
+   list<unique_ptr<InputRun>> runs;
    uint64_t ioTime = 0;
    string runFileName = outputFileName + "yin";
    fstream inputFile(inputFileName, ios::binary | ios::in);
@@ -94,16 +93,16 @@ list<unique_ptr<Run>> ExternalSort::createRunsPhase()
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(uint64_t));
-      auto run = dbiu::make_unique<Run>(outputFile.tellg(), readBytes, runFileName);
+      auto run = dbiu::make_unique<InputRun>(outputFile.tellg(), readBytes, runFileName);
       runs.push_back(move(run));
       outputFile.write(buffer.begin(), readBytes);
    }
       return runs;
 }
 
-void ExternalSort::singleMergePhase(list<unique_ptr<Run>>& inputRuns, uint32_t numJoins, OutputRun& targetRun)
+void ExternalSort::mergeSingleRun(list<unique_ptr<InputRun>>& inputRuns, uint32_t numJoins, OutputRun& targetRun)
 {
-   RunHeap<uint64_t> runHeap;
+   RunHeap runHeap;
    uint64_t totalBytes = 0;
    for (uint64_t i = 0; i < numJoins && !inputRuns.empty(); i++) {
       auto run = move(inputRuns.front());
@@ -126,7 +125,7 @@ void ExternalSort::singleMergePhase(list<unique_ptr<Run>>& inputRuns, uint32_t n
    targetRun.flush();
 }
 
-void ExternalSort::mergeRuns(list<unique_ptr<Run>>& runs)
+void ExternalSort::mergeRunPhase(list<unique_ptr<InputRun>>& runs)
 {
    FileNameProvider runName(outputFileName);
    while(!runs.empty()) {
@@ -138,29 +137,29 @@ void ExternalSort::mergeRuns(list<unique_ptr<Run>>& runs)
          unusedSlots -= minimalNumberOfMerges;
          string fileName = runName.getNext();
          OutputRun targetRun1(fileName, true);
-         singleMergePhase(runs, (availablePages-1)-unusedSlots, targetRun1);
-         runs.push_back(targetRun1.createRun());
+         mergeSingleRun(runs, (availablePages-1)-unusedSlots, targetRun1);
+         runs.push_back(targetRun1.convertToInputRun());
 
          // We can finish in this merge
-         list<unique_ptr<Run>> nextLevelRuns;
+         list<unique_ptr<InputRun>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
             OutputRun targetRun(fileName, true);
-            singleMergePhase(runs, (availablePages-1), targetRun);
-            runs.push_back(targetRun.createRun());
+            mergeSingleRun(runs, (availablePages-1), targetRun);
+            runs.push_back(targetRun.convertToInputRun());
          }
 
          // Final merge pass
          OutputRun targetRun2(outputFileName, false);
-         singleMergePhase(runs, (availablePages-1), targetRun2);
+         mergeSingleRun(runs, (availablePages-1), targetRun2);
          runs.clear();
       } else {
          // Just create the next level
-         list<unique_ptr<Run>> nextLevelRuns;
+         list<unique_ptr<InputRun>> nextLevelRuns;
          string fileName = runName.getNext();
          while(!runs.empty()) {
             OutputRun targetRun(fileName, true);
-            singleMergePhase(runs, (availablePages-1), targetRun);
-            nextLevelRuns.push_back(targetRun.createRun());
+            mergeSingleRun(runs, (availablePages-1), targetRun);
+            nextLevelRuns.push_back(targetRun.convertToInputRun());
          }
          runs = move(nextLevelRuns);
       }

@@ -8,6 +8,8 @@
 #include <list>
 #include <memory>
 
+namespace dbi {
+
 struct Page {
    Page(char* memory, uint64_t pageSize)
    : memory(memory), pageSize(pageSize)
@@ -47,5 +49,7 @@ private:
    char* memory;
    uint64_t pageSize;
 };
+
+}
 
 #endif

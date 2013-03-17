@@ -1,4 +1,6 @@
-src_files := src/ExternalSort.o
+src_files :=    src/ExternalSort.o  \
+                src/InputRun.o           \
+                src/OutputRun.o
 
 -include src/util/LocalMakefile
 

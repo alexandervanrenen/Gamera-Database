@@ -1,7 +1,7 @@
 #ifndef __MinHeap
 #define __MinHeap
 
-#include "Run.hpp"
+#include "InputRun.hpp"
 #include <vector>
 #include <memory>
 #include <cassert>
@@ -9,20 +9,19 @@
 namespace dbi {
 
 /// Fast RunHeap -- keeps track of the run with minimal next value
-template<class T>
 class RunHeap {
 public:
 	RunHeap()
 	{
 	}
 
-	void push(std::unique_ptr<Run> run)
+	void push(std::unique_ptr<InputRun> run)
 	{
 		// Just add
 		data.push_back(move(run));
 	}
 
-	T getMin()
+	uint64_t getMin()
 	{
 		// Locate
 		assert(hasMore());
@@ -32,7 +31,7 @@ public:
 				minIndex = i;
 
       // Remove
-      T value = data[minIndex]->getNext();
+      uint64_t value = data[minIndex]->getNext();
       if (!data[minIndex]->hasNext())
          data.erase(data.begin() + minIndex);
 
@@ -50,7 +49,7 @@ public:
 	}
 
 private:
-	std::vector<std::unique_ptr<Run>> data;
+	std::vector<std::unique_ptr<InputRun>> data;
 };
 
 }

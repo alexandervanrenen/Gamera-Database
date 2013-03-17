@@ -2,14 +2,15 @@
 #define __ExternalSort
 
 #include "BufferManager.hpp"
-#include "Run.hpp"
-#include "OutputRun.hpp"
 #include <string>
 #include <list>
 #include <stdint.h>
 #include <memory>
 
 namespace dbi {
+
+class InputRun;
+class OutputRun;
 
 class ExternalSort {
 public:
@@ -18,6 +19,7 @@ public:
 
    /// Start the sort
    void run();
+
 private:
 	const std::string inputFileName;
 	const std::string outputFileName;
@@ -26,9 +28,9 @@ private:
    BufferManager buffer;
 
    /// Divide and conquer the algorithm !!!!
-   std::list<std::unique_ptr<Run>> createRunsPhase();
-   void mergeRuns(std::list<std::unique_ptr<Run>>& runs);
-   void singleMergePhase(std::list<std::unique_ptr<Run>>& inputRuns, uint32_t numJoins, OutputRun& targetRun);
+   std::list<std::unique_ptr<InputRun>> createRunsPhase();
+   void mergeRunPhase(std::list<std::unique_ptr<InputRun>>& runs);
+   void mergeSingleRun(std::list<std::unique_ptr<InputRun>>& inputRuns, uint32_t numJoins, OutputRun& targetRun);
 };
 
 }

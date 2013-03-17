@@ -5,7 +5,7 @@
 
 void runComplexSort(uint64_t entriesCount, uint64_t pageSize, uint64_t maxMemory, bool showPerformance = false)
 {
-   EXPECT_TRUE(dbiu::createTestFile("bin/datain", entriesCount, [&](uint64_t i) {return rand();}));
+   EXPECT_TRUE(dbiu::createTestFile("bin/datain", entriesCount, [&](uint64_t) {return rand();}));
    dbi::ExternalSort sorty("bin/datain", "bin/dataout", pageSize, maxMemory, showPerformance);
    sorty.run();
 

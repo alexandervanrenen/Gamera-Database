@@ -1,52 +1,55 @@
 all: tester
 
-buildDir:= bin/
+objDir:= bin/
 srcDir:= src/
-testDir:= test/
 
-utility_inc:= -I../utility/include
-utility_lib:= ../utility/libgda.a
+-include config.local
 
-cf :=-g3 -O0 -Werror -Wall -Wextra -Wuninitialized --std=c++11 $(utility_inc) -I./src
-lf :=-g3 -O0 --std=c++0x -lpthread -I./src $(utility_inc)
+CXX ?= g++
+cf = -Werror -Wall -Wextra -Wuninitialized --std=c++0x -g0 -O3 -I./src -I./libs/gtest/include 
+lf = -g0 -O3 --std=c++0x -I./src -I./libs/gtest/include
+build_dir = @mkdir -p $(dir $@)
 
-ccache_use?= ccache
-comp?= g++
-comp:= $(ccache_use) $(comp)
-
-buidl_folger=@mkdir -p $(dir $@)
-
-# ===============================================
-#   tester
-# ===============================================
+# Fix for clang
+ifeq (ccache clang,$(filter $(CXX),ccache clang))
+	cf += -Qunused-arguments -fcolor-diagnostics
+	lf += -libstd=libc++
+endif
 
 -include src/LocalMakefile
-src_obj:= $(addprefix $(buildDir),$(src_files))
+obj_files := $(addprefix $(objDir),$(src_files))
 
-tester: $(src_obj) $(utility_lib)
-	$(comp) -o $(buildDir)$@ test/tester.cpp $(src_obj) $(lf) -lgtest $(utility_lib)
-	./bin/tester
+tester: libs/gtest $(obj_files) bin/test/tester.o
+	$(CXX) -o $@ bin/test/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
 
-# ===============================================
-#   performance collector
-# ===============================================
+$(objDir)%.o: %.cpp
+	$(build_dir)
+	$(CXX) -MD -c -o $@ $< $(cf)
+	@cp $(objDir)$*.d $(objDir)$*.P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+			-e '/^$$/ d' -e 's/$$/ :/' < $(objDir)$*.d >> $(objDir)$*.P; \
+		rm -f $(objDir)$*.d
 
-perf: $(src_obj) $(utility_lib)
-	$(comp) -o $(buildDir)$@ test/perf.cpp $(src_obj) $(lf) -lgtest $(utility_lib)
-	./bin/perf
+-include $(objDir)*.P
+-include $(objDir)*/*.P
 
-# ===============================================
-#   build individual files
-# ===============================================
-
-$(buildDir)%o: $(srcDir)%cpp $(srcDir)%hpp
-	$(buidl_folger)
-	$(comp) -c -o $@ $< $(cf)
-
-# ====================================
-#   clean up command
-# ====================================
+libs/gtest:
+	$(build_dir)
+	cd libs/ ;\
+	wget -O gtest-1.6.0.zip https://googletest.googlecode.com/files/gtest-1.6.0.zip ;\
+	unzip -q gtest-1.6.0.zip ;\
+	cd gtest-1.6.0 ;\
+	mkdir -p build ;\
+	cd build ;\
+	cmake -G"Unix Makefiles" .. ;\
+	make ;\
+	ar -r libgtest.a libgtest_main.a
+	mkdir -p libs/gtest/include
+	mv libs/gtest-1.6.0/include/gtest/* libs/gtest/include
+	mv libs/gtest-1.6.0/build/libgtest.a libs/gtest/
+	rm libs/gtest-1.6.0.zip
+	rm -rf libs/gtest-1.6.0
 
 clean:
-	rm $(buildDir) -rf && find . -maxdepth 1 -name 'tester' -delete
-
+	rm $(objDir) -rf
+	find . -name "tester" -type f -delete

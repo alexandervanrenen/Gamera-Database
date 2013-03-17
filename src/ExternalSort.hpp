@@ -23,12 +23,12 @@ private:
 	const std::string outputFileName;
 	const uint64_t availablePages;
 	const bool showPerformance;
-   BufferManager<uint64_t> buffer;
+   BufferManager buffer;
 
    /// Divide and conquer the algorithm !!!!
-   std::list<std::unique_ptr<Run<uint64_t>>> createRunsPhase();
-   void mergeRuns(std::list<std::unique_ptr<Run<uint64_t>>>& runs);
-   void singleMergePhase(std::list<std::unique_ptr<Run<uint64_t>>>& inputRuns, uint32_t numJoins, OutputRun<uint64_t>& targetRun);
+   std::list<std::unique_ptr<Run>> createRunsPhase();
+   void mergeRuns(std::list<std::unique_ptr<Run>>& runs);
+   void singleMergePhase(std::list<std::unique_ptr<Run>>& inputRuns, uint32_t numJoins, OutputRun& targetRun);
 };
 
 }

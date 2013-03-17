@@ -8,25 +8,24 @@
 #include <list>
 #include <memory>
 
-template<class T>
 struct Page {
    Page(char* memory, uint64_t pageSize)
    : memory(memory), pageSize(pageSize)
    {
-      assert(pageSize % sizeof(T) == 0);
+      assert(pageSize % sizeof(uint64_t) == 0);
       assert(pageSize != 0);
    }
 
-   T get(uint64_t id) const
+   uint64_t get(uint64_t id) const
    {
-      assert(id*sizeof(T) < pageSize);
-      return *reinterpret_cast<T*>(memory + (id * sizeof(T)));
+      assert(id*sizeof(uint64_t) < pageSize);
+      return *reinterpret_cast<uint64_t*>(memory + (id * sizeof(uint64_t)));
    }
 
-   void set(uint64_t id, const T& value)
+   void set(uint64_t id, uint64_t value)
    {
-      assert(id*sizeof(T) < pageSize);
-      *reinterpret_cast<T*>(memory + (id * sizeof(T))) = value;
+      assert(id*sizeof(uint64_t) < pageSize);
+      *reinterpret_cast<uint64_t*>(memory + (id * sizeof(uint64_t))) = value;
    }
 
    char* begin()
@@ -41,7 +40,7 @@ struct Page {
 
    uint64_t entryCount()
    {
-      return pageSize / sizeof(T);
+      return pageSize / sizeof(uint64_t);
    }
 
 private:

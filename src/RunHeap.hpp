@@ -16,7 +16,7 @@ public:
 	{
 	}
 
-	void push(std::unique_ptr<Run<T>> run)
+	void push(std::unique_ptr<Run> run)
 	{
 		// Just add
 		data.push_back(move(run));
@@ -50,7 +50,7 @@ public:
 	}
 
 private:
-	std::vector<std::unique_ptr<Run<T>>> data;
+	std::vector<std::unique_ptr<Run>> data;
 };
 
 }

@@ -57,10 +57,10 @@ void ExternalSort::run()
    }
 }
 
-list<unique_ptr<Run<uint64_t>>> ExternalSort::createRunsPhase()
+list<unique_ptr<Run>> ExternalSort::createRunsPhase()
 {
    // Phase I: Create runs
-   list<unique_ptr<Run<uint64_t>>> runs;
+   list<unique_ptr<Run>> runs;
    uint64_t ioTime = 0;
    string runFileName = outputFileName + "yin";
    fstream inputFile(inputFileName, ios::binary | ios::in);
@@ -94,14 +94,14 @@ list<unique_ptr<Run<uint64_t>>> ExternalSort::createRunsPhase()
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(uint64_t));
-      auto run = dbiu::make_unique<Run<uint64_t>>(outputFile.tellg(), readBytes, runFileName);
+      auto run = dbiu::make_unique<Run>(outputFile.tellg(), readBytes, runFileName);
       runs.push_back(move(run));
       outputFile.write(buffer.begin(), readBytes);
    }
       return runs;
 }
 
-void ExternalSort::singleMergePhase(list<unique_ptr<Run<uint64_t>>>& inputRuns, uint32_t numJoins, OutputRun<uint64_t>& targetRun)
+void ExternalSort::singleMergePhase(list<unique_ptr<Run>>& inputRuns, uint32_t numJoins, OutputRun& targetRun)
 {
    RunHeap<uint64_t> runHeap;
    uint64_t totalBytes = 0;
@@ -126,7 +126,7 @@ void ExternalSort::singleMergePhase(list<unique_ptr<Run<uint64_t>>>& inputRuns, 
    targetRun.flush();
 }
 
-void ExternalSort::mergeRuns(list<unique_ptr<Run<uint64_t>>>& runs)
+void ExternalSort::mergeRuns(list<unique_ptr<Run>>& runs)
 {
    FileNameProvider runName(outputFileName);
    while(!runs.empty()) {
@@ -137,28 +137,28 @@ void ExternalSort::mergeRuns(list<unique_ptr<Run<uint64_t>>>& runs)
          // Postpone as much work as possible
          unusedSlots -= minimalNumberOfMerges;
          string fileName = runName.getNext();
-         OutputRun<uint64_t> targetRun1(fileName, true);
+         OutputRun targetRun1(fileName, true);
          singleMergePhase(runs, (availablePages-1)-unusedSlots, targetRun1);
          runs.push_back(targetRun1.createRun());
 
          // We can finish in this merge
-         list<unique_ptr<Run<uint64_t>>> nextLevelRuns;
+         list<unique_ptr<Run>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
-            OutputRun<uint64_t> targetRun(fileName, true);
+            OutputRun targetRun(fileName, true);
             singleMergePhase(runs, (availablePages-1), targetRun);
             runs.push_back(targetRun.createRun());
          }
 
          // Final merge pass
-         OutputRun<uint64_t> targetRun2(outputFileName, false);
+         OutputRun targetRun2(outputFileName, false);
          singleMergePhase(runs, (availablePages-1), targetRun2);
          runs.clear();
       } else {
          // Just create the next level
-         list<unique_ptr<Run<uint64_t>>> nextLevelRuns;
+         list<unique_ptr<Run>> nextLevelRuns;
          string fileName = runName.getNext();
          while(!runs.empty()) {
-            OutputRun<uint64_t> targetRun(fileName, true);
+            OutputRun targetRun(fileName, true);
             singleMergePhase(runs, (availablePages-1), targetRun);
             nextLevelRuns.push_back(targetRun.createRun());
          }

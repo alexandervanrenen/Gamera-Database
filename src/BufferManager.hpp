@@ -8,7 +8,6 @@
 
 namespace dbi {
 
-template<class T>
 class BufferManager {
 public:
    BufferManager(uint64_t size, uint64_t pageSize)
@@ -26,10 +25,10 @@ public:
       return buffer.data() + buffer.size();
    }
 
-   std::unique_ptr<Page<T>> getPage(uint64_t id)
+   std::unique_ptr<Page> getPage(uint64_t id)
    {
       assert(id * pageSize < buffer.size());
-      return dbiu::make_unique<Page<T>>(buffer.data() + (id * pageSize), pageSize);
+      return dbiu::make_unique<Page>(buffer.data() + (id * pageSize), pageSize);
    }
 
    uint64_t size() const

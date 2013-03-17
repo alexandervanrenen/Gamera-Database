@@ -12,19 +12,18 @@
 
 namespace dbi {
 
-template<class T>
 struct OutputRun {
    OutputRun(const std::string& fileName, bool append)
    : fileName(fileName), positionInPage(0), validEntries(0), append(append)
    {
    }
 
-   void assignPage(std::unique_ptr<Page<T>> page)
+   void assignPage(std::unique_ptr<Page> page)
    {
       this->page = std::move(page);
    }
 
-   void add(const T& data)
+   void add(uint64_t data)
    {
       page->set(positionInPage++, data);
       if (positionInPage >= page->entryCount())
@@ -50,9 +49,9 @@ struct OutputRun {
       validEntries = 0;
    }
 
-   std::unique_ptr<Run<T>> createRun()
+   std::unique_ptr<Run> createRun()
    {
-   	return dbiu::make_unique<Run<T>>(start, end-start, fileName);
+   	return dbiu::make_unique<Run>(start, end-start, fileName);
    }
 
 private:
@@ -61,7 +60,7 @@ private:
    uint64_t start;
    uint64_t end;
 
-   std::unique_ptr<Page<T>> page;
+   std::unique_ptr<Page> page;
    uint64_t positionInPage;
    uint64_t validEntries;
    bool append;
@@ -70,7 +69,7 @@ private:
    {
       assert(file->is_open());
       assert(file->good());
-      file->write(page->begin(), positionInPage * sizeof(T));
+      file->write(page->begin(), positionInPage * sizeof(uint64_t));
       positionInPage = 0;
       assert(file->is_open());
       assert(file->good());

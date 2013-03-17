@@ -11,14 +11,13 @@
 
 namespace dbi {
 
-template<class T>
 struct Run {
    Run(int64_t start, int64_t bytes, const std::string& fileName)
    : fileName(fileName), start(start), end(start+bytes), positionInFile(start), positionInPage(0), validEntries(0)
    {
    }
 
-   void assignPage(std::unique_ptr<Page<T>> page)
+   void assignPage(std::unique_ptr<Page> page)
    {
       this->page = std::move(page);
    }
@@ -30,13 +29,13 @@ struct Run {
       return positionInPage < validEntries;
    }
 
-   T peekNext() const
+   uint64_t peekNext() const
    {
       assert(positionInPage < validEntries);
       return page->get(positionInPage);
    }
 
-   T getNext()
+   uint64_t getNext()
    {
       assert(hasNext());
       return page->get(positionInPage++);
@@ -68,7 +67,7 @@ private:
    uint64_t positionInFile;
    std::unique_ptr<std::ifstream> file;
 
-   std::unique_ptr<Page<T>> page;
+   std::unique_ptr<Page> page;
    uint64_t positionInPage;
    uint64_t validEntries;
 
@@ -83,7 +82,7 @@ private:
       // Read
       file->seekg(positionInFile, std::ios::beg);
       file->read(page->begin(), validBytes);
-      validEntries = validBytes / sizeof(T);
+      validEntries = validBytes / sizeof(uint64_t);
       positionInPage = 0;
       positionInFile += validBytes;
       assert(file->is_open());

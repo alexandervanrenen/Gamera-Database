@@ -13,13 +13,13 @@ bool createTestFileImpl(const std::string& fileName, uint64_t count, std::functi
 
    // Write file in buffered fashion
    const uint32_t kMaxBufferSize = 1 << 22;
-   std::vector<T> buffer(kMaxBufferSize / sizeof(T));
+   std::vector<T> buffer(kMaxBufferSize / sizeof(uint64_t));
    for (uint64_t i = 0; i < count;) {
       // Fill buffer and write
       uint64_t limit = i + buffer.size();
       for (; i < count && i < limit; i++)
          buffer[i % buffer.size()] = factory(i);
-      of.write(reinterpret_cast<char*>(buffer.data()), (buffer.size() - (limit - i)) * sizeof(T));
+      of.write(reinterpret_cast<char*>(buffer.data()), (buffer.size() - (limit - i)) * sizeof(uint64_t));
    }
 
    // Finish up
@@ -39,7 +39,7 @@ bool foreachInFileImpl(const std::string& fileName, std::function<void(T)> callb
    // Loop over each entry
    T entry;
    while (true) {
-      in.read(reinterpret_cast<char*>(&entry), sizeof(T));
+      in.read(reinterpret_cast<char*>(&entry), sizeof(uint64_t));
       if (!in.good())
          break;
       callback(entry);

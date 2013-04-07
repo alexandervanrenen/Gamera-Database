@@ -1,7 +1,5 @@
-src_files :=    src/ExternalSort.o  \
-                src/InputRun.o           \
-                src/OutputRun.o
 
 -include src/util/LocalMakefile
+-include src/external_sort/LocalMakefile
 
-src_files += $(src_util_files)
+src_files += $(src_util_files) $(src_external_sort_files)

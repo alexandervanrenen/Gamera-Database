@@ -1,5 +1,5 @@
 #include "util/Utility.hpp"
-#include "ExternalSort.hpp"
+#include "external_sort/ExternalSort.hpp"
 #include <cstdio>
 #include <iostream>
 

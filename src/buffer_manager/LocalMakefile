@@ -1,0 +1,2 @@
+src_buffer_manager_files :=    src/buffer_manager/BufferManager.o   \
+                               src/buffer_manager/BufferFrame.o

@@ -1,4 +1,4 @@
-all: tester_uebung1
+all: tester_uebung1 tester_uebung2
 
 objDir:= bin/
 srcDir:= src/
@@ -19,8 +19,11 @@ endif
 -include src/LocalMakefile
 obj_files := $(addprefix $(objDir),$(src_files))
 
-tester_uebung1: libs/gtest $(obj_files) bin/test/tester.o
-	$(CXX) -o $@ bin/test/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+tester_uebung1: libs/gtest $(obj_files) bin/test/tester_uebung1.o
+	$(CXX) -o $@ bin/test/tester_uebung1.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+
+tester_uebung2: libs/gtest libs/tbb $(obj_files) bin/test/tester_uebung2.o
+	$(CXX) -o $@ bin/test/tester_uebung2.o $(lf) $(obj_files) libs/gtest/libgtest.a -Llibs/tbb libs/tbb/libtbb.so -pthread -fPIC $(ld)
 
 $(objDir)%.o: %.cpp
 	$(build_dir)
@@ -68,4 +71,5 @@ libs/tbb:
 
 clean:
 	rm $(objDir) -rf
-	find . -name "tester" -type f -delete
+	find . -name "tester_uebung1" -type f -delete
+	find . -name "tester_uebung2" -type f -delete

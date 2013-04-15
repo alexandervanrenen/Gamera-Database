@@ -1,5 +1,4 @@
-#ifndef __BufferManager
-#define __BufferManager
+#pragma once
 
 #include "util/Utility.hpp"
 #include "Page.hpp"
@@ -8,9 +7,9 @@
 
 namespace dbi {
 
-class BufferManager {
+class MemoryManager {
 public:
-   BufferManager(uint64_t size, uint64_t pageSize)
+   MemoryManager(uint64_t size, uint64_t pageSize)
          : buffer(std::vector<char>(size)), pageSize(pageSize)
    {
    }
@@ -42,5 +41,3 @@ private:
 };
 
 }
-
-#endif

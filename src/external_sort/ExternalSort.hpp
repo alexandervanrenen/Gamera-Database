@@ -1,7 +1,7 @@
 #ifndef __ExternalSort
 #define __ExternalSort
 
-#include "BufferManager.hpp"
+#include "MemoryManager.hpp"
 #include <string>
 #include <list>
 #include <stdint.h>
@@ -25,7 +25,7 @@ private:
 	const std::string outputFileName;
 	const uint64_t availablePages;
 	const bool showPerformance;
-   BufferManager buffer;
+   MemoryManager buffer;
 
    /// Divide and conquer the algorithm !!!!
    std::list<std::unique_ptr<InputRun>> createRunsPhase();

@@ -1,5 +1,4 @@
-#ifndef _FunkeTest_hpp
-#define _FunkeTest_hpp
+#pragma once
 
 #include "buffer_manager/BufferManager.hpp"
 #include <stdlib.h>
@@ -122,7 +121,6 @@ int main_funke(int argc, char** argv) {
       bm->unfixPage(bf, false);
    }
    if (totalCount==totalCountOnDisk) {
-      cout << "test successful" << endl;
       delete [] threadSeed;
       delete bm;
       return 0;
@@ -133,5 +131,3 @@ int main_funke(int argc, char** argv) {
       return 1;
    }
 }
-
-#endif

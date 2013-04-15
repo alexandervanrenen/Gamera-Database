@@ -1,5 +1,6 @@
-#ifndef _Segment_hpp
-#define _Segment_hpp
+#pragma once
+
+#include <cstdint>
 
 namespace dbi {
 
@@ -11,5 +12,3 @@ public:
 };
 
 }
-
-#endif

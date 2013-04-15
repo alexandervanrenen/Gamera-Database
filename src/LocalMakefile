@@ -2,5 +2,6 @@
 -include src/util/LocalMakefile
 -include src/external_sort/LocalMakefile
 -include src/buffer_manager/LocalMakefile
+-include src/segment_manager/LocalMakefile
 
-src_files += $(src_util_files) $(src_external_sort_files) $(src_buffer_manager_files)
+src_files += $(src_util_files) $(src_external_sort_files) $(src_buffer_manager_files) $(src_segment_manager_files)

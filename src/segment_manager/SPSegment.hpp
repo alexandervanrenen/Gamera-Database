@@ -1,5 +1,4 @@
-#ifndef _SPSegment_hpp
-#define _SPSegment_hpp
+#pragma once
 
 namespace dbi {
 
@@ -8,5 +7,3 @@ class SPSegment : public Segment {
 };
 
 }
-
-#endif

@@ -1,5 +1,7 @@
 bin/*
 libs/*
+tester
 tester_uebung1
 tester_uebung2
+tester_uebung3
 config.local

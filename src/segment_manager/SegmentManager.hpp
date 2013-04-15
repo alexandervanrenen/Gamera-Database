@@ -1,11 +1,13 @@
-#ifndef _SegmentManager_hpp
-#define _SegmentManager_hpp
+#pragma once
 
 #include "SegmentType.hpp"
+#include "SegmentInventory.hpp"
+#include <memory>
 
 namespace dbi {
 
 class BufferManager;
+class Segment;
 
 class SegmentManager {
 public:
@@ -13,14 +15,12 @@ public:
 
     SegmentID createSegment(SegmentType segmentType, uint32_t totalSize);
 
-    Segment getSegment(const SegmentID& id);
+    Segment& getSegment(const SegmentID& id);
 
 private:
     BufferManager& bufferManager;
 
-    unique_ptr<SegmentInventory> segmentInventory;
+    SegmentInventory segmentInventory;
 };
 
 }
-
-#endif

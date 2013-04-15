@@ -1,12 +1,11 @@
-#ifndef _BufferManagerTest_hpp
-#define _BufferManagerTest_hpp
+#pragma once
 
 #include "FunkesBufferManagerTest.hpp"
 #include "buffer_manager/Config.hpp"
 #include <array>
 #include <fstream>
 
-TEST(Utility, FileCreatorBorders) {
+TEST(BufferManager, FunkeTest) {
     int argc = 5;
     array<const char*, 5> argv = {{"", "swap_file", "1024", "64", "2"}};
 
@@ -17,5 +16,3 @@ TEST(Utility, FileCreatorBorders) {
 
     ASSERT_EQ(main_funke(argc, const_cast<char**>(&get<0>(argv))),0);
 }
-
-#endif

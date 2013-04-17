@@ -6,8 +6,11 @@ namespace dbi {
 
 class SegmentInventory : public Segment {
 
-//    create, drop and grow
+   void create();
 
+   void drop();
+
+   void grow();
 };
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "SegmentType.hpp"
 
 namespace dbi {
 
@@ -9,6 +10,8 @@ public:
     Segment();
 
     uint32_t size();
+
+    SegmentID id;
 };
 
 }

@@ -60,19 +60,17 @@ list<unique_ptr<InputRun>> ExternalSort::createRunsPhase()
 {
    // Phase I: Create runs
    list<unique_ptr<InputRun>> runs;
-   uint64_t ioTime = 0;
    string runFileName = outputFileName + "yin";
    fstream inputFile(inputFileName, ios::binary | ios::in);
+   if(!inputFile.is_open() || !inputFile.good())
+      throw "unable to open input file";
    fstream outputFile(runFileName, ios::binary | ios::out);
    for (uint64_t runId=0; true; runId++) {
       // Read data
       int64_t position = inputFile.tellg();
-      auto start = chrono::high_resolution_clock::now();
       inputFile.read(buffer.begin(), buffer.size());
       inputFile.peek(); // Detect end of file
       bool readSuccessfull = inputFile.eof();
-      auto end = chrono::high_resolution_clock::now();
-      ioTime += chrono::duration_cast<chrono::nanoseconds>(end-start).count();
       inputFile.clear();
       int64_t readBytes = inputFile.tellg() - position;
 

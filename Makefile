@@ -27,8 +27,8 @@ util: libs/gtest $(obj_files) bin/test/util/tester.o
 
 uebung1: libs/gtest $(obj_files) bin/test/external_sort/tester.o
 	$(CXX) -o $@ bin/test/external_sort/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
-bench1: libs/gtest $(obj_files) bin/test/bench1.o
-	$(CXX) -o $@ bin/test/bench1.o $(lfp) $(obj_files) libs/gtest/libgtest.a -pthread
+sort: libs/gtest $(obj_files) bin/test/external_sort/uebung1_abgabe.o
+	$(CXX) -o $@ bin/test/external_sort/uebung1_abgabe.o $(lfp) $(obj_files) libs/gtest/libgtest.a -pthread
 
 uebung2: libs/gtest $(obj_files) bin/test/buffer_manager/tester.o
 	$(CXX) -o $@ bin/test/buffer_manager/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread

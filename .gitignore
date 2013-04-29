@@ -1,7 +1,10 @@
 bin/*
 libs/*
 tester
-tester_uebung1
-tester_uebung2
-tester_uebung3
+sort
+util
+uebung1
+uebung1_abgabe
+uebung2
+uebung3
 config.local

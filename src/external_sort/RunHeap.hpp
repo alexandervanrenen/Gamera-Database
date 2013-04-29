@@ -2,6 +2,7 @@
 #define __MinHeap
 
 #include "InputRun.hpp"
+#include <set>
 #include <vector>
 #include <memory>
 #include <cassert>
@@ -12,30 +13,30 @@ namespace dbi {
 class RunHeap {
 public:
 	RunHeap()
+	: data([](const InputRun* l, const InputRun* r){return l->peekNext() < r->peekNext();})
 	{
 	}
 
 	void push(std::unique_ptr<InputRun> run)
 	{
 		// Just add
-		data.push_back(move(run));
+		data.insert(run.get());
+		dataMem.push_back(move(run));
 	}
 
 	uint64_t getMin()
 	{
 		// Locate
 		assert(hasMore());
-		uint32_t minIndex = 0;
-		for (uint32_t i = 1; i < data.size(); ++i)
-			if(data[i]->peekNext() < data[minIndex]->peekNext())
-				minIndex = i;
+		auto nextRunIter = data.begin();
+		InputRun* nextRun = *nextRunIter;
+		uint64_t result = (*nextRunIter)->getNext();
+		data.erase(nextRunIter);
 
-      // Remove
-      uint64_t value = data[minIndex]->getNext();
-      if (!data[minIndex]->hasNext())
-         data.erase(data.begin() + minIndex);
+		if (nextRun->hasNext())
+			data.insert(nextRun);
 
-      return value;
+		return result;
 	}
 
 	bool hasMore()
@@ -49,7 +50,8 @@ public:
 	}
 
 private:
-	std::vector<std::unique_ptr<InputRun>> data;
+	std::multiset<InputRun*, std::function<bool(InputRun*, InputRun*)>> data;
+	std::vector<std::unique_ptr<InputRun>> dataMem;
 };
 
 }

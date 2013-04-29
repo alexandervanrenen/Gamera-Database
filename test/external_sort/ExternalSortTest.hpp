@@ -68,6 +68,6 @@ TEST(ExternalSort, ComplexBig_1024_Pages) {
    runComplexSort(1<<size, 1024, 1024*1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_large) {
-   // runComplexSort(1<<20, 256, 1024, showPerformance);
+TEST(ExternalSort, ComplexBig_large_5GB) {
+   // runComplexSort((5ul*(1ul<<30)) / 8, 4096*1024, 1ul<<30, showPerformance);
 }

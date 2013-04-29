@@ -95,7 +95,7 @@ list<unique_ptr<InputRun>> ExternalSort::createRunsPhase()
       runs.push_back(move(run));
       outputFile.write(buffer.begin(), readBytes);
    }
-      return runs;
+   return runs;
 }
 
 void ExternalSort::mergeSingleRun(list<unique_ptr<InputRun>>& inputRuns, uint32_t numJoins, OutputRun& targetRun)
@@ -131,12 +131,15 @@ void ExternalSort::mergeRunPhase(list<unique_ptr<InputRun>>& runs)
       uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));
       uint32_t unusedPagesInLastRun = (availablePages-1) - (runs.size() % (availablePages-1));
       if(minimalNumberOfMerges <= unusedPagesInLastRun) { // => We can finish in this level
-         // Postpone as much work as possible
-         uint32_t unusedPages = unusedPagesInLastRun - minimalNumberOfMerges;
          string fileName = runName.getNext();
-         OutputRun targetRun1(fileName, true);
-         mergeSingleRun(runs, (availablePages-1)-unusedPages, targetRun1);
-         runs.push_back(targetRun1.convertToInputRun());
+
+         // Postpone as much work as possible
+         if(runs.size() >= (availablePages-1)) {
+            uint32_t unusedPages = unusedPagesInLastRun - minimalNumberOfMerges;
+            OutputRun targetRun1(fileName, true);
+            mergeSingleRun(runs, (availablePages-1)-unusedPages, targetRun1);
+            runs.push_back(targetRun1.convertToInputRun());
+         }
 
          // Run full merge passes
          list<unique_ptr<InputRun>> nextLevelRuns;

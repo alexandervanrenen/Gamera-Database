@@ -33,4 +33,4 @@ Exercise 2:
 Other:
 ------
 
-Unsere tests compilieren mit: "make uebung1" und sind sond dann mit ./uebung1 auszuführen.
+Unsere tests compilieren mit: "make uebung1" und sind sond dann mit ./uebung1 auszuführen. Der 5 GB Testfall ist auch da drin, aber auskommentiert, weil ich meine SSD nicht umbringen will jedesmal wenn ich teste. (Einfach der unterste Testfall in test/external_sort/ExternalSortTest.hpp).

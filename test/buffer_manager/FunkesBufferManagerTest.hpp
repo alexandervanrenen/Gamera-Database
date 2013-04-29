@@ -5,8 +5,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <pthread.h>
-
-using namespace std;
+#include <iostream>
 
 dbi::BufferManager* bm;
 unsigned pagesOnDisk;
@@ -68,7 +67,7 @@ int main_funke(int argc, char** argv) {
       pagesInRAM = atoi(argv[3]);
       threadCount = atoi(argv[4]);
    } else {
-      cerr << "usage: " << argv[0] << " <file> <pagesOnDisk> <pagesInRAM> <threads>" << endl;
+      std::cerr << "usage: " << argv[0] << " <file> <pagesOnDisk> <pagesInRAM> <threads>" << std::endl;
       exit(1);
    }
 
@@ -125,7 +124,7 @@ int main_funke(int argc, char** argv) {
       delete bm;
       return 0;
    } else {
-      cerr << "error: expected " << totalCount << " but got " << totalCountOnDisk << endl;
+      std::cerr << "error: expected " << totalCount << " but got " << totalCountOnDisk << std::endl;
       delete [] threadSeed;
       delete bm;
       return 1;

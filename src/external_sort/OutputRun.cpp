@@ -51,7 +51,7 @@ void OutputRun::prepareForWriting()
 
 std::unique_ptr<InputRun> OutputRun::convertToInputRun()
 {
- return dbiu::make_unique<InputRun>(start, end-start, fileName);
+   return dbiu::make_unique<InputRun>(start, end-start, fileName);
 }
 
 void OutputRun::writePage()

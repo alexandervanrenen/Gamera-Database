@@ -1,8 +1,5 @@
+#include "tester.hpp"
 #include "gtest/gtest.h"
-#include "UtilityTest.cpp"
-#include "ExternalSortTest.cpp"
-#include "BufferManagerTest.hpp"
-#include "SegmentManagerTest.hpp"
 
 using namespace std;
 

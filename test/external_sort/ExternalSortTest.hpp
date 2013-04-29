@@ -1,5 +1,6 @@
 #include "util/Utility.hpp"
 #include "external_sort/ExternalSort.hpp"
+#include "gtest/gtest.h"
 #include <cstdio>
 #include <iostream>
 
@@ -68,5 +69,5 @@ TEST(ExternalSort, ComplexBig_1024_Pages) {
 }
 
 TEST(ExternalSort, ComplexBig_large) {
-   runComplexSort(1<<20, 256, 1024, showPerformance);
+   // runComplexSort(1<<20, 256, 1024, showPerformance);
 }

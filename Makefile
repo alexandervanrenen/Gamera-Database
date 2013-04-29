@@ -1,4 +1,4 @@
-all: tester tester_uebung1 tester_uebung2 tester_uebung3
+all: tester util uebung1 uebung2 uebung3
 
 objDir:= bin/
 srcDir:= src/
@@ -6,7 +6,7 @@ srcDir:= src/
 -include config.local
 
 CXX ?= g++
-cf = -Werror -Wall -Wextra -Wuninitialized --std=c++0x -g0 -O3 -I./src -I./libs/gtest/include -I./libs/tbb/include
+cf = -g0 -O3 -Werror -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
 lf = -g0 -O3 --std=c++0x -I./src
 build_dir = @mkdir -p $(dir $@)
 
@@ -19,17 +19,22 @@ endif
 -include src/LocalMakefile
 obj_files := $(addprefix $(objDir),$(src_files))
 
-tester: libs/gtest $(obj_files) bin/test/tester_all.o
-	$(CXX) -o $@ bin/test/tester_all.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+tester: libs/gtest $(obj_files) bin/test/tester.o
+	$(CXX) -o $@ bin/test/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
 
-tester_uebung1: libs/gtest $(obj_files) bin/test/tester_uebung1.o
-	$(CXX) -o $@ bin/test/tester_uebung1.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+util: libs/gtest $(obj_files) bin/test/util/tester.o
+	$(CXX) -o $@ bin/test/util/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
 
-tester_uebung2: libs/gtest libs/tbb $(obj_files) bin/test/tester_uebung2.o
-	$(CXX) -o $@ bin/test/tester_uebung2.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+uebung1: libs/gtest $(obj_files) bin/test/external_sort/tester.o
+	$(CXX) -o $@ bin/test/external_sort/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+bench1: libs/gtest $(obj_files) bin/test/bench1.o
+	$(CXX) -o $@ bin/test/bench1.o $(lfp) $(obj_files) libs/gtest/libgtest.a -pthread
 
-tester_uebung3: libs/gtest libs/tbb $(obj_files) bin/test/tester_uebung3.o
-	$(CXX) -o $@ bin/test/tester_uebung3.o $(lf) $(obj_files) libs/gtest/libgtest.a -Llibs/tbb libs/tbb/libtbb.so -pthread -fPIC $(ld)
+uebung2: libs/gtest $(obj_files) bin/test/buffer_manager/tester.o
+	$(CXX) -o $@ bin/test/buffer_manager/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+
+uebung3: libs/gtest $(obj_files) bin/test/segment_manager/tester.o
+	$(CXX) -o $@ bin/test/segment_manager/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread -fPIC $(ld)
 
 $(objDir)%.o: %.cpp
 	$(build_dir)
@@ -78,6 +83,8 @@ libs/tbb:
 
 clean:
 	rm $(objDir) -rf
-	find . -name "tester_uebung1" -type f -delete
-	find . -name "tester_uebung2" -type f -delete
-	find . -name "tester_uebung3" -type f -delete
+	find . -name "tester" -type f -delete
+	find . -name "util" -type f -delete
+	find . -name "uebung1" -type f -delete
+	find . -name "uebung2" -type f -delete
+	find . -name "uebung3" -type f -delete

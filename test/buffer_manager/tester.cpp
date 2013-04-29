@@ -1,5 +1,5 @@
+#include "tester.hpp"
 #include "gtest/gtest.h"
-#include "BufferManagerTest.hpp"
 
 using namespace std;
 

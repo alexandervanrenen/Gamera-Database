@@ -1,3 +1,4 @@
+#include "gtest/gtest.h"
 #include "util/Utility.hpp"
 
 TEST(Utility, FileCreatorSimple) {

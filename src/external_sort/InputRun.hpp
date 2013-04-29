@@ -13,16 +13,17 @@ class InputRun {
 public:
    InputRun(int64_t start, int64_t bytes, const std::string& fileName);
 
+   // Open input stream
+   void prepareForReading();
+   // Allow this run to use the page
    void assignPage(std::unique_ptr<Page> page);
 
+   // Access file
+   uint64_t peekNext() const;
+   uint64_t getNext();
    bool hasNext();
 
-   uint64_t peekNext() const;
-
-   uint64_t getNext();
-
-   void prepareForReading();
-
+   // Number of entries
    uint64_t size() const;
 
 private:

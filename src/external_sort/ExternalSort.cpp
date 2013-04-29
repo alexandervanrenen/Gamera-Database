@@ -4,6 +4,7 @@
 #include "OutputRun.hpp"
 #include "RunHeap.hpp"
 #include "util/Utility.hpp"
+#include "util/StatisticsCollector.hpp"
 #include "FileNameProvider.hpp"
 #include <stdio.h>
 #include <fstream>
@@ -35,23 +36,23 @@ ExternalSort::ExternalSort(const string& inputFileName, const string& outputFile
 
 void ExternalSort::run()
 {
+   StatisticsCollector stats;
+
    // Phase I: Create runs
-   auto startRunPhase = chrono::high_resolution_clock::now();
+   stats.start("RunPhase");
    auto runs = createRunsPhase();
    uint64_t initialRunCount = runs.size();
-   auto endRunPhase = chrono::high_resolution_clock::now();
+   stats.end("RunPhase");
 
    // Phase II: Merge runs
-   auto startMergePhase = chrono::high_resolution_clock::now();
+   stats.start("Merge Phase");
    mergeRunPhase(runs);
-   auto endMergePhase = chrono::high_resolution_clock::now();
+   stats.end("Merge Phase");
 
    // Phase A: Show Performance
    if(showPerformance) {
       cout << "Run count: " << initialRunCount << endl;
-      cout << "Run phase: " << chrono::duration_cast<chrono::milliseconds>(endRunPhase-startRunPhase).count() << "ms"  << endl;
-      cout << "Merge phase: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startMergePhase).count() << "ms" << endl;
-      cout << "Both phases: " << chrono::duration_cast<chrono::milliseconds>(endMergePhase-startRunPhase).count() << "ms" << endl;
+      stats.print();
    }
 }
 
@@ -130,16 +131,16 @@ void ExternalSort::mergeRunPhase(list<unique_ptr<InputRun>>& runs)
    while(!runs.empty()) {
       // Find nice merge strategy
       uint32_t minimalNumberOfMerges = ceil(runs.size() / (availablePages-1));
-      uint32_t unusedSlots = (availablePages-1) - (runs.size() % (availablePages-1));
-      if(minimalNumberOfMerges <= unusedSlots) {
+      uint32_t unusedPagesInLastRun = (availablePages-1) - (runs.size() % (availablePages-1));
+      if(minimalNumberOfMerges <= unusedPagesInLastRun) { // => We can finish in this level
          // Postpone as much work as possible
-         unusedSlots -= minimalNumberOfMerges;
+         uint32_t unusedPages = unusedPagesInLastRun - minimalNumberOfMerges;
          string fileName = runName.getNext();
          OutputRun targetRun1(fileName, true);
-         mergeSingleRun(runs, (availablePages-1)-unusedSlots, targetRun1);
+         mergeSingleRun(runs, (availablePages-1)-unusedPages, targetRun1);
          runs.push_back(targetRun1.convertToInputRun());
 
-         // We can finish in this merge
+         // Run full merge passes
          list<unique_ptr<InputRun>> nextLevelRuns;
          while(runs.size() >= (availablePages-1)) {
             OutputRun targetRun(fileName, true);
@@ -151,7 +152,7 @@ void ExternalSort::mergeRunPhase(list<unique_ptr<InputRun>>& runs)
          OutputRun targetRun2(outputFileName, false);
          mergeSingleRun(runs, (availablePages-1), targetRun2);
          runs.clear();
-      } else {
+      } else { // => We can not finish in this level
          // Just create the next level
          list<unique_ptr<InputRun>> nextLevelRuns;
          string fileName = runName.getNext();

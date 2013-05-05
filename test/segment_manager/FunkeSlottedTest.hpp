@@ -52,7 +52,7 @@ int run(const std::string& dbFile, uint32_t pages) {
    dbi::BufferManager bm(dbFile, pages); // bogus arguments
    dbi::SegmentManager sm(bm);
    dbi::SegmentID spId = sm.createSegment(dbi::SegmentType::SP, totalSize);
-   sm.getSegment(spId);
+   sm.getSPSegment(spId);
    // dbi::SPSegment& sp = static_cast<dbi::SPSegment&>(sm.getSegment(spId));
    Random64 rnd;
 

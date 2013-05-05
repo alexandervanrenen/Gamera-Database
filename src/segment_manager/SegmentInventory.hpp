@@ -1,16 +1,28 @@
 #pragma once
 
-#include "Segment.hpp"
+#include "Extent.hpp"
+#include <unordered_map>
+#include <vector>
 
 namespace dbi {
 
-class SegmentInventory : public Segment {
+class SegmentInventory {
+public:
+   SegmentInventory(uint64_t numPages);
 
-   void create();
+   SegmentID getNextSegmentId();
 
-   void drop();
+   const Extent assignExtendToSegment(const SegmentID id, const uint32_t numPages);
 
-   void grow();
+   const std::vector<Extent> getExtentsOfSegment(const SegmentID id);
+
+private:
+   /// Maps a segment id to all its extents
+   std::unordered_map<SegmentID, std::vector<Extent>> segmentMap;
+   /// Stores free pages
+   std::vector<Extent> freePages;
+   /// Keep track of min segment id
+   SegmentID nextSegmentId;
 };
 
 }

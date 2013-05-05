@@ -1,2 +1,3 @@
 src_segment_manager_files :=  src/segment_manager/SegmentManager.o   \
+                              src/segment_manager/SegmentInventory.o \
                               src/segment_manager/Segment.o

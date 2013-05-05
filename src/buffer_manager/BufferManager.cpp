@@ -8,7 +8,7 @@ namespace dbi {
 
 using namespace std;
 
-BufferManager::BufferManager(const std::string& fileName, unsigned size)
+BufferManager::BufferManager(const std::string& fileName, uint64_t size)
 : size(size)
 , file(fileName.c_str(), ios::out | ios::in)
 , allFrames(size)

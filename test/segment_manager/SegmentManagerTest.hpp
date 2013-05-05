@@ -10,7 +10,7 @@
 TEST(SegmentManager, FunkeTest) {
 
    const std::string fileName = "swap_file";
-   const uint32_t pages = 10*1000;
+   const uint32_t pages = 1*1000;
 
    ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
    ASSERT_EQ(run(fileName, pages), 0);

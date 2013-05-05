@@ -1,17 +1,21 @@
 #pragma once
 
+#include "common/Config.hpp"
+#include "Extent.hpp"
 #include <cstdint>
-#include "SegmentType.hpp"
+#include <vector>
 
 namespace dbi {
 
 class Segment {
 public:
-    Segment();
+    Segment(SegmentID id, std::vector<Extent> extends) : id(id), extends(extends) {}
 
-    uint32_t size();
+    SegmentID getId() {return id;}
 
-    SegmentID id;
+private:
+   SegmentID id;
+   std::vector<Extent> extends;
 };
 
 }

@@ -15,7 +15,8 @@ namespace dbi {
 class BufferManager {
 public:
     /// Create a new instance that manages size frames and operates on the file filename.
-    BufferManager(const std::string& filename, unsigned size);
+    /// Size is the number of pages
+    BufferManager(const std::string& filename, uint64_t size);
 
     /// A method to retrieve frames given a page ID and indicating whether the page will be
     /// held exclusively by this thread or not. The method can fail if no free frame is
@@ -27,11 +28,14 @@ public:
     /// back immediately, but must not write it back before unfixPage is called.
     void unfixPage(BufferFrame& frame, bool isDirty);
 
+    /// Access maximum number of pages
+    uint64_t getNumPages() {return size; }
+
     /// Destructor. Write all dirty frames to disk and free all resources.
     ~BufferManager();
 
 private:
-    uint32_t size;
+    uint64_t size;
     std::fstream file;
 
     std::vector<std::unique_ptr<BufferFrame>> allFrames;

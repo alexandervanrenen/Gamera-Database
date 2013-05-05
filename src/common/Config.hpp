@@ -9,4 +9,6 @@ namespace dbi {
    using SegmentID = uint32_t;
 
    static const uint32_t kPageSize = 1<<12;
+
+   static const PageID kInvalidPageID = -1;
 }

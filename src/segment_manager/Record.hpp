@@ -5,7 +5,7 @@
 namespace dbi {
 
 class Record {
-   char* data;
+   const char* const mem;
    uint32_t length;
 
 public:
@@ -13,15 +13,11 @@ public:
    Record(Record& t) = delete;
    Record(Record&& t) = delete;
 
-   explicit Record(const char* const ptr, unsigned len) : data(data), length(length) {}
+   explicit Record(const char* const dataIn, unsigned length) : mem(dataIn), length(length) {}
 
-   const char* data() const {
-      return data;
-   }
+   const char* data() const {return mem;}
 
-   uint32_t size() const {
-      return length;
-   }
+   uint32_t size() const {return length;}
 };
 
 }

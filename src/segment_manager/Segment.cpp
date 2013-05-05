@@ -2,17 +2,18 @@
 #include "buffer_manager/BufferManager.hpp"
 #include <cassert>
 
+using namespace std;
+
 namespace dbi {
 
-Segment::Segment(SegmentID id, std::vector<Extent> extents, BufferManager& bufferManager)
+Segment::Segment(SegmentID id, BufferManager& bufferManager)
 : id(id)
-, extents(extents)
 , numPages(std::accumulate(extents.begin(),extents.end(),(uint64_t)0,[](uint64_t count, const Extent& extent) {return count+extent.numPages();}))
 , bufferManager(bufferManager)
 {
 }
 
-void Segment::addExtent(const Extent& extent)
+void Segment::assignExtent(const Extent& extent)
 {
    numPages+=extent.numPages();
    for(auto& iter : extents)
@@ -21,6 +22,12 @@ void Segment::addExtent(const Extent& extent)
          return;
       }
    extents.emplace_back(extent);
+}
+
+void Segment::restoreExtents(const vector<Extent>& alreadyUsedExtents)
+{
+   assert(extents.size() == 0);
+   extents = alreadyUsedExtents;
 }
 
 BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const

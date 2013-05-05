@@ -7,8 +7,10 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
+#include "segment_manager/Record.hpp"
 #include <array>
 #include <fstream>
+#include <string>
 
 TEST(SegmentManager, Simple) {
 
@@ -33,6 +35,27 @@ TEST(SegmentManager, Simple) {
    dbi::SegmentID id_b = segmentManager.createSegment(dbi::SegmentType::SP, 98);
    dbi::SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.getNumPages(), 98ul);
+
+   remove(fileName.c_str());
+}
+
+TEST(SegmentManager, SPSegment) {
+
+   const std::string fileName = "swap_file";
+   const uint32_t pages = 100;
+
+   ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
+   dbi::BufferManager bufferManager(fileName, pages / 2);
+   dbi::SegmentManager segmentManager(bufferManager, true);
+
+   // Create
+   dbi::SegmentID id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
+   dbi::SPSegment& segment = segmentManager.getSPSegment(id);
+
+   // Insert
+   std::string data = "anizmow";
+   dbi::Record record(data.c_str(), data.size());
+   segment.insert(record);
 
    remove(fileName.c_str());
 }

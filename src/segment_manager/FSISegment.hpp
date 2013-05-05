@@ -10,7 +10,8 @@ class BufferManager;
 class FSISegment : public Segment {
 public:
    /// Constructor
-   FSISegment(SegmentID id, std::vector<Extent> extents, BufferManager& bufferManager);
+   FSISegment(SegmentID id, BufferManager& bufferManager);
+   ~FSISegment() {}
 
    /// Returns number of minimum free bytes
    uint32_t getFreeBytes(PageID id) const;

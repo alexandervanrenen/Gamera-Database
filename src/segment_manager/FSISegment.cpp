@@ -1,6 +1,7 @@
 #include "FSISegment.hpp"
 #include "buffer_manager/BufferFrame.hpp"
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ uint32_t FSISegment::getFreeBytes(PageID id) const
    }
 
    unfixPage(bufferFrame, false);
-   return result;
+   return result * kPageSize / 16;
 }
 
 void FSISegment::setFreeBytes(PageID id, uint32_t freeBytes)

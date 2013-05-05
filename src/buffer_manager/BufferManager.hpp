@@ -57,6 +57,11 @@ private:
     void saveFrame(BufferFrame& frame);
 };
 
+const static bool kExclusive = true;
+const static bool kShared = false;
+const static bool kClean = false;
+const static bool kDirty = true;
+
 }
 
 #endif

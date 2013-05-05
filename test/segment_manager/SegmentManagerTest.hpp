@@ -39,7 +39,7 @@ TEST(SegmentManager, Simple) {
    remove(fileName.c_str());
 }
 
-TEST(SegmentManager, SPSegment) {
+TEST(SegmentManager, SPSegmentSimple) {
 
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
@@ -52,10 +52,11 @@ TEST(SegmentManager, SPSegment) {
    dbi::SegmentID id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
-   // Insert
-   std::string data = "anizmow";
-   dbi::Record record(data.c_str(), data.size());
-   segment.insert(record);
+   // Insert and look up
+   std::string data = "the clown is down";
+   dbi::Record record(data);
+   dbi::TID tid = segment.insert(record);
+   ASSERT_EQ(record, segment.lookup(tid));
 
    remove(fileName.c_str());
 }

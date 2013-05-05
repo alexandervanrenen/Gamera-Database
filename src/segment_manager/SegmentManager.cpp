@@ -18,12 +18,32 @@ SegmentManager::SegmentManager(BufferManager& bufferManager)
 SegmentID SegmentManager::createSegment(SegmentType segmentType, uint32_t numPages)
 {
    assert(segmentType == SegmentType::SP);
-   SegmentID id = segmentInventory.getNextSegmentId();
+
+   SegmentID id = segmentInventory.createSegment();
    segmentInventory.assignExtendToSegment(id, numPages);
    return id;
 }
 
-SPSegment& SegmentManager::getSPSegment(const SegmentID& id)
+void SegmentManager::growSegment(Segment& segment)
+{
+   // Do exponential grow
+   segment.getNumPages();
+}
+
+void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
+{
+   // Get extend and add to segment
+   Extent extent = segmentInventory.assignExtendToSegment(segment.getId(), numPages);
+   segment.addExtent(extent);
+}
+
+void SegmentManager::dropSegment(Segment& segment)
+{
+   segmentInventory.dropSegment(segment.getId());
+   segments.erase(segment.getId());
+}
+
+SPSegment& SegmentManager::getSPSegment(const SegmentID id)
 {
    // Look if segment is already created
    auto iter = segments.find(id);
@@ -31,8 +51,8 @@ SPSegment& SegmentManager::getSPSegment(const SegmentID& id)
       return reinterpret_cast<SPSegment&>(*iter->second);
 
    // Otherwise create it
-   auto result = segments.insert(make_pair(id, dbiu::make_unique<SPSegment>(id, segmentInventory.getExtentsOfSegment(id))));
-   return *result.first->second;
+   auto result = segments.insert(make_pair(id, unique_ptr<Segment>(new SPSegment(id, segmentInventory.getExtentsOfSegment(id)))));
+   return reinterpret_cast<SPSegment&>(*result.first->second);
 }
 
 }

@@ -10,11 +10,13 @@ class SegmentInventory {
 public:
    SegmentInventory(uint64_t numPages);
 
-   SegmentID getNextSegmentId();
+   SegmentID createSegment();
 
    const Extent assignExtendToSegment(const SegmentID id, const uint32_t numPages);
 
    const std::vector<Extent> getExtentsOfSegment(const SegmentID id);
+
+   void dropSegment(const SegmentID id);
 
 private:
    /// Maps a segment id to all its extents

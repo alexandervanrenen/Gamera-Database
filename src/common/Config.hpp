@@ -4,7 +4,7 @@
 
 namespace dbi {
 
-   using TID = uint32_t;
+   using TID = uint64_t;
    using PageID = uint32_t;
    using SegmentID = uint32_t;
 

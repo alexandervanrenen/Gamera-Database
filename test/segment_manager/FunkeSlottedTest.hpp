@@ -53,8 +53,8 @@ int run(const std::string& dbFile, uint32_t pages) {
    dbi::SegmentManager sm(bm);
    dbi::SegmentID spId = sm.createSegment(dbi::SegmentType::SP, totalSize);
    sm.getSPSegment(spId);
-   // dbi::SPSegment& sp = static_cast<dbi::SPSegment&>(sm.getSegment(spId));
-   Random64 rnd;
+   // dbi::SPSegment& sp = sm.getSPSegment(spId);
+   // Random64 rnd;
 
    // // Insert some records
    // for (unsigned i=0; i<maxInserts; ++i) {
@@ -65,7 +65,7 @@ int run(const std::string& dbFile, uint32_t pages) {
    //    // Check that there is space available for 's'
    //    bool full = true;
    //    for (unsigned p=0; p<initialSize; ++p) {
-   //       if (usage[p] < loadFactor*pageSize) {
+   //       if (usage[p] < loadFactor*dbi::kPageSize) {
    //          full = false;
    //          break;
    //       }

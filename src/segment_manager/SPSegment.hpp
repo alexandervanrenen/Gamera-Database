@@ -5,9 +5,15 @@
 
 namespace dbi {
 
+class FSISegment;
+class BufferManager;
+
 class SPSegment : public Segment {
 public:
-    SPSegment(SegmentID id, std::vector<Extent> extends) : Segment(id, extends) {}
+   SPSegment(SegmentID id, std::vector<Extent> extents, FSISegment& freeSpaceInventory, BufferManager& bufferManager) : Segment(id, extents, bufferManager), freeSpaceInventory(freeSpaceInventory) {}
+
+private:
+   FSISegment& freeSpaceInventory;
 };
 
 }

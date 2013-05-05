@@ -15,7 +15,7 @@ class SPSegment;
 class SegmentManager {
 public:
    /// Constructor
-   SegmentManager(BufferManager& bufferManager);
+   SegmentManager(BufferManager& bufferManager, bool isInitialSetup);
 
    /// Add a new segment with one extent of numPages to the segment inventory
    SegmentID createSegment(SegmentType segmentType, uint32_t numPages);
@@ -27,16 +27,20 @@ public:
    /// Remove the segment with the given id from the segment inventory
    void dropSegment(Segment& id);
 
-   // Access segment with given id
+   // Access segment with given id and cast to SPSegment
    SPSegment& getSPSegment(const SegmentID id);
 
 private:
   BufferManager& bufferManager;
 
   SISegment segmentInventory; // What pages belongs to a given segment ?
-  FSISegment freeSpaceInventory; // How full is a given page ?
+  std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
 
   std::unordered_map<SegmentID, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
+
+  // Helper to access generic segment type
+  template<class T>
+  T& getGenericSegment(const SegmentID id);
 };
 
 }

@@ -21,7 +21,7 @@ SegmentID SISegment::createSegment()
    return id;
 }
 
-const Extent SISegment::assignExtendToSegment(const SegmentID id, const uint32_t numPages)
+const Extent SISegment::assignExtentToSegment(const SegmentID id, const uint32_t numPages)
 {
    assert(segmentMap.count(id) == 1);
 
@@ -51,7 +51,7 @@ const Extent SISegment::assignExtendToSegment(const SegmentID id, const uint32_t
       }
    }
 
-   // Otherwise there is no free extend of this size
+   // Otherwise there is no free extent of this size
    assert(false && "out of pages :(");
    throw;
 }

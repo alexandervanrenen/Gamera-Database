@@ -4,9 +4,9 @@ namespace dbi {
 
 using namespace std;
 
-void* BufferFrame::getData()
+char* BufferFrame::getData()
 {
-    return reinterpret_cast<void*>(data.data());
+    return data.data();
 }
 
 }

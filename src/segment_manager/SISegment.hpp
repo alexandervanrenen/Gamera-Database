@@ -15,7 +15,7 @@ public:
    SegmentID createSegment();
 
    /// Add pages to a segment
-   const Extent assignExtendToSegment(const SegmentID id, const uint32_t numPages);
+   const Extent assignExtentToSegment(const SegmentID id, const uint32_t numPages);
 
    /// Access all extents of a given segment
    const std::vector<Extent> getExtentsOfSegment(const SegmentID id);

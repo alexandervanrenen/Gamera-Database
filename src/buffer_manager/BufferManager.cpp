@@ -8,10 +8,10 @@ namespace dbi {
 
 using namespace std;
 
-BufferManager::BufferManager(const std::string& fileName, uint64_t size)
-: size(size)
+BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPages)
+: memoryPages(memoryPages)
 , file(fileName.c_str(), ios::out | ios::in)
-, allFrames(size)
+, allFrames(memoryPages)
 {
     // Check length of the file
     assert(file.is_open() && file.good());
@@ -19,6 +19,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t size)
     size_t fileLength = file.tellg();
     file.seekg(0, ios::beg);
     assert(fileLength > 0 && fileLength%kPageSize==0);
+    discPages = fileLength/kPageSize;
 
     // Allocate management data structures
     for(auto& iter : allFrames) {
@@ -27,7 +28,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t size)
     }
 }
 
-BufferFrame& BufferManager::fixPage(unsigned pageId, bool exclusive)
+BufferFrame& BufferManager::fixPage(PageID pageId, bool exclusive)
 {
     unique_lock<mutex> l(guard);
 
@@ -104,7 +105,7 @@ BufferManager::~BufferManager()
     flush();
 }
 
-void BufferManager::loadFrame(unsigned pageId, BufferFrame& frame)
+void BufferManager::loadFrame(PageID pageId, BufferFrame& frame)
 {
     assert(frame.refCount==0 && !frame.isDirty);
     file.seekg(pageId*kPageSize, ios::beg);

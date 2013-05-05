@@ -13,7 +13,7 @@ public:
     /// A buffer frame should offer a method giving access to the buffered page. Except
     /// for the buffered page, BufferFrame objects can also store control information
     /// (page ID, dirtyness, . . . ).
-    void* getData();
+    char* getData();
 
 private:
     std::array<char, kPageSize> data;

@@ -50,7 +50,7 @@ int run(const std::string& dbFile, uint32_t pages) {
 
    // Setting everything up
    dbi::BufferManager bm(dbFile, pages); // bogus arguments
-   dbi::SegmentManager sm(bm);
+   dbi::SegmentManager sm(bm, true);
    dbi::SegmentID spId = sm.createSegment(dbi::SegmentType::SP, totalSize);
    sm.getSPSegment(spId);
    // dbi::SPSegment& sp = sm.getSPSegment(spId);

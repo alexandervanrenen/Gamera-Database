@@ -16,8 +16,8 @@ TEST(SegmentManager, Simple) {
    const uint32_t pages = 100;
 
    ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
-   dbi::BufferManager bufferManager(fileName, pages);
-   dbi::SegmentManager segmentManager(bufferManager);
+   dbi::BufferManager bufferManager(fileName, pages / 2);
+   dbi::SegmentManager segmentManager(bufferManager, true);
 
    // Create
    dbi::SegmentID id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
@@ -30,9 +30,9 @@ TEST(SegmentManager, Simple) {
 
    // Drop
    segmentManager.dropSegment(segment);
-   dbi::SegmentID id_b = segmentManager.createSegment(dbi::SegmentType::SP, 99);
+   dbi::SegmentID id_b = segmentManager.createSegment(dbi::SegmentType::SP, 98);
    dbi::SPSegment& segment_b = segmentManager.getSPSegment(id_b);
-   ASSERT_EQ(segment_b.getNumPages(), 99ul);
+   ASSERT_EQ(segment_b.getNumPages(), 98ul);
 
    remove(fileName.c_str());
 }

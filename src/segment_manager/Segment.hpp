@@ -9,20 +9,29 @@
 
 namespace dbi {
 
+class BufferManager;
+class BufferFrame;
+
 class Segment {
 public:
-    Segment(SegmentID id, std::vector<Extent> extents) : id(id), extents(extents), numPages(std::accumulate(extents.begin(),extents.end(),(uint64_t)0,[](uint64_t count, const Extent& extent){return count+extent.numPages();})) {}
+   Segment(SegmentID id, std::vector<Extent> extents, BufferManager& bufferManager);
 
-    SegmentID getId() const {return id;}
+   SegmentID getId() const {return id;}
 
-    uint64_t getNumPages() const {return numPages;}
+   uint64_t getNumPages() const {return numPages;}
 
-    void addExtent(const Extent& extent) {numPages+=extent.numPages(); for(auto& iter : extents) if(extent.end == iter.begin || extent.begin == iter.end) {iter = Extent{std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)}; return;} extents.emplace_back(extent);}
+   void addExtent(const Extent& extent);
 
 private:
    SegmentID id;
    std::vector<Extent> extents;
    uint64_t numPages;
+   BufferManager& bufferManager;
+
+protected:
+   /// Assumes internal address space (i.E. extents[0].begin + offset)
+   BufferFrame& fixPage(uint64_t offset, bool exclusive) const;
+   void unfixPage(BufferFrame& bufferFrame, bool dirty) const;
 };
 
 }

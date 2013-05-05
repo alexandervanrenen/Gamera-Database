@@ -1,7 +1,7 @@
 #ifndef BufferFrame_hpp
 #define BufferFrame_hpp
 
-#include "Config.hpp"
+#include "common/Config.hpp"
 #include <array>
 #include <cstdint>
 #include <condition_variable>

@@ -1,19 +1,21 @@
 #include "Utility.hpp"
+#include <vector>
+
+using namespace std;
 
 namespace dbiu {
 
 template<class T>
-bool createTestFileImpl(const std::string& fileName, uint64_t count, std::function<
-      T(int)> factory)
+bool createTestFileImpl(const string& fileName, uint64_t count, function<T(int)> factory)
 {
    // Open file
-   std::ofstream of(fileName, std::ios::binary);
+   ofstream of(fileName, ios::binary);
    if (!of.is_open() || !of.good())
       return false;
 
    // Write file in buffered fashion
    const uint32_t kMaxBufferSize = 1 << 22;
-   std::vector<T> buffer(kMaxBufferSize / sizeof(uint64_t));
+   vector<T> buffer(kMaxBufferSize / sizeof(uint64_t));
    for (uint64_t i = 0; i < count;) {
       // Fill buffer and write
       uint64_t limit = i + buffer.size();
@@ -29,10 +31,10 @@ bool createTestFileImpl(const std::string& fileName, uint64_t count, std::functi
 }
 
 template<class T>
-bool foreachInFileImpl(const std::string& fileName, std::function<void(T)> callback)
+bool foreachInFileImpl(const string& fileName, function<void(T)> callback)
 {
    // Open file
-   std::ifstream in(fileName, std::ios::binary);
+   ifstream in(fileName, ios::binary);
    if (!in.is_open() || !in.good())
       return false;
 
@@ -47,15 +49,30 @@ bool foreachInFileImpl(const std::string& fileName, std::function<void(T)> callb
    return true;
 }
 
-bool createTestFile(const std::string& fileName, uint64_t count, std::function<
+bool createTestFile(const string& fileName, uint64_t count, function<
       uint64_t(uint64_t)> factory)
 {
    return createTestFileImpl<uint64_t>(fileName, count, factory);
 }
 
-bool foreachInFile(const std::string& fileName, std::function<void(uint64_t)> callback)
+bool foreachInFile(const string& fileName, function<void(uint64_t)> callback)
 {
    return foreachInFileImpl<uint64_t>(fileName, callback);
+}
+
+bool createFile(const string& fileName, const uint64_t bytes)
+{
+   ofstream out(fileName);
+   if(!out.is_open() || !out.good())
+      return false;
+   vector<char> data(bytes);
+   out.write(data.data(), bytes);
+   out.flush();
+   if(!out.good()) {
+      remove(fileName.c_str());
+      return false;
+   }
+   return true;
 }
 
 }

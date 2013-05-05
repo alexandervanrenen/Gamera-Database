@@ -1,5 +1,5 @@
 #include "BufferManager.hpp"
-#include "Config.hpp"
+#include "common/Config.hpp"
 #include "util/Utility.hpp"
 #include <fstream>
 #include <cassert>

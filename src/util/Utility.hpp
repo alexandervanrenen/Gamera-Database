@@ -17,6 +17,9 @@ bool createTestFile(const std::string& fileName, uint64_t count, std::function<u
 /// Read a file and invoke callback function on every entry
 bool foreachInFile(const std::string& fileName, std::function<void(uint64_t)> callback);
 
+/// Create a file with random(not set) data of given size
+bool createFile(const std::string& fileName, const uint64_t bytes);
+
 /// Create a unique pointer
 template<class T, class... Arg>
 std::unique_ptr<T> make_unique(Arg&& ...args)

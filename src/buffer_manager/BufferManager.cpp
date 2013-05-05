@@ -91,11 +91,17 @@ void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
     }
 }
 
-BufferManager::~BufferManager()
+void BufferManager::flush()
 {
+    unique_lock<mutex> l(guard);
     for(auto iter : loadedFrames)
         if(iter.second->isDirty)
             saveFrame(*iter.second);
+}
+
+BufferManager::~BufferManager()
+{
+    flush();
 }
 
 void BufferManager::loadFrame(unsigned pageId, BufferFrame& frame)

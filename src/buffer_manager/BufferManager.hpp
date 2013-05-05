@@ -31,6 +31,9 @@ public:
     /// Access maximum number of pages
     uint64_t getNumPages() {return size; }
 
+    // Write all data to disc
+    void flush();
+
     /// Destructor. Write all dirty frames to disk and free all resources.
     ~BufferManager();
 

@@ -12,6 +12,7 @@ namespace dbi {
 SegmentManager::SegmentManager(BufferManager& bufferManager)
 : bufferManager(bufferManager)
 , segmentInventory(bufferManager.getNumPages())
+, freeSpaceInventory(1, vector<Extent>())
 {
 }
 

@@ -2,7 +2,8 @@
 
 #include "common/Config.hpp"
 #include "SegmentType.hpp"
-#include "SegmentInventory.hpp"
+#include "SISegment.hpp"
+#include "FSISegment.hpp"
 #include <memory>
 #include <unordered_map>
 
@@ -10,7 +11,6 @@ namespace dbi {
 
 class BufferManager;
 class SPSegment;
-class Segment;
 
 class SegmentManager {
 public:
@@ -31,11 +31,12 @@ public:
    SPSegment& getSPSegment(const SegmentID id);
 
 private:
-    BufferManager& bufferManager;
+  BufferManager& bufferManager;
 
-    SegmentInventory segmentInventory;
+  SISegment segmentInventory; // What pages belongs to a given segment ?
+  FSISegment freeSpaceInventory; // How full is a given page ?
 
-    std::unordered_map<SegmentID, std::unique_ptr<Segment>> segments;
+  std::unordered_map<SegmentID, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
 };
 
 }

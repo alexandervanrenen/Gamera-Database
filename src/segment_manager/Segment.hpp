@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 namespace dbi {
 
@@ -16,7 +17,7 @@ public:
 
     uint64_t getNumPages() const {return numPages;}
 
-    void addExtent(const Extent& extent) {extents.push_back(extent); numPages+=extent.numPages();}
+    void addExtent(const Extent& extent) {numPages+=extent.numPages(); for(auto& iter : extents) if(extent.end == iter.begin || extent.begin == iter.end) {iter = Extent{std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)}; return;} extents.emplace_back(extent);}
 
 private:
    SegmentID id;

@@ -6,16 +6,21 @@
 
 namespace dbi {
 
-class SegmentInventory {
+class SISegment {
 public:
-   SegmentInventory(uint64_t numPages);
+   /// Constructor
+   SISegment(uint64_t numPages);
 
+   /// Create an empty segment
    SegmentID createSegment();
 
+   /// Add pages to a segment
    const Extent assignExtendToSegment(const SegmentID id, const uint32_t numPages);
 
+   /// Access all extents of a given segment
    const std::vector<Extent> getExtentsOfSegment(const SegmentID id);
 
+   /// Remove a segment and add its extents to free list
    void dropSegment(const SegmentID id);
 
 private:

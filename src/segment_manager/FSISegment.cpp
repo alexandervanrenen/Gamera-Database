@@ -7,12 +7,12 @@ using namespace std;
 
 namespace dbi {
 
-FSISegment::FSISegment(SegmentID id, BufferManager& bufferManager)
+FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager)
 : Segment(id, bufferManager)
 {
 }
 
-uint32_t FSISegment::getFreeBytes(PageID id) const
+uint32_t FSISegment::getFreeBytes(PageId id) const
 {
    // Get data
    uint32_t extent = id / 2 / kPageSize; // which extent to look on
@@ -33,7 +33,7 @@ uint32_t FSISegment::getFreeBytes(PageID id) const
    return result * kPageSize / 16;
 }
 
-void FSISegment::setFreeBytes(PageID id, uint32_t freeBytes)
+void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
 {
    // Get data
    uint32_t extent = id / 2 / kPageSize; // which extent to look on

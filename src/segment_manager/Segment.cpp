@@ -6,7 +6,7 @@ using namespace std;
 
 namespace dbi {
 
-Segment::Segment(SegmentID id, BufferManager& bufferManager)
+Segment::Segment(SegmentId id, BufferManager& bufferManager)
 : id(id)
 , numPages(std::accumulate(extents.begin(),extents.end(),(uint64_t)0,[](uint64_t count, const Extent& extent) {return count+extent.numPages();}))
 , bufferManager(bufferManager)

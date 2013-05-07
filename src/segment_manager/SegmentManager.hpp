@@ -18,7 +18,7 @@ public:
    SegmentManager(BufferManager& bufferManager, bool isInitialSetup);
 
    /// Add a new segment with one extent of numPages to the segment inventory
-   SegmentID createSegment(SegmentType segmentType, uint32_t numPages);
+   SegmentId createSegment(SegmentType segmentType, uint32_t numPages);
 
    /// Add numPages to the already existing segment with the given id
    void growSegment(Segment& id); // Let SegmentManager choose
@@ -28,7 +28,7 @@ public:
    void dropSegment(Segment& id);
 
    // Access segment with given id and cast to SPSegment
-   SPSegment& getSPSegment(const SegmentID id);
+   SPSegment& getSPSegment(const SegmentId id);
 
 private:
   BufferManager& bufferManager;
@@ -36,11 +36,11 @@ private:
   SISegment segmentInventory; // What pages belongs to a given segment ?
   std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
 
-  std::unordered_map<SegmentID, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
+  std::unordered_map<SegmentId, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
 
   // Helper to access generic segment type
   template<class T>
-  T& getGenericSegment(const SegmentID id);
+  T& getGenericSegment(const SegmentId id);
 };
 
 }

@@ -11,17 +11,17 @@ SISegment::SISegment(const uint64_t numPages)
 : nextSegmentId(0)
 {
    assert(numPages > 0);
-   freePages.emplace_back(Extent{1, PageID(numPages)});
+   freePages.emplace_back(Extent{1, PageId(numPages)});
 }
 
-SegmentID SISegment::createSegment()
+SegmentId SISegment::createSegment()
 {
-   SegmentID id = ++nextSegmentId;
+   SegmentId id = ++nextSegmentId;
    segmentMap.insert(make_pair(id, vector<Extent>()));
    return id;
 }
 
-const Extent SISegment::assignExtentToSegment(const SegmentID id, const uint32_t numPages)
+const Extent SISegment::assignExtentToSegment(const SegmentId id, const uint32_t numPages)
 {
    assert(segmentMap.count(id) == 1);
 
@@ -56,7 +56,7 @@ const Extent SISegment::assignExtentToSegment(const SegmentID id, const uint32_t
    throw;
 }
 
-void SISegment::dropSegment(const SegmentID id)
+void SISegment::dropSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
 
@@ -80,7 +80,7 @@ void SISegment::dropSegment(const SegmentID id)
    segmentMap.erase(iter);
 }
 
-const vector<Extent> SISegment::getExtentsOfSegment(const SegmentID id)
+const vector<Extent> SISegment::getExtentsOfSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
    return segmentMap[id];

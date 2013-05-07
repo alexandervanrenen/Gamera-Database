@@ -10,13 +10,13 @@ class BufferManager;
 class FSISegment : public Segment {
 public:
    /// Constructor
-   FSISegment(SegmentID id, BufferManager& bufferManager);
+   FSISegment(SegmentId id, BufferManager& bufferManager);
    ~FSISegment() {}
 
    /// Returns number of minimum free bytes
-   uint32_t getFreeBytes(PageID id) const;
+   uint32_t getFreeBytes(PageId id) const;
    /// Expects exact number of free bytes
-   void setFreeBytes(PageID id, uint32_t freeBytes);
+   void setFreeBytes(PageId id, uint32_t freeBytes);
 };
 
 }

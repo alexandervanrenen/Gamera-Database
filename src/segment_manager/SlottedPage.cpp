@@ -16,7 +16,7 @@ void SlottedPage::initialize() {
    freeBytes = data.size();
 }
 
-RecordID SlottedPage::insert(const Record& record) {
+RecordId SlottedPage::insert(const Record& record) {
    // Clean memory if fragmented
    if(dataBegin<sizeof(Slot)*slotCount || dataBegin-sizeof(Slot)*slotCount<record.size()) {
       cout << "i am fragmented" << endl;
@@ -44,7 +44,7 @@ RecordID SlottedPage::insert(const Record& record) {
    return firstFreeSlot;
 }
 
-Record SlottedPage::lookup(RecordID id)
+Record SlottedPage::lookup(RecordId id)
 {
    Slot* result = slotBegin() + id;
    return Record(data.data() + result->offset, result->bytes);

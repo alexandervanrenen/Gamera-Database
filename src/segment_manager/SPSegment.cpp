@@ -9,7 +9,7 @@ using namespace std;
 
 namespace dbi {
 
-SPSegment::SPSegment(SegmentID id, FSISegment& freeSpaceInventory, BufferManager& bufferManager)
+SPSegment::SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager)
 : Segment(id, bufferManager)
 , freeSpaceInventory(freeSpaceInventory)
 {
@@ -18,7 +18,7 @@ SPSegment::SPSegment(SegmentID id, FSISegment& freeSpaceInventory, BufferManager
 void SPSegment::assignExtent(const Extent& extent)
 {
    Segment::assignExtent(extent);
-   for(PageID iter=extent.begin; iter!=extent.end; iter++) {
+   for(PageId iter=extent.begin; iter!=extent.end; iter++) {
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();
@@ -27,13 +27,13 @@ void SPSegment::assignExtent(const Extent& extent)
    }
 }
 
-TID SPSegment::insert(const Record& record)
+TId SPSegment::insert(const Record& record)
 {
    for(auto iter=beginPageID(); iter!=endPageID(); iter++) {
       if(freeSpaceInventory.getFreeBytes(*iter) >= record.size()) {
          auto& frame = bufferManager.fixPage(*iter, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-         RecordID id = sp.insert(record);
+         RecordId id = sp.insert(record);
          freeSpaceInventory.setFreeBytes(*iter, sp.getFreeBytes());
          bufferManager.unfixPage(frame, kDirty);
          return (*iter<<16) + id;
@@ -44,12 +44,12 @@ TID SPSegment::insert(const Record& record)
    throw;
 }
 
-Record SPSegment::lookup(TID id)
+Record SPSegment::lookup(TId id)
 {
-   assert(any_of(beginPageID(), endPageID(), [id](const PageID& pid){return pid==toPageID(id);}));
-   auto& frame = bufferManager.fixPage(toPageID(id), kShared);
+   assert(any_of(beginPageID(), endPageID(), [id](const PageId& pid){return pid==toPageId(id);}));
+   auto& frame = bufferManager.fixPage(toPageId(id), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   Record result = sp.lookup(toRecordID(id));
+   Record result = sp.lookup(toRecordId(id));
    bufferManager.unfixPage(frame, kClean);
    return result;
 }

@@ -12,7 +12,7 @@
 #include "FunkeRecord.hpp"
 
 // todo: adapt to your implementation
-uint64_t extractPage(dbi::TID tid) {
+uint64_t extractPage(dbi::TId tid) {
    return tid >> 16;
 }
 
@@ -45,13 +45,13 @@ class Random64 {
  */
 int run(const std::string& dbFile, uint32_t pages) {
    // Bookkeeping
-   std::unordered_map<dbi::TID, unsigned> values; // TID -> testData entry
+   std::unordered_map<dbi::TId, unsigned> values; // TID -> testData entry
    std::unordered_map<unsigned, unsigned> usage; // pageID -> bytes used within this page
 
    // Setting everything up
    dbi::BufferManager bm(dbFile, pages); // bogus arguments
    dbi::SegmentManager sm(bm, true);
-   dbi::SegmentID spId = sm.createSegment(dbi::SegmentType::SP, totalSize);
+   dbi::SegmentId spId = sm.createSegment(dbi::SegmentType::SP, totalSize);
    sm.getSPSegment(spId);
    // dbi::SPSegment& sp = sm.getSPSegment(spId);
    // Random64 rnd;

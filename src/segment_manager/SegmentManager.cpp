@@ -19,13 +19,13 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       FSIPages = FSIPages / kPageSize + (FSIPages%kPageSize != 0); // Required pages
 
       // Build free space inventory
-      SegmentID fsiID = segmentInventory.createSegment();
+      SegmentId fsiID = segmentInventory.createSegment();
       auto extent = segmentInventory.assignExtentToSegment(fsiID, FSIPages);
       freeSpaceInventory = dbiu::make_unique<FSISegment>(fsiID, bufferManager);
       freeSpaceInventory->assignExtent(extent);
    } else {
       // Load free space inventory
-      SegmentID fsiID = 1;
+      SegmentId fsiID = 1;
       auto extents = segmentInventory.getExtentsOfSegment(fsiID);
       freeSpaceInventory = dbiu::make_unique<FSISegment>(fsiID, bufferManager);
       freeSpaceInventory->restoreExtents(extents);
@@ -34,12 +34,12 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
    assert(freeSpaceInventory->getId() == 1); // for now bitches =) .. move this to meta segment later
 }
 
-SegmentID SegmentManager::createSegment(SegmentType segmentType, uint32_t numPages)
+SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPages)
 {
    assert(segmentType == SegmentType::SP);
 
    // Create segment
-   SegmentID id = segmentInventory.createSegment();
+   SegmentId id = segmentInventory.createSegment();
    auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager));
    growSegment(*segment, numPages);
 
@@ -71,7 +71,7 @@ void SegmentManager::dropSegment(Segment& segment)
    segments.erase(segment.getId());
 }
 
-SPSegment& SegmentManager::getSPSegment(const SegmentID id)
+SPSegment& SegmentManager::getSPSegment(const SegmentId id)
 {
    // Look if segment is already created
    auto iter = segments.find(id);

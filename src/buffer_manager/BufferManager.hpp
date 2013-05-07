@@ -23,7 +23,7 @@ public:
     /// A method to retrieve frames given a page ID and indicating whether the page will be
     /// held exclusively by this thread or not. The method can fail if no free frame is
     /// available and no used frame can be freed.
-    BufferFrame& fixPage(PageID pageId, bool exclusive);
+    BufferFrame& fixPage(PageId pageId, bool exclusive);    
 
     /// Return a frame to the buffer manager indicating whether it is dirty or not. If
     /// dirty, the page manager must write it back to disk. It does not have to write it
@@ -46,14 +46,14 @@ private:
     std::fstream file;
 
     std::vector<std::unique_ptr<BufferFrame>> allFrames;
-    std::unordered_map<PageID, BufferFrame*> loadedFrames;
-    std::unordered_map<PageID, BufferFrame*> unusedFrames;
+    std::unordered_map<PageId, BufferFrame*> loadedFrames;
+    std::unordered_map<PageId, BufferFrame*> unusedFrames;
     std::vector<BufferFrame*> freeFrames;
 
     std::mutex guard;
     std::condition_variable cond;
 
-    void loadFrame(PageID pageId, BufferFrame& frame);
+    void loadFrame(PageId pageId, BufferFrame& frame);
     void saveFrame(BufferFrame& frame);
 };
 

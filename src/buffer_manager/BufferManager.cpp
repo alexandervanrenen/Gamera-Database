@@ -28,7 +28,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPages)
     }
 }
 
-BufferFrame& BufferManager::fixPage(PageID pageId, bool exclusive)
+BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 {
     unique_lock<mutex> l(guard);
 
@@ -105,7 +105,7 @@ BufferManager::~BufferManager()
     flush();
 }
 
-void BufferManager::loadFrame(PageID pageId, BufferFrame& frame)
+void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
     assert(frame.refCount==0 && !frame.isDirty);
     file.seekg(pageId*kPageSize, ios::beg);

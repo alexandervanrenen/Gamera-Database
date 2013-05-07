@@ -12,24 +12,24 @@ public:
    SISegment(uint64_t numPages);
 
    /// Create an empty segment
-   SegmentID createSegment();
+   SegmentId createSegment();
 
    /// Add pages to a segment
-   const Extent assignExtentToSegment(const SegmentID id, const uint32_t numPages);
+   const Extent assignExtentToSegment(const SegmentId id, const uint32_t numPages);
 
    /// Access all extents of a given segment
-   const std::vector<Extent> getExtentsOfSegment(const SegmentID id);
+   const std::vector<Extent> getExtentsOfSegment(const SegmentId id);
 
    /// Remove a segment and add its extents to free list
-   void dropSegment(const SegmentID id);
+   void dropSegment(const SegmentId id);
 
 private:
    /// Maps a segment id to all its extents
-   std::unordered_map<SegmentID, std::vector<Extent>> segmentMap;
+   std::unordered_map<SegmentId, std::vector<Extent>> segmentMap;
    /// Stores free pages
    std::vector<Extent> freePages;
    /// Keep track of min segment id
-   SegmentID nextSegmentId;
+   SegmentId nextSegmentId;
 };
 
 }

@@ -13,9 +13,9 @@ class SlottedPage {
 public:
    void initialize();
 
-   RecordID insert(const Record& record);
+   RecordId insert(const Record& record);
 
-   Record lookup(RecordID id);
+   Record lookup(RecordId id);
 
    uint16_t getFreeBytes() {return freeBytes;}
 

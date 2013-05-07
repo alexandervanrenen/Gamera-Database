@@ -4,16 +4,16 @@
 
 namespace dbi {
 
-   using TID = uint64_t;
-   using PageID = uint64_t;
-   using SegmentID = uint32_t;
-   using RecordID = uint16_t;
+   using TId = uint64_t;
+   using PageId = uint64_t;
+   using SegmentId = uint32_t;
+   using RecordId = uint16_t;
 
-   inline PageID toPageID(TID id) {return id>>16;}
-   inline RecordID toRecordID(TID id) {return id&0xffff;}
-   inline TID toTID(PageID pid, RecordID rid) {return (pid<<16) + rid;}
+   inline PageId toPageId(TId id) {return id>>16;}
+   inline RecordId toRecordId(TId id) {return id&0xffff;}
+   inline TId toTID(PageId pid, RecordId rId) {return (pid<<16) + rId;}
 
    static const uint32_t kPageSize = 1<<12; // less than 1<<16 .. otherwise slotted page breaks (terribly(!))
 
-   static const PageID kInvalidPageID = -1;
+   static const PageId kInvalidPageID = -1;
 }

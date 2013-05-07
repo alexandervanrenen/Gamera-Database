@@ -22,7 +22,7 @@ TEST(SegmentManager, Simple) {
    dbi::SegmentManager segmentManager(bufferManager, true);
 
    // Create
-   dbi::SegmentID id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
+   dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Grow
@@ -32,7 +32,7 @@ TEST(SegmentManager, Simple) {
 
    // Drop
    segmentManager.dropSegment(segment);
-   dbi::SegmentID id_b = segmentManager.createSegment(dbi::SegmentType::SP, 98);
+   dbi::SegmentId id_b = segmentManager.createSegment(dbi::SegmentType::SP, 98);
    dbi::SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.getNumPages(), 98ul);
 
@@ -49,13 +49,13 @@ TEST(SegmentManager, SPSegmentSimple) {
    dbi::SegmentManager segmentManager(bufferManager, true);
 
    // Create
-   dbi::SegmentID id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
+   dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Insert and look up
    std::string data = "the clown is down";
    dbi::Record record(data);
-   dbi::TID tid = segment.insert(record);
+   dbi::TId tid = segment.insert(record);
    ASSERT_EQ(record, segment.lookup(tid));
 
    remove(fileName.c_str());

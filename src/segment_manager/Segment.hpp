@@ -15,10 +15,10 @@ class BufferFrame;
 
 class Segment {
 public:
-   Segment(SegmentID id, BufferManager& bufferManager);
+   Segment(SegmentId id, BufferManager& bufferManager);
    virtual ~Segment() {}
 
-   SegmentID getId() const {return id;}
+   SegmentId getId() const {return id;}
 
    uint64_t getNumPages() const {return numPages;}
 
@@ -27,7 +27,7 @@ public:
    virtual void restoreExtents(const std::vector<Extent>& alreadyUsedExtents); // Old pages (this means that this pages belonged to this segment before the restart of the database)
 
 private:
-   const SegmentID id;
+   const SegmentId id;
    std::vector<Extent> extents;
    uint64_t numPages;
 
@@ -43,9 +43,9 @@ public:
    /// Changing the extents of the segment potentially breaks the iterator
    class PageIDIterator : public std::iterator<std::random_access_iterator_tag, PageIDIterator> {
       uint32_t extent;
-      PageID pageID;
+      PageId pageID;
       const std::vector<Extent>* extents;
-      PageIDIterator(std::vector<Extent>& extents, PageID pageID) : extent(0), pageID(pageID), extents(&extents) {}
+      PageIDIterator(std::vector<Extent>& extents, PageId pageID) : extent(0), pageID(pageID), extents(&extents) {}
       void inc() {assert(pageID!=kInvalidPageID); pageID++; if(pageID>(*extents)[extent].end) {extent++; if(extent>extents->size()) pageID=kInvalidPageID; else pageID=(*extents)[extent].begin;}}
       friend class Segment;
    public:
@@ -54,7 +54,7 @@ public:
       bool operator==(const PageIDIterator& other) const {return pageID==other.pageID;}
       bool operator!=(const PageIDIterator& other) const {return pageID!=other.pageID;}
       uint32_t operator-(const PageIDIterator& other) const {return pageID-other.pageID;}
-      PageID operator*() const {return pageID;}
+      PageId operator*() const {return pageID;}
       PageIDIterator(const PageIDIterator& other) : extent(other.extent), pageID(other.pageID), extents(other.extents) {}
       PageIDIterator& operator=(const PageIDIterator& other) {extent=other.extent; pageID=other.pageID; extents=other.extents; return *this;}
    };

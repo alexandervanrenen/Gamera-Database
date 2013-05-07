@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
    // Check
    if(argc != 4) {
       cout << "wrong number of arguments" << endl;
-      cout << "usage: ./sort <inputFile> <outputFile> <memoryBufferInMB>" << endl;
+      cout << "usage: ./sort <inputFile> <outputFile> <memoryBufferInByte>" << endl;
       return -1;
    }
 
@@ -20,10 +20,9 @@ int main(int argc, char** argv) {
    string output = argv[2];
    uint64_t memory = atoi(argv[3]);
 
-   // Try to correct input (to small values or not power of tow)
+   // Try to correct input (to small values or not multiple of page size)
    // The sort algorithm is not trained to handle stupid values :p
-   if(memory != util::nextPowerOfTwo(memory))
-      memory = util::nextPowerOfTwo(memory) / 2;
+   memory -= memory % dbi::kPageSize;
    uint64_t pageSize = 4096;
    while(pageSize!=0 && (memory%pageSize != 0 || pageSize*3 > memory)) 
       pageSize /= 2;

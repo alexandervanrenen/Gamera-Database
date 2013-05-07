@@ -16,7 +16,7 @@ public:
    bool tryLockForReading();
    bool tryLockForWriting();
 
-   void downGrate();
+   void downgrade();
 
    void unlock();
 

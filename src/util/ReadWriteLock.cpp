@@ -62,7 +62,7 @@ bool ReadWriteLock::tryLockForWriting()
    }
 }
 
-void ReadWriteLock::downGrate()
+void ReadWriteLock::downgrade()
 {
    unique_lock<mutex> l(guard);
    assert("read and write lock" && !(readCount!=0 && writeCount!=0));

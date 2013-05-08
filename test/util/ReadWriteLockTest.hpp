@@ -17,7 +17,7 @@ TEST(ReadWriteLockTest, Simple) {
    guard.unlock();
    ASSERT_TRUE(guard.tryLockForWriting());
    ASSERT_FALSE(guard.tryLockForReading());
-   guard.downGrate();
+   guard.downgrade();
    ASSERT_TRUE(guard.tryLockForReading());
    ASSERT_FALSE(guard.tryLockForWriting());
    guard.unlock();
@@ -43,7 +43,7 @@ TEST(ReadWriteLockTest, Randomized) {
    std::thread t3([&guard](){
       for(uint32_t i=0; i<1000; i++) {
          guard.lockForWriting();
-         guard.downGrate();
+         guard.downgrade();
          usleep(10);
          guard.unlock();
       }

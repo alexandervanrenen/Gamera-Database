@@ -1,10 +1,4 @@
 bin/*
 libs/*
-tester
-sort
-util
-uebung1
-uebung1_abgabe
-uebung2
-uebung3
+build/*
 config.local

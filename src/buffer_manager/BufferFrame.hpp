@@ -18,13 +18,8 @@ public:
 
 private:
     std::array<char, kPageSize> data;
-    bool exclusive = false;
     bool isDirty = false;
-    uint32_t refCount = 0;
     PageId pageId = 0;
-    uint32_t threadsWaiting = 0;
-    std::condition_variable cond;
-    //new fixePage2 required memebers -> remove asap
     util::ReadWriteLock accessGuard;
 
     friend class BufferManager;

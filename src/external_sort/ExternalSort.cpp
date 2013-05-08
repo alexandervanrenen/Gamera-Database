@@ -36,7 +36,7 @@ ExternalSort::ExternalSort(const string& inputFileName, const string& outputFile
 
 void ExternalSort::run()
 {
-   StatisticsCollector<true> stats;
+   util::StatisticsCollector<true> stats("external sort");
 
    // Phase I: Create runs
    stats.start("RunPhase");

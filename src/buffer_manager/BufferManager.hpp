@@ -2,14 +2,11 @@
 
 #include "common/Config.hpp"
 #include "BufferFrame.hpp"
+#include "util/ConcurrentOffsetHash.hpp"
+#include "util/StatisticsCollector.hpp"
 #include <string>
 #include <fstream>
-#include <vector>
-#include <memory>
 #include <mutex>
-#include <unordered_map>
-#include <condition_variable>
-#include "util/ConcurrentOffsetHash.hpp"
 
 namespace dbi {
 
@@ -60,6 +57,8 @@ private:
     ///In case the pageId does not match, the lock is released and fixPage is called instead.
     ///Otherwise the locked buffer frame is returned.
     BufferFrame& tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive);
+
+    util::StatisticsCollector<false> stats;
 };
 
 const static bool kExclusive = true;

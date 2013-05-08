@@ -88,5 +88,5 @@ libs/tbb:
 	rm tbb41_20130116oss* -rf
 
 clean:
-	rm $(objDir) -rf
-	rm $(objDir) -rf
+	rm bin -rf
+	rm build -rf

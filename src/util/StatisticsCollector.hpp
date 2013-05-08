@@ -6,12 +6,14 @@
 #include <chrono>
 #include <sstream>
 
+namespace util {
+
 template<bool debug>
 class StatisticsCollector {
 public:
    void start(const std::string& tag);
    void end(const std::string& tag);
-   void log(const std::string& tag, uint32_t ms);
+   void count(const std::string& tag, uint32_t val);
 
    void print(std::ostream& stream);
 };
@@ -19,10 +21,15 @@ public:
 template<>
 class StatisticsCollector<true> {
 public:
-   void log(const std::string& tag, uint32_t ms)
+   StatisticsCollector(const std::string& name)
+   : name(name)
    {
-      finished[tag].first += ms;
-      finished[tag].second++;
+
+   }
+
+   void count(const std::string& tag, uint32_t val)
+   {
+      counters[tag] += val;
    }
 
    void start(const std::string& tag)
@@ -38,29 +45,35 @@ public:
       finished[tag].second++;
    }
 
-   void print(std::ostream& stream)
+   void print(std::ostream& stream) const
    {
+      stream << name << std::endl;
+      stream << std::string(name.size(), '=') << std::endl;
       for(auto iter : finished)
          stream << iter.first << " : " << iter.second.first / 1000.0f << " ms [" << iter.second.second << ": " << iter.second.first / 1000.0f / iter.second.second << " ms ]" << std::endl;
+      for(auto iter : counters)
+         stream << iter.first << " : " << iter.second << std::endl;
    }
 
 private:
    std::unordered_map<std::string, std::pair<uint32_t, uint32_t> > finished;
    std::unordered_map<std::string, std::chrono::time_point<std::chrono::high_resolution_clock>> running;
+   std::unordered_map<std::string, uint32_t > counters;
+   std::string name;
 };
 
 template<>
 class StatisticsCollector<false> {
 public:
-   void log(const std::string&, uint32_t)
-   {
-   }
+   StatisticsCollector(const std::string&) {}
 
-   void start(const std::string&)
-   {
-   }
+   void start(const std::string&) {}
 
-   void end(const std::string&)
-   {
-   }
+   void end(const std::string&) {}
+
+   void count(const std::string&, uint32_t) {}
+
+   void print(std::ostream&) const {}
 };
+
+}

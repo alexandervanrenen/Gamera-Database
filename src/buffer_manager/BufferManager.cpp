@@ -36,7 +36,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
 
     // Otherwise: Load page from disc -- this may only be done by one thread
-    unique_lock<mutex>(pageLoadGuard);
+    unique_lock<mutex> l(pageLoadGuard);
 
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);

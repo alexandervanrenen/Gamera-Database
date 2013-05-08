@@ -75,7 +75,7 @@ private:
     ///Otherwise the locked buffer frame is returned.
     BufferFrame& tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive);
     
-    //TODO: add method to get buffer frame to be replaced    
+    //TODO: add method to get buffer frame to be replaced
 };
 
 const static bool kExclusive = true;

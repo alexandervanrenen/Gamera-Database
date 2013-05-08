@@ -82,7 +82,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 
 BufferFrame& BufferManager::fixPage2(PageId pageId, bool exclusive){
     //check if page is already in memory
-    auto bufferFrame = bufferFrameDir.find(pageId);  
+    auto bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr){
         //page found
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
@@ -90,19 +90,19 @@ BufferFrame& BufferManager::fixPage2(PageId pageId, bool exclusive){
         //page not found -> load page from disc 
         pageLoadGuard.lock();
         //ensure that the page has not been loaded by another thread while we waited
-        bufferFrame = bufferFrameDir.find(pageId);        
+        bufferFrame = bufferFrameDir.find(pageId);
         if(bufferFrame != nullptr){
             //page has been loaded
             pageLoadGuard.unlock();
-            return tryLockBufferFrame(*bufferFrame, pageId, exclusive);            
+            return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
         } else {
             //page has not been loaded
-            BufferFrame* bufferFrameToBeUsed;
+            BufferFrame* bufferFrameToBeUsed = nullptr;
             bool success = false;
             //find a buffer frame which can be used (either use unsed one or rule out another) and try to lock it
             //search another candidate whenever locking fails
             while(!success){
-                //TODO: determine buffer frame to be used (either use unsed one or rule out another) -> store in bufferFrameToBeUsed                
+                //TODO: determine buffer frame to be used (either use unsed one or rule out another) -> store in bufferFrameToBeUsed
                 success = bufferFrameToBeUsed->accessGuard.tryLockForWriting();
             }
             PageId oldPageId = bufferFrameToBeUsed->pageId;

@@ -1,3 +1,5 @@
 src_util_files := src/util/Utility.o               \
                   src/util/StatisticsCollector.o   \
-                  src/util/ReadWriteLock.o
+                  src/util/ReadWriteLock.o         \
+                  src/util/ConcurrentOffsetHash.o  \
+                  src/util/LoserTree.o

@@ -36,7 +36,7 @@ ExternalSort::ExternalSort(const string& inputFileName, const string& outputFile
 
 void ExternalSort::run()
 {
-   StatisticsCollector stats;
+   StatisticsCollector<true> stats;
 
    // Phase I: Create runs
    stats.start("RunPhase");
@@ -52,7 +52,7 @@ void ExternalSort::run()
    // Phase A: Show Performance
    if(showPerformance) {
       cout << "Run count: " << initialRunCount << endl;
-      stats.print();
+      stats.print(cout);
    }
 }
 

@@ -83,10 +83,6 @@ public:
       offsets[nextHashVal] = currentElement;
    }
 
-   ~ConcurrentOffsetHash() {
-
-   }
-
 private:
    struct Entry {
       Entry() {}

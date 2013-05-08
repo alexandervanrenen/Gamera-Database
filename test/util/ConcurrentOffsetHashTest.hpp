@@ -6,8 +6,8 @@
 TEST(ConcurrentOffsetHash, Small) {
    {
       util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(16);
-      hashmap.insert(2, 123);
-      hashmap.insert(3, 456);
+      hashmap.insert(2) = 123;
+      hashmap.insert(3) = 456;
       ASSERT_TRUE(hashmap.find(1) == nullptr);
       ASSERT_TRUE(hashmap.find(2) != nullptr && *hashmap.find(2) == 123);
       ASSERT_TRUE(hashmap.find(3) != nullptr && *hashmap.find(3) == 456);
@@ -18,9 +18,9 @@ TEST(ConcurrentOffsetHash, Small) {
    }
    {
       util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(8);
-      hashmap.insert(1, 123);
-      hashmap.insert(9, 456);
-      hashmap.insert(17, 789);
+      hashmap.insert(1) = 123;
+      hashmap.insert(9) = 456;
+      hashmap.insert(17) = 789;
       hashmap.updateKey(9, 2);
       ASSERT_TRUE(hashmap.find(9) == nullptr);
       ASSERT_TRUE(hashmap.find(2) != nullptr && *hashmap.find(2) == 456);
@@ -36,7 +36,7 @@ bool doInsert(uint32_t opertationCount, T& hashmap, std::unordered_map<uint64_t,
       uint64_t key = rand();
       uint64_t value = rand();
       if(reference.count(key) == 0) {
-         hashmap.insert(key, value);
+         hashmap.insert(key) = value;
          reference.insert(std::make_pair(key, value));
       }
    }

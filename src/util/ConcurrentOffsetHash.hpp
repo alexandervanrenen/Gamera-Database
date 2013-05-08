@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cassert>
 #include <mutex>
+#include <limits>
 
 namespace util {
 
@@ -15,14 +16,18 @@ public:
    /// Constructor
    ConcurrentOffsetHash(SizeType size)
    : mask(util::nextPowerOfTwo(size)-1)
-   , nextOffset(1)
-   , entries(size+1)
-   , offsets(util::nextPowerOfTwo(size))
+   , invalid(std::numeric_limits<SizeType>::max())
+   , nextOffset(0)
+   , entries(size)
+   , offsets(util::nextPowerOfTwo(size), invalid)
    {
+      assert(invalid > entries.size());
+      for(auto& iter : entries)
+         iter.next = invalid;
    }
 
    /// Add element with key and value to the map
-   void insert(const Key& key, const Value& value) {
+   Value& insert(const Key& key) {
       // Get hash
       std::unique_lock<std::mutex> l(guard);
       SizeType hashVal = key&mask;
@@ -31,10 +36,9 @@ public:
 
       // Insert entry
       entries[entryOffset].key = key;
-      entries[entryOffset].value = value;
-      do {
-         entries[entryOffset].next = offsets[hashVal];
-      } while (!__sync_bool_compare_and_swap(&offsets[hashVal], entries[entryOffset].next, entryOffset));
+      entries[entryOffset].next = offsets[hashVal];
+      offsets[hashVal] = entryOffset;
+      return entries[entryOffset].value;
    }
 
    /// Find element with given key, null if not present
@@ -45,7 +49,7 @@ public:
       uint32_t pos = offsets[hashVal];
 
       // Try to find key == key
-      for(; pos!=0; pos=entries[pos].next)
+      for(; pos!=invalid; pos=entries[pos].next)
          if(entries[pos].key == key)
             return &entries[pos].value;
 
@@ -62,10 +66,10 @@ public:
 
       // Find current (*currentPos will contain elements offset)
       SizeType* currentPos = &offsets[currentHashVal];
-      for(; *currentPos!=0; currentPos=&entries[*currentPos].next)
+      for(; *currentPos!=invalid; currentPos=&entries[*currentPos].next)
          if(entries[*currentPos].key == current)
             break;
-      assert(*currentPos != 0);
+      assert(*currentPos != invalid);
 
       // No need to move element if
       if(currentHashVal == nextHashVal) {
@@ -83,7 +87,6 @@ public:
       offsets[nextHashVal] = currentElement;
    }
 
-private:
    struct Entry {
       Entry() {}
       Key key;
@@ -91,7 +94,15 @@ private:
       SizeType next;
    };
 
-   SizeType mask;
+   std::vector<Entry>& data()
+   {
+      return entries;
+   }
+
+private:
+
+   const SizeType mask;
+   const SizeType invalid;
    SizeType nextOffset;
    std::vector<Entry> entries;
    std::vector<SizeType> offsets;

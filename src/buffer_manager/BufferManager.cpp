@@ -10,11 +10,10 @@ namespace dbi {
 
 using namespace std;
 
-BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPages)
-: memoryPages(memoryPages)
+BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCount)
+: memoryPagesCount(memoryPagesCount)
 , file(fileName.c_str(), ios::out | ios::in)
-, allFrames(memoryPages)
-, bufferFrameDir(memoryPages)
+, bufferFrameDir(memoryPagesCount)
 {
     // Check length of the file
     assert(file.is_open() && file.good());
@@ -22,151 +21,80 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPages)
     size_t fileLength = file.tellg();
     file.seekg(0, ios::beg);
     assert(fileLength > 0 && fileLength%kPageSize==0);
-    discPages = fileLength/kPageSize;
+    discPagesCount = fileLength/kPageSize;
 
-    // Allocate management data structures
-    for(auto& iter : allFrames) {
-        iter = dbiu::make_unique<BufferFrame>();
-        freeFrames.push_back(iter.get());
-    }
+    // Insert in map
+    for(uint32_t i=0; i<memoryPagesCount; i++)
+        bufferFrameDir.insert(10000000+i).pageId = 10000000+i;
 }
 
 BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 {
-    unique_lock<mutex> l(guard);
-
-    // Case 1: Page is not loaded
-    auto iter = loadedFrames.find(pageId);
-    if(iter == loadedFrames.end()) {
-        /// Wait if no page is free
-        cond.wait(l, [&](){ return !freeFrames.empty() || !unusedFrames.empty(); });
-
-        /// Swap out
-        if(freeFrames.empty()) {
-            BufferFrame* framePtr = unusedFrames.begin()->second;
-            saveFrame(*framePtr);
-            loadedFrames.erase(pageId);
-            unusedFrames.erase(pageId);
-            freeFrames.push_back(framePtr);
-        }
-        assert(!freeFrames.empty());
-
-        // Get available frame
-        BufferFrame& frame = *freeFrames.back();
-        freeFrames.pop_back();
-        loadFrame(pageId, frame);
-        assert(frame.refCount == 0);
-        frame.refCount++;
-        frame.exclusive = exclusive;
-        return frame;
-    }
-
-    // Case 2: Page is loaded and in any way reusable
-    if((!iter->second->exclusive && !exclusive) || iter->second->refCount==0) {
-        iter->second->exclusive = exclusive;
-        if(iter->second->refCount==0)
-            unusedFrames.erase(pageId);
-        iter->second->refCount++;
-        return *iter->second;
-    }
-
-    // Case 3: Otherwise
-    iter->second->threadsWaiting++;
-    while(iter->second->refCount != 0)
-        iter->second->cond.wait(l);
-    iter->second->refCount++;
-    iter->second->exclusive = exclusive;
-    iter->second->threadsWaiting--;
-    return *iter->second;
-}
-
-BufferFrame& BufferManager::fixPage2(PageId pageId, bool exclusive){
-    //check if page is already in memory
-    auto bufferFrame = bufferFrameDir.find(pageId);
-    if(bufferFrame != nullptr){
-        //page found
+    // Check if page is already in memory
+    BufferFrame* bufferFrame = bufferFrameDir.find(pageId);
+    if(bufferFrame != nullptr)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
-    } else {
-        //page not found -> load page from disc 
-        pageLoadGuard.lock();
-        //ensure that the page has not been loaded by another thread while we waited
-        bufferFrame = bufferFrameDir.find(pageId);
-        if(bufferFrame != nullptr){
-            //page has been loaded
-            pageLoadGuard.unlock();
-            return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
-        } else {
-            //page has not been loaded
-            BufferFrame* bufferFrameToBeUsed = nullptr;
-            bool success = false;
-            //find a buffer frame which can be used (either use unsed one or rule out another) and try to lock it
-            //search another candidate whenever locking fails
-            while(!success){
-                //TODO: determine buffer frame to be used (either use unsed one or rule out another) -> store in bufferFrameToBeUsed
-                success = bufferFrameToBeUsed->accessGuard.tryLockForWriting();
-            }
-            PageId oldPageId = bufferFrameToBeUsed->pageId;
-            if(bufferFrameToBeUsed->isDirty){
-                saveFrame(*bufferFrameToBeUsed);
-            }
-            loadFrame(pageId, *bufferFrameToBeUsed);
-            bufferFrameDir.updateKey(oldPageId, pageId);
-            if(!exclusive){
-                //if the lock is not request exclusively downgrade to read lock
-                bufferFrameToBeUsed->accessGuard.downgrade();
-            }
-            pageLoadGuard.unlock();
-            return *bufferFrameToBeUsed;
+
+    // Otherwise: Load page from disc -- this may only be done by one thread
+    unique_lock<mutex>(pageLoadGuard);
+
+    // Ensure that the page has not been loaded by another thread while we waited
+    bufferFrame = bufferFrameDir.find(pageId);
+    if(bufferFrame != nullptr)
+        return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
+
+    // Find unused buffer frame (unused == not locked)
+    for(auto& iter : bufferFrameDir.data()) {
+        if(iter.value.accessGuard.tryLockForWriting()) {
+            bufferFrame = &iter.value;
+            break;
         }
     }
+    assert(bufferFrame != nullptr);
+
+    // Replace page (write old and load new)
+    PageId oldPageId = bufferFrame->pageId;
+    if(bufferFrame->isDirty)
+        saveFrame(*bufferFrame);
+    loadFrame(pageId, *bufferFrame);
+
+    // Update map
+    bufferFrameDir.updateKey(oldPageId, pageId);
+    bufferFrame->pageId = pageId;
+    if(!exclusive)
+        bufferFrame->accessGuard.downgrade();
+    return *bufferFrame;
 }
 
-BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive){
-    //acquire rw-lock on provided buffer frame with respect to arg: exclusive
-    if(exclusive){
-        bufferFrame.accessGuard.lockForWriting();
-    } else {
+BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive)
+{
+    // Acquire RW-lock on provided buffer frame with respect to argument: exclusive
+    if(exclusive)
+        bufferFrame.accessGuard.lockForWriting(); else
         bufferFrame.accessGuard.lockForReading();
-    }
-    //ensure that page is still within the locked buffer frame (another thread could have ruled it out while this one was waiting)
+
+    // Ensure that the loaded page has not changed (another thread could have ruled it out while this one was waiting)
     if(bufferFrame.pageId == expectedPageId){
         return bufferFrame;
     } else {
         bufferFrame.accessGuard.unlock();
-        return fixPage2(expectedPageId, exclusive);
+        return fixPage(expectedPageId, exclusive);
     }
 }
 
 void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
 {
-    unique_lock<mutex> l(guard);
-    assert(frame.refCount > 0);
-
-    frame.isDirty |= isDirty;
-    frame.refCount--;
-    if(frame.refCount == 0 && frame.threadsWaiting == 0) {
-        unusedFrames[frame.pageId] = &frame;
-        cond.notify_one();
-    } else {
-        frame.cond.notify_one();
-    }
-}
-
-void BufferManager::unfixPage2(BufferFrame& frame, bool isDirty){
-    if(isDirty){
-        saveFrame(frame);
-    }    
     //TODO: update LRU queue stuff or second chance bits
+    frame.isDirty |= isDirty;
     frame.accessGuard.unlock();
-    
 }
 
 void BufferManager::flush()
 {
     unique_lock<mutex> l(guard);
-    for(auto iter : loadedFrames)
-        if(iter.second->isDirty)
-            saveFrame(*iter.second);
+    for(auto& iter : bufferFrameDir.data())
+        if(iter.value.isDirty)
+            saveFrame(iter.value);
 }
 
 BufferManager::~BufferManager()
@@ -179,8 +107,6 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
     assert(frame.refCount==0 && !frame.isDirty);
     file.seekg(pageId*kPageSize, ios::beg);
     file.read(frame.data.data(), kPageSize);
-    frame.pageId = pageId;
-    loadedFrames[pageId] = &frame;
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)

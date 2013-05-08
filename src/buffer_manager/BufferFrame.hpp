@@ -2,10 +2,10 @@
 #define BufferFrame_hpp
 
 #include "common/Config.hpp"
+#include "util/ReadWriteLock.hpp"
 #include <array>
 #include <cstdint>
 #include <condition_variable>
-#include "util/ReadWriteLock.hpp"
 
 namespace dbi {
 
@@ -21,7 +21,7 @@ private:
     bool exclusive = false;
     bool isDirty = false;
     uint32_t refCount = 0;
-    uint32_t pageId = 0;
+    PageId pageId = 0;
     uint32_t threadsWaiting = 0;
     std::condition_variable cond;
     //new fixePage2 required memebers -> remove asap

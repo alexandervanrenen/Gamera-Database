@@ -27,7 +27,7 @@ TEST(LoserTree, Small) {
 
 TEST(LoserTree, MinRandomized) {
    const uint32_t maxEntries = 4096;
-   for(uint32_t run=0; run<500; run++) {
+   for(uint32_t run=0; run<100; run++) {
       // Build
       uint32_t entries = rand() % maxEntries;
       std::vector<uint32_t> data(maxEntries);

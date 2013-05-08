@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include <condition_variable>
+#include "util/ReadWriteLock.hpp"
 
 namespace dbi {
 
@@ -23,6 +24,8 @@ private:
     uint32_t pageId = 0;
     uint32_t threadsWaiting = 0;
     std::condition_variable cond;
+    //new fixePage2 required memebers -> remove asap
+    util::ReadWriteLock accessGuard;
 
     friend class BufferManager;
 };

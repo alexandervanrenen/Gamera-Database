@@ -10,7 +10,7 @@ namespace dbi {
 class MemoryManager {
 public:
    MemoryManager(uint64_t size, uint64_t pageSize)
-         : buffer(std::vector<char>(size)), pageSize(pageSize)
+      : buffer(std::vector<char>(size)), pageSize(pageSize)
    {
    }
 
@@ -27,7 +27,7 @@ public:
    std::unique_ptr<Page> getPage(uint64_t id)
    {
       assert(id * pageSize < buffer.size());
-      return dbiu::make_unique<Page>(buffer.data() + (id * pageSize), pageSize);
+      return util::make_unique<Page>(buffer.data() + (id * pageSize), pageSize);
    }
 
    uint64_t size() const

@@ -9,7 +9,9 @@
 #include <vector>
 #include <memory>
 
-namespace dbiu {
+namespace dbi { 
+
+namespace util {
 
 /// Create a file with count entries created by the given factory function
 bool createTestFile(const std::string& fileName, uint64_t count, std::function<uint64_t(uint64_t)> factory);
@@ -25,6 +27,8 @@ template<class T, class... Arg>
 std::unique_ptr<T> make_unique(Arg&& ...args)
 {
    return std::unique_ptr<T>(new T(std::forward<Arg>(args)...));
+}
+
 }
 
 }

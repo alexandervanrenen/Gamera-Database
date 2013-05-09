@@ -5,6 +5,10 @@
 #include <vector>
 #include <iostream>
 
+namespace dbi {
+
+namespace util {
+
 template<class T, T max>
 class LoserTree {
 public:
@@ -88,4 +92,8 @@ template<class T, T max>
 const T LoserTree<T, max>::min()
 {
    return data[tree[0]];
+}
+
+}
+
 }

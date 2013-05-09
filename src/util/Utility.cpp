@@ -3,7 +3,9 @@
 
 using namespace std;
 
-namespace dbiu {
+namespace dbi {
+
+namespace util {
 
 template<class T>
 bool createTestFileImpl(const string& fileName, uint64_t count, function<T(int)> factory)
@@ -73,6 +75,8 @@ bool createFile(const string& fileName, const uint64_t bytes)
       return false;
    }
    return true;
+}
+
 }
 
 }

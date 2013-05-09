@@ -21,13 +21,13 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       // Build free space inventory
       SegmentId fsiID = segmentInventory.createSegment();
       auto extent = segmentInventory.assignExtentToSegment(fsiID, FSIPages);
-      freeSpaceInventory = dbiu::make_unique<FSISegment>(fsiID, bufferManager);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager);
       freeSpaceInventory->assignExtent(extent);
    } else {
       // Load free space inventory
       SegmentId fsiID = 1;
       auto extents = segmentInventory.getExtentsOfSegment(fsiID);
-      freeSpaceInventory = dbiu::make_unique<FSISegment>(fsiID, bufferManager);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager);
       freeSpaceInventory->restoreExtents(extents);
    }
 

@@ -6,14 +6,14 @@
 
 void runComplexSort(uint64_t entriesCount, uint64_t pageSize, uint64_t maxMemory, bool showPerformance = false)
 {
-   EXPECT_TRUE(dbiu::createTestFile("bin/datain", entriesCount, [&](uint64_t) {return rand();}));
+   EXPECT_TRUE(dbi::util::createTestFile("bin/datain", entriesCount, [&](uint64_t) {return rand();}));
    dbi::ExternalSort sorty("bin/datain", "bin/dataout", pageSize, maxMemory, showPerformance);
    sorty.run();
 
    uint64_t last = 0;
    bool check = true;
    uint64_t i = 0;
-   EXPECT_TRUE(dbiu::foreachInFile("bin/dataout", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
+   EXPECT_TRUE(dbi::util::foreachInFile("bin/dataout", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
    EXPECT_TRUE(check);
    EXPECT_EQ(i , entriesCount);
    remove("bin/datain");

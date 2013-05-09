@@ -11,7 +11,7 @@
 
 TEST(BufferManager, Simple) {
    const std::string fileName = "swap_file";
-   ASSERT_TRUE(dbiu::createFile(fileName, dbi::kPageSize*1024));
+   ASSERT_TRUE(dbi::util::createFile(fileName, dbi::kPageSize*1024));
 
    dbi::BufferManager bm("swap_file", 10);
    dbi::BufferFrame& bf0 = bm.fixPage(0, dbi::kExclusive);
@@ -28,7 +28,7 @@ TEST(BufferManager, FunkeTest) {
 
    const std::string fileName = "swap_file";
 
-   ASSERT_TRUE(dbiu::createFile(fileName, dbi::kPageSize*1024));
+   ASSERT_TRUE(dbi::util::createFile(fileName, dbi::kPageSize*1024));
    ASSERT_EQ(main_funke(argc, const_cast<char**>(&std::get<0>(argv))),0);
    remove("swap_file");
 }

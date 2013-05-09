@@ -17,7 +17,7 @@ TEST(SegmentManager, Simple) {
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
-   ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
 
@@ -44,7 +44,7 @@ TEST(SegmentManager, SPSegmentSimple) {
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
-   ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
 
@@ -66,7 +66,7 @@ TEST(SegmentManager, FunkeTest) {
    const std::string fileName = "swap_file";
    const uint32_t pages = 1*1000;
 
-   ASSERT_TRUE(dbiu::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
    ASSERT_EQ(run(fileName, pages), 0);
    remove(fileName.c_str());
 }

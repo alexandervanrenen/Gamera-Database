@@ -3,6 +3,8 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace dbi {
+
 namespace util {
 
 class ReadWriteLock {
@@ -30,5 +32,7 @@ private:
    ReadWriteLock(const ReadWriteLock&&) = delete;
    ReadWriteLock& operator=(const ReadWriteLock&) = delete;
 };
+
+}
 
 }

@@ -91,7 +91,7 @@ list<unique_ptr<InputRun>> ExternalSort::createRunsPhase()
 
       // Sort and write
       sort(reinterpret_cast<uint64_t*>(buffer.begin()), reinterpret_cast<uint64_t*>(buffer.begin()) + readBytes / sizeof(uint64_t));
-      auto run = dbiu::make_unique<InputRun>(outputFile.tellg(), readBytes, runFileName);
+      auto run = util::make_unique<InputRun>(outputFile.tellg(), readBytes, runFileName);
       runs.push_back(move(run));
       outputFile.write(buffer.begin(), readBytes);
    }

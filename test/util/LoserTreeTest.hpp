@@ -11,7 +11,7 @@ TEST(LoserTree, Small) {
    data[1] = 1;
    data[2] = 6;
    data[3] = 2;
-   LoserTree<uint32_t, 99> tree(data);
+   dbi::util::LoserTree<uint32_t, 99> tree(data);
 
    // Change
    EXPECT_EQ(tree.min(), 1u); // 1,2,3,6
@@ -41,7 +41,7 @@ TEST(LoserTree, MinRandomized) {
          data[i] = std::numeric_limits<uint32_t>::max();
          reference.insert(std::numeric_limits<uint32_t>::max());
       }
-      LoserTree<uint32_t, std::numeric_limits<uint32_t>::max()> tree(data);
+      dbi::util::LoserTree<uint32_t, std::numeric_limits<uint32_t>::max()> tree(data);
 
       // Change
       for(uint32_t i=0; i<500; i++) {

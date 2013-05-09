@@ -5,7 +5,7 @@
 
 TEST(ConcurrentOffsetHash, Small) {
    {
-      util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(16);
+      dbi::util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(16);
       hashmap.insert(2) = 123;
       hashmap.insert(3) = 456;
       ASSERT_TRUE(hashmap.find(1) == nullptr);
@@ -17,7 +17,7 @@ TEST(ConcurrentOffsetHash, Small) {
       ASSERT_TRUE(hashmap.find(4) != nullptr && *hashmap.find(4) == 456);
    }
    {
-      util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(8);
+      dbi::util::ConcurrentOffsetHash<uint32_t, uint32_t> hashmap(8);
       hashmap.insert(1) = 123;
       hashmap.insert(9) = 456;
       hashmap.insert(17) = 789;
@@ -78,7 +78,7 @@ bool doKeyUpdates(uint32_t opertationCount, T& hashmap, std::unordered_map<uint6
 
 TEST(ConcurrentOffsetHash, SingleThreadedInsert) {
    for(uint32_t i=0; i<100; i++) {
-      util::ConcurrentOffsetHash<uint64_t, uint64_t> hashmap(128);
+      dbi::util::ConcurrentOffsetHash<uint64_t, uint64_t> hashmap(128);
       std::unordered_map<uint64_t, uint64_t> reference;
       ASSERT_TRUE(doInsert(128, hashmap, reference));
    }
@@ -86,7 +86,7 @@ TEST(ConcurrentOffsetHash, SingleThreadedInsert) {
 
 TEST(ConcurrentOffsetHash, SingleThreadedMove) {
    for(uint32_t i=0; i<100; i++) {
-      util::ConcurrentOffsetHash<uint64_t, uint64_t> hashmap(128);
+      dbi::util::ConcurrentOffsetHash<uint64_t, uint64_t> hashmap(128);
       std::unordered_map<uint64_t, uint64_t> reference;
       ASSERT_TRUE(doInsert(128, hashmap, reference));
       ASSERT_TRUE(doKeyUpdates(128, hashmap, reference));

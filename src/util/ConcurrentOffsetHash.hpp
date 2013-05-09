@@ -7,6 +7,8 @@
 #include <mutex>
 #include <limits>
 
+namespace dbi {
+
 namespace util {
 
 /// Features: lock free, offsets, expects unique keys, fast, no remove, max size, ONE writer, many readers
@@ -108,5 +110,7 @@ private:
    std::vector<SizeType> offsets;
    std::mutex guard;
 };
+
+}
 
 }

@@ -1,10 +1,9 @@
 #include "BufferManager.hpp"
 #include "common/Config.hpp"
 #include "util/Utility.hpp"
+#include "util/StatisticsCollector.hpp"
 #include <fstream>
 #include <cassert>
-#include <bits/unordered_map.h>
-#include <bits/hashtable.h>
 
 namespace dbi {
 
@@ -14,7 +13,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 : memoryPagesCount(memoryPagesCount)
 , file(fileName.c_str(), ios::out | ios::in)
 , bufferFrameDir(memoryPagesCount)
-, stats("buffer manager")
+, stats(util::make_unique<util::StatisticsCollector<false>>("buffer manager"))
 {
     // Check length of the file
     assert(file.is_open() && file.good());
@@ -34,10 +33,10 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     // Check if page is already in memory
     BufferFrame* bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
-        stats.count("hits", 1);
+        stats->count("hits", 1);
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
-    stats.count("misses", 1);
+    stats->count("misses", 1);
 
     // Otherwise: Load page from disc -- this may only be done by one thread
     unique_lock<mutex> l(pageLoadGuard);
@@ -45,7 +44,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
-        stats.count("bad frame load", 1);
+        stats->count("bad frame load", 1);
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
 
@@ -81,7 +80,7 @@ BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const P
     if(bufferFrame.pageId == expectedPageId){
         return bufferFrame;
     } else {
-        stats.count("bad frame read", 1);
+        stats->count("bad frame read", 1);
         bufferFrame.accessGuard.unlock();
         return fixPage(expectedPageId, exclusive);
     }
@@ -105,7 +104,7 @@ void BufferManager::flush()
 BufferManager::~BufferManager()
 {
     flush();
-    stats.print(cout);
+    stats->print(cout);
 }
 
 void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)

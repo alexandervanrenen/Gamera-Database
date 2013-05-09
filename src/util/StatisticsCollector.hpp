@@ -6,6 +6,8 @@
 #include <chrono>
 #include <sstream>
 
+namespace dbi {
+
 namespace util {
 
 template<bool debug>
@@ -75,5 +77,7 @@ public:
 
    void print(std::ostream&) const {}
 };
+
+}
 
 }

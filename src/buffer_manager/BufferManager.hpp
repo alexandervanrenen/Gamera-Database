@@ -3,12 +3,17 @@
 #include "common/Config.hpp"
 #include "BufferFrame.hpp"
 #include "util/ConcurrentOffsetHash.hpp"
-#include "util/StatisticsCollector.hpp"
 #include <string>
 #include <fstream>
 #include <mutex>
+#include <memory>
 
 namespace dbi {
+
+namespace util {
+    template<bool>
+    class StatisticsCollector;
+}
 
 class BufferManager {
 public:
@@ -58,7 +63,7 @@ private:
     ///Otherwise the locked buffer frame is returned.
     BufferFrame& tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive);
 
-    util::StatisticsCollector<false> stats;
+    std::unique_ptr<util::StatisticsCollector<false>> stats;
 };
 
 const static bool kExclusive = true;

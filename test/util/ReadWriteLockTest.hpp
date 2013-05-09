@@ -3,7 +3,7 @@
 #include <thread>
 
 TEST(ReadWriteLockTest, Simple) {
-   util::ReadWriteLock guard;
+   dbi::util::ReadWriteLock guard;
    guard.lockForReading();
    guard.lockForReading();
    ASSERT_FALSE(guard.tryLockForWriting());
@@ -25,7 +25,7 @@ TEST(ReadWriteLockTest, Simple) {
 }
 
 TEST(ReadWriteLockTest, Randomized) {
-   util::ReadWriteLock guard;
+   dbi::util::ReadWriteLock guard;
    std::thread t1([&guard](){
       for(uint32_t i=0; i<1000; i++) {
          guard.lockForReading();

@@ -41,8 +41,8 @@ void OutputRun::flush()
 void OutputRun::prepareForWriting()
 {
    if(append)
-      file = dbiu::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::app); else
-      file = dbiu::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::out);
+      file = util::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::app); else
+      file = util::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::out);
    assert(file->is_open() && file->good());
    start = file->tellp();
    positionInPage = 0;
@@ -51,7 +51,7 @@ void OutputRun::prepareForWriting()
 
 std::unique_ptr<InputRun> OutputRun::convertToInputRun()
 {
-   return dbiu::make_unique<InputRun>(start, end-start, fileName);
+   return util::make_unique<InputRun>(start, end-start, fileName);
 }
 
 void OutputRun::writePage()

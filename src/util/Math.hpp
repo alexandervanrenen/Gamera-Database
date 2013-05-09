@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace dbi {
+
 namespace util {
 
 // Credit to Warens Hacker's Delight
@@ -25,4 +27,6 @@ inline uint32_t countSetBits(uint32_t n)
     return (((n + (n >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
  
+}
+
 }

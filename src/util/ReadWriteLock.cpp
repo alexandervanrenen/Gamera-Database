@@ -3,6 +3,8 @@
 
 using namespace std;
 
+namespace dbi {
+
 namespace util {
 
 ReadWriteLock::ReadWriteLock()
@@ -84,6 +86,8 @@ void ReadWriteLock::unlock()
       readCount--;
 
    waiterQueue.notify_all();
+}
+
 }
 
 }

@@ -41,7 +41,7 @@ uint64_t InputRun::getNext()
 
 void InputRun::prepareForReading()
 {
-  file = dbiu::make_unique<std::ifstream>(fileName, std::ios::binary | std::ios::in);
+  file = util::make_unique<std::ifstream>(fileName, std::ios::binary | std::ios::in);
   assert(file->is_open() && file->good());
   assert(positionInPage == 0);
   assert(validEntries == 0);

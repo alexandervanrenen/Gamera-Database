@@ -1,5 +1,4 @@
-#ifndef BufferFrame_hpp
-#define BufferFrame_hpp
+#pragma once
 
 #include "common/Config.hpp"
 #include "util/ReadWriteLock.hpp"
@@ -11,9 +10,7 @@ namespace dbi {
 
 class BufferFrame {
 public:
-    /// A buffer frame should offer a method giving access to the buffered page. Except
-    /// for the buffered page, BufferFrame objects can also store control information
-    /// (page ID, dirtyness, . . . ).
+    /// Access page memory, is mapped to disc by the buffer manager
     char* getData();
 
 private:
@@ -26,5 +23,3 @@ private:
 };
 
 }
-
-#endif

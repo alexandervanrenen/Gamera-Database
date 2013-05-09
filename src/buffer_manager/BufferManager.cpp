@@ -2,6 +2,8 @@
 #include "common/Config.hpp"
 #include "util/Utility.hpp"
 #include "util/StatisticsCollector.hpp"
+#include "SwapOutSecondChance.hpp"
+#include "SwapOutRandom.hpp"
 #include <fstream>
 #include <cassert>
 
@@ -13,7 +15,8 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 : memoryPagesCount(memoryPagesCount)
 , file(fileName.c_str(), ios::out | ios::in)
 , bufferFrameDir(memoryPagesCount)
-, stats(util::make_unique<util::StatisticsCollector<false>>("buffer manager"))
+, swapOutAlgorithm(util::make_unique<SwapOutAlgorithm>())
+, stats(util::make_unique<util::StatisticsCollector<collectPerformance>>("buffer manager"))
 {
     // Check length of the file
     assert(file.is_open() && file.good());
@@ -30,13 +33,12 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 
 BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 {
+    stats->count("fixPages", 1);
+
     // Check if page is already in memory
     BufferFrame* bufferFrame = bufferFrameDir.find(pageId);
-    if(bufferFrame != nullptr) {
-        stats->count("hits", 1);
+    if(bufferFrame != nullptr)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
-    }
-    stats->count("misses", 1);
 
     // Otherwise: Load page from disc -- this may only be done by one thread
     unique_lock<mutex> l(pageLoadGuard);
@@ -45,14 +47,16 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
         stats->count("bad frame load", 1);
+        stats->count("fixPages", -1);
+        l.unlock();
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
 
     // Find unused buffer frame (unused == not locked)
-    while(bufferFrame == nullptr) {
-        auto& bf = bufferFrameDir.data()[random() % bufferFrameDir.data().size()];
-        if(bf.value.accessGuard.tryLockForWriting())
-            bufferFrame = &bf.value;
+    while(true) {
+        bufferFrame = &swapOutAlgorithm->findPageToSwapOut(bufferFrameDir);
+        if(bufferFrame->accessGuard.tryLockForWriting())
+            break;
     }
 
     // Replace page (write old and load new)
@@ -77,7 +81,7 @@ BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const P
         bufferFrame.accessGuard.lockForReading();
 
     // Ensure that the loaded page has not changed (another thread could have ruled it out while this one was waiting)
-    if(bufferFrame.pageId == expectedPageId){
+    if(bufferFrame.pageId == expectedPageId) {
         return bufferFrame;
     } else {
         stats->count("bad frame read", 1);
@@ -89,6 +93,7 @@ BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const P
 void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
 {
     //TODO: update LRU queue stuff or second chance bits
+    swapOutAlgorithm->onUnfixPage(frame);
     frame.isDirty |= isDirty;
     frame.accessGuard.unlock();
 }
@@ -110,8 +115,10 @@ BufferManager::~BufferManager()
 void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
     assert(!frame.isDirty);
+    stats->count("loads", 1);
     file.seekg(pageId*kPageSize, ios::beg);
     file.read(frame.data.data(), kPageSize);
+    assert(file.good());
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)

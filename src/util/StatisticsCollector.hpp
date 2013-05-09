@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <chrono>
 #include <sstream>
+#include <mutex>
 
 namespace dbi {
 
@@ -15,7 +16,7 @@ class StatisticsCollector {
 public:
    void start(const std::string& tag);
    void end(const std::string& tag);
-   void count(const std::string& tag, uint32_t val);
+   void count(const std::string& tag, int32_t val);
 
    void print(std::ostream& stream);
 };
@@ -26,21 +27,23 @@ public:
    StatisticsCollector(const std::string& name)
    : name(name)
    {
-
    }
 
-   void count(const std::string& tag, uint32_t val)
+   void count(const std::string& tag, int32_t val)
    {
+      std::unique_lock<std::mutex> l(guard);
       counters[tag] += val;
    }
 
    void start(const std::string& tag)
    {
+      std::unique_lock<std::mutex> l(guard);
       running[tag] = std::chrono::high_resolution_clock::now();
    }
 
    void end(const std::string& tag)
    {
+      std::unique_lock<std::mutex> l(guard);
       auto start = running[tag];
       auto end = std::chrono::high_resolution_clock::now();
       finished[tag].first += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -62,6 +65,7 @@ private:
    std::unordered_map<std::string, std::chrono::time_point<std::chrono::high_resolution_clock>> running;
    std::unordered_map<std::string, uint32_t > counters;
    std::string name;
+   std::mutex guard;
 };
 
 template<>
@@ -73,7 +77,7 @@ public:
 
    void end(const std::string&) {}
 
-   void count(const std::string&, uint32_t) {}
+   void count(const std::string&, int32_t) {}
 
    void print(std::ostream&) const {}
 };

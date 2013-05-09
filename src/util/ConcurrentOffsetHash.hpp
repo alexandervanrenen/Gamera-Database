@@ -17,11 +17,11 @@ class ConcurrentOffsetHash {
 public:
    /// Constructor
    ConcurrentOffsetHash(SizeType size)
-   : mask(util::nextPowerOfTwo(size)-1)
+   : mask((util::nextPowerOfTwo(size)<<2)-1)
    , invalid(std::numeric_limits<SizeType>::max())
    , nextOffset(0)
    , entries(size)
-   , offsets(util::nextPowerOfTwo(size), invalid)
+   , offsets(util::nextPowerOfTwo(size)<<2, invalid)
    {
       assert(invalid > entries.size());
       for(auto& iter : entries)

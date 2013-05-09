@@ -14,6 +14,8 @@ namespace util {
     template<bool>
     class StatisticsCollector;
 }
+class SwapOutSecondChance;
+class SwapOutRandom;
 
 class BufferManager {
 public:
@@ -36,20 +38,24 @@ public:
     /// Destructor. Write all dirty frames to disk and free all resources.
     ~BufferManager();
 
-    private:
+private:
     uint64_t memoryPagesCount;
     uint64_t discPagesCount;
     std::fstream file;
     std::mutex guard;
 
-    /// Helper
-    void loadFrame(PageId pageId, BufferFrame& frame);
-    void saveFrame(BufferFrame& frame);
-
     /// Points from a page id to the buffer frame containing this page
     util::ConcurrentOffsetHash<PageId, BufferFrame> bufferFrameDir;
     /// Prevents threads from trying to load a page from disc at the same time
     std::mutex pageLoadGuard;
+
+    /// Algorithm to find a page which can be swapped out
+    using SwapOutAlgorithm = SwapOutSecondChance;
+    std::unique_ptr<SwapOutAlgorithm> swapOutAlgorithm;
+
+    /// Helper
+    void loadFrame(PageId pageId, BufferFrame& frame);
+    void saveFrame(BufferFrame& frame);
 
     /// Tries to lock a buffer frame in which the provided pageId is expected
     /// For the purpose of concurrency protection, the pageId of the buffer frame is compared with the provided one after the lock has been aquired.
@@ -58,7 +64,8 @@ public:
     BufferFrame& tryLockBufferFrame(BufferFrame& bufferFrame, const PageId expectedPageId, const bool exclusive);
 
     /// Collecting performance
-    std::unique_ptr<util::StatisticsCollector<false>> stats;
+    const static bool collectPerformance = false;
+    std::unique_ptr<util::StatisticsCollector<collectPerformance>> stats;
 };
 
 const static bool kExclusive = true;

@@ -17,9 +17,11 @@ private:
     std::array<char, kPageSize> data;
     bool isDirty = false;
     PageId pageId = 0;
+    bool hasSecondChance = true;
     util::ReadWriteLock accessGuard;
 
     friend class BufferManager;
+    friend class SwapOutSecondChance;
 };
 
 }

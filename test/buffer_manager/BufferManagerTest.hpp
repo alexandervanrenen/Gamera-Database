@@ -24,7 +24,7 @@ TEST(BufferManager, Simple) {
 
 TEST(BufferManager, FunkeTest) {
    int argc = 5;
-   std::array<const char*, 5> argv = {{"", "swap_file", "1024", "64", "1"}};
+   std::array<const char*, 5> argv = {{"", "swap_file", "1024", "64", "2"}};
 
    const std::string fileName = "swap_file";
 

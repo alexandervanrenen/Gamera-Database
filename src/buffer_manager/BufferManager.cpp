@@ -33,8 +33,6 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 
 BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 {
-    stats->count("fixPages", 1);
-
     // Check if page is already in memory
     BufferFrame* bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr)
@@ -46,8 +44,6 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
-        stats->count("bad frame load", 1);
-        stats->count("fixPages", -1);
         loadGuard.unlock();
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }

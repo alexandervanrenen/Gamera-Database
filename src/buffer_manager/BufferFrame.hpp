@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "util/ReadWriteLock.hpp"
+#include "util/ReadWriteSpinLock.hpp"
 #include <array>
 #include <cstdint>
 #include <condition_variable>
@@ -18,7 +18,8 @@ private:
     bool isDirty = false;
     PageId pageId = 0;
     bool hasSecondChance = true;
-    util::ReadWriteLock accessGuard;
+    using BufferFrameLockType = util::ReadWriteSpinLock;
+    BufferFrameLockType accessGuard;
 
     friend class BufferManager;
     friend class SwapOutSecondChance;

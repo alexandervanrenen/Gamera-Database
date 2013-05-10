@@ -6,8 +6,8 @@ srcDir:= src/
 -include config.local
 
 CXX ?= g++
-cf = -g -O0 -Werror -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
-lf = -g -O0 --std=c++0x -I./src
+cf = -g0 -O3 -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
+lf = -g0 -O3 --std=c++0x -I./src
 build_dir = @mkdir -p $(dir $@)
 
 # Fix for clang

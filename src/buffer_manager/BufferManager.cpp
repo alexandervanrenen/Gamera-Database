@@ -41,14 +41,14 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
 
     // Otherwise: Load page from disc -- this may only be done by one thread
-    unique_lock<mutex> l(pageLoadGuard);
+    loadGuard.lock();
 
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
         stats->count("bad frame load", 1);
         stats->count("fixPages", -1);
-        l.unlock();
+        loadGuard.unlock();
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
 
@@ -70,6 +70,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     bufferFrame->pageId = pageId;
     if(!exclusive)
         bufferFrame->accessGuard.downgrade();
+    loadGuard.unlock();
     return *bufferFrame;
 }
 
@@ -100,7 +101,7 @@ void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
 
 void BufferManager::flush()
 {
-    unique_lock<mutex> l(guard);
+    // TODO: need locking ?
     for(auto& iter : bufferFrameDir.data())
         if(iter.value.isDirty)
             saveFrame(iter.value);

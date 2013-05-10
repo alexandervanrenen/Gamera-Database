@@ -3,6 +3,7 @@
 #include "common/Config.hpp"
 #include "BufferFrame.hpp"
 #include "util/ConcurrentOffsetHash.hpp"
+#include "util/SpinLock.hpp"
 #include <string>
 #include <fstream>
 #include <mutex>
@@ -42,12 +43,13 @@ private:
     uint64_t memoryPagesCount;
     uint64_t discPagesCount;
     std::fstream file;
-    std::mutex guard;
+
+    /// Indicates that pageId%numPages is currently loading
+    using LockType = util::SpinLock;
+    LockType loadGuard;
 
     /// Points from a page id to the buffer frame containing this page
     util::ConcurrentOffsetHash<PageId, BufferFrame> bufferFrameDir;
-    /// Prevents threads from trying to load a page from disc at the same time
-    std::mutex pageLoadGuard;
 
     /// Algorithm to find a page which can be swapped out
     using SwapOutAlgorithm = SwapOutSecondChance;

@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
-#include <mutex>
 #include <limits>
 
 namespace dbi {
@@ -31,7 +30,6 @@ public:
    /// Add element with key and value to the map
    Value& insert(const Key& key) {
       // Get hash
-      std::unique_lock<std::mutex> l(guard);
       SizeType hashVal = key&mask;
       SizeType entryOffset = nextOffset++;
       assert(entryOffset < entries.size());
@@ -46,7 +44,6 @@ public:
    /// Find element with given key, null if not present
    Value* find(Key key) {
       // Get hash
-      std::unique_lock<std::mutex> l(guard);
       SizeType hashVal = key&mask;
       uint32_t pos = offsets[hashVal];
 
@@ -62,7 +59,6 @@ public:
    /// Update key of element with key equal current to next
    void updateKey(Key current, Key next) {
       // Get hash and lock
-      std::unique_lock<std::mutex> l(guard);
       SizeType currentHashVal = current&mask;
       SizeType nextHashVal = next&mask;
 
@@ -108,7 +104,6 @@ private:
    SizeType nextOffset;
    std::vector<Entry> entries;
    std::vector<SizeType> offsets;
-   std::mutex guard;
 };
 
 }

@@ -5,7 +5,6 @@
 #include "util/ConcurrentOffsetHash.hpp"
 #include "util/SpinLock.hpp"
 #include <string>
-#include <fstream>
 #include <mutex>
 #include <memory>
 
@@ -48,11 +47,10 @@ private:
     // Constants
     uint64_t memoryPagesCount;
     uint64_t discPagesCount;
-    std::fstream file;
+    int fileFD;
 
     /// Indicates that pageId%numPages is currently loading
     std::vector<LockType> loadGuards;
-    LockType fileGuard;
 
     /// Points from a page id to the buffer frame containing this page
     util::ConcurrentOffsetHash<PageId, BufferFrame> bufferFrameDir;

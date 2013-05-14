@@ -7,6 +7,9 @@
 #include "SwapOutTwoQueue.hpp"
 #include <fstream>
 #include <cassert>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 namespace dbi {
 
@@ -14,19 +17,19 @@ using namespace std;
 
 BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCount)
 : memoryPagesCount(memoryPagesCount)
-, file(fileName.c_str(), ios::out | ios::in)
 , loadGuards(memoryPagesCount)
 , bufferFrameDir(memoryPagesCount)
 , swapOutAlgorithm(util::make_unique<SwapOutAlgorithm>())
 , stats(util::make_unique<util::StatisticsCollector<collectPerformance>>("buffer manager"))
 {
     // Check length of the file
-    assert(file.is_open() && file.good());
-    file.seekg(0, ios::end);
-    size_t fileLength = file.tellg();
-    file.seekg(0, ios::beg);
-    assert(fileLength > 0 && fileLength%kPageSize==0);
-    discPagesCount = fileLength/kPageSize;
+    fileFD = open(fileName.c_str(), O_RDWR);
+    if(fcntl(fileFD, F_GETFL) == -1)
+        assert("can not open file"&&false);
+    struct stat st;
+    fstat(fileFD, &st);
+    assert(st.st_size > 0 && st.st_size%kPageSize==0);
+    discPagesCount = st.st_size/kPageSize;
 
     // Insert in map
     for(uint32_t i=0; i<memoryPagesCount; i++)
@@ -58,11 +61,9 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 
     // Replace page (write old and load new)
     PageId oldPageId = bufferFrame->pageId;
-    fileGuard.lock();
     if(bufferFrame->isDirty)
         saveFrame(*bufferFrame);
     loadFrame(pageId, *bufferFrame);
-    fileGuard.unlock();
 
     // Update map
     bufferFrameDir.updateKey(oldPageId, pageId);
@@ -101,7 +102,6 @@ void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
 
 void BufferManager::flush()
 {
-    // TODO: need locking ?
     for(auto& iter : bufferFrameDir.data())
         if(iter.value.isDirty)
             saveFrame(iter.value);
@@ -117,17 +117,15 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
     assert(!frame.isDirty);
     stats->count("loads", 1);
-    file.seekg(pageId*kPageSize, ios::beg);
-    file.read(frame.data.data(), kPageSize);
-    assert(file.good());
+    if(pread(fileFD, frame.data.data(), kPageSize, pageId*kPageSize) != kPageSize)
+        assert(false);
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)
 {
-    if(frame.isDirty) {
-        file.seekg(frame.pageId*kPageSize, ios::beg);
-        file.write(frame.data.data(), kPageSize);
-    }
+    if(frame.isDirty)
+        if(pwrite(fileFD, frame.data.data(), kPageSize, frame.pageId*kPageSize) != kPageSize)
+            assert(false);
     frame.isDirty = false;
 }
 

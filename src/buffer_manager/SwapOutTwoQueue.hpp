@@ -26,7 +26,7 @@ public:
       while(true) {
          // Get page from queue
          BufferFrame* result;
-         if(!fifo.empty()) {
+         if(!fifo.empty()) { // TODO: May loop for a while, fifo.size() == 1 is not good ;)
             result = fifo.front();
             fifo.pop_front();
          } else {

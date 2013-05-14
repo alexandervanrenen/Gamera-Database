@@ -43,17 +43,17 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     if(bufferFrame != nullptr)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
 
-    // Otherwise: Load page from disc -- this may only be done by one thread
-    loadGuards[pageId%memoryPagesCount].lock();
+    // Otherwise: Load page from disc -- ensure that this page is not loaded several times
+    loadGuards[pageId%loadGuards.size()].lock();
 
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
-        loadGuards[pageId%memoryPagesCount].unlock();
+        loadGuards[pageId%loadGuards.size()].unlock();
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
 
-    // Find unused buffer frame (unused == not locked)
+    // Find unused buffer frame (unused == not locked) and lock it for writing
     bufferFrame = &swapOutAlgorithm->findPageToSwapOut(bufferFrameDir);
 
     // Replace page (write old and load new)
@@ -69,7 +69,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     bufferFrame->pageId = pageId;
     if(!exclusive)
         bufferFrame->accessGuard.downgrade();
-    loadGuards[pageId%memoryPagesCount].unlock();
+    loadGuards[pageId%loadGuards.size()].unlock();
     return *bufferFrame;
 }
 
@@ -117,16 +117,16 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
     assert(!frame.isDirty);
     stats->count("loads", 1);
-    // file.seekg(pageId*kPageSize, ios::beg);
-    // file.read(frame.data.data(), kPageSize);
+    file.seekg(pageId*kPageSize, ios::beg);
+    file.read(frame.data.data(), kPageSize);
     assert(file.good());
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)
 {
     if(frame.isDirty) {
-        // file.seekg(frame.pageId*kPageSize, ios::beg);
-        // file.write(frame.data.data(), kPageSize);
+        file.seekg(frame.pageId*kPageSize, ios::beg);
+        file.write(frame.data.data(), kPageSize);
     }
     frame.isDirty = false;
 }

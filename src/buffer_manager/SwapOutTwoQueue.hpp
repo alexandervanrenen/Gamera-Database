@@ -14,6 +14,7 @@ public:
 
    void initialize(util::ConcurrentOffsetHash<PageId, BufferFrame>& bufferFrameDir)
    {
+      // Add all pages to the fifo queue
       for(auto& iter : bufferFrameDir.data()) {
          iter.value.listIterator = fifo.insert(fifo.begin(), &iter.value);
          iter.value.isInFifoQueue = true;
@@ -24,23 +25,25 @@ public:
    {
       std::unique_lock<std::mutex> l(guard);
       while(true) {
-         // Get page from queue
-         BufferFrame* result;
-         if(!fifo.empty()) { // TODO: May loop for a while, fifo.size() == 1 is not good ;)
-            result = fifo.front();
-            fifo.pop_front();
-         } else {
-            result = lru.front();
-            lru.pop_front();
+         // Loop over all entries in fifo queue and use the first one which is not locked
+         for(auto iter=fifo.begin(); iter!=fifo.end(); iter++) {
+            if((*iter)->accessGuard.tryLockForWriting()) {
+               BufferFrame* result = *iter;
+               fifo.erase(iter);
+               fifo.insert(fifo.end(), result);
+               return *result;
+            }
          }
 
-         // Otherwise: put back into queue and try again
-         result->isInFifoQueue = true;
-         result->listIterator = fifo.insert(fifo.end(), result);
-
-         // Try to lock (should always work ..)
-         if(result->accessGuard.tryLockForWriting())
-            return *result;
+         // Loop over all entries in lru queue and use the first one which is not locked
+         for(auto iter=lru.begin(); iter!=lru.end(); iter++) {
+            if((*iter)->accessGuard.tryLockForWriting()) {
+               BufferFrame* result = *iter;
+               lru.erase(iter);
+               lru.insert(lru.end(), result);
+               return *result;
+            }
+         }
       }
    }
 

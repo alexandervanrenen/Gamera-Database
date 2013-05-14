@@ -33,22 +33,33 @@ Unsere tests compilieren mit: "make uebung1" und sind sond dann mit ./uebung1 au
 Buffer Manager
 ==============
 
+Der Buffer Manager sorgt dafür das teile einer großen Datei in einen verhältnissmässig kleinen Arbeitsspeicher gemappt werden.
+
 Features:
 ---------
+
 Optimiert auf wenige Locks.
+
 * Ein fix auf eine schon im Speicher vorhandene Seite benötigt nur ein R/W Lock auf den Frame.
 * Ein fix auf eine noch nicht im Speicher vorhandene Seite beötigt einen globalen Lock (für die Datei), welcher nur während dem schreiben und lesen gehalten wird. Dazu wird der Frame lokal mit einem Write-Lock geocket und die Hashmap wird bei der Veränderung mit einem lokalen Lock blockiert. Also keine globalen Locks ausser auf dem File, welcher unvermeidlich ist, wenn wir nur eine Datei haben.
 * Ein unfix benötigt keinen Lock.
+
 Optimierte Implementierungen für kritische System teile:
+
 * Hash map mit fixierter Größe und Offsets.
 * Read Write lock für downgrates von Locks.
 * SpinLock wrapper.
+
 Austauschbare Algorithmen zum Verdrängen von Seiten. Im BufferManager.hpp den Typen ändern.
+
 * Radom
 * Second chance
 * Two Queue
 
 Issues:
 -------
+
+Einige Probleme in der Implementierung:
+
 * Valgrind scheint mit dem SpinLock im BufferManager nicht klar zu kommen, dieser kann über die using Anweisung: "using LockType = util::SpinLock;" im BufferManager Header File geändert werden. (Einfach auf eine std::mutex setzen, falls du es valgrinden möchtest).
 * Kein guter Test für die Verdrängungs Algorithmen, da es schwer ist das Verhalten einer Datenbank zu simulieren.

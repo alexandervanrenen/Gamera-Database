@@ -43,7 +43,7 @@ public:
 private:
     /// Configuration
     using LockType = util::SpinLock; // Use std::mutex when profiling with valgrind
-    using SwapOutAlgorithm = SwapOutTwoQueue;
+    using SwapOutAlgorithm = SwapOutSecondChance;
 
     // Constants
     uint64_t memoryPagesCount;
@@ -51,7 +51,8 @@ private:
     std::fstream file;
 
     /// Indicates that pageId%numPages is currently loading
-    LockType loadGuard;
+    std::vector<LockType> loadGuards;
+    LockType fileGuard;
 
     /// Points from a page id to the buffer frame containing this page
     util::ConcurrentOffsetHash<PageId, BufferFrame> bufferFrameDir;

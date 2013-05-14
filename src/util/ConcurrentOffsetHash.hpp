@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/Math.hpp"
+#include "util/SpinLock.hpp"
 #include <vector>
 #include <iostream>
 #include <cassert>
@@ -21,6 +22,7 @@ public:
    , nextOffset(0)
    , entries(size)
    , offsets(util::nextPowerOfTwo(size)<<2, invalid)
+   , locks(util::nextPowerOfTwo(size)<<2)
    {
       assert(invalid > entries.size());
       for(auto& iter : entries)
@@ -42,7 +44,7 @@ public:
    }
 
    /// Find element with given key, null if not present
-   Value* find(Key key) {
+   Value* fuzzyFind(Key key) {
       // Get hash
       SizeType hashVal = key&mask;
       uint32_t pos = offsets[hashVal];
@@ -56,6 +58,26 @@ public:
       return nullptr;
    }
 
+   /// Find element with given key, null if not present
+   Value* find(Key key) {
+      // Get hash
+      SizeType hashVal = key&mask;
+      locks[hashVal].lock();
+      uint32_t pos = offsets[hashVal];
+
+      // Try to find key == key
+      for(; pos!=invalid; pos=entries[pos].next)
+         if(entries[pos].key == key) {
+            Value* result = &entries[pos].value;
+            locks[hashVal].unlock();
+            return result;
+         }
+
+      // Otherwise not found
+      locks[hashVal].unlock();
+      return nullptr;
+   }
+
    /// Update key of element with key equal current to next
    void updateKey(Key current, Key next) {
       // Get hash and lock
@@ -63,6 +85,7 @@ public:
       SizeType nextHashVal = next&mask;
 
       // Find current (*currentPos will contain elements offset)
+      locks[currentHashVal].lock();
       SizeType* currentPos = &offsets[currentHashVal];
       for(; *currentPos!=invalid; currentPos=&entries[*currentPos].next)
          if(entries[*currentPos].key == current)
@@ -72,17 +95,21 @@ public:
       // No need to move element if
       if(currentHashVal == nextHashVal) {
          entries[*currentPos].key = next;
+         locks[currentHashVal].unlock();
          return;
       }
 
       // Remove current
       SizeType currentElement = *currentPos;
       *currentPos = entries[*currentPos].next;
+      locks[currentHashVal].unlock();
 
       // Insert at new location
+      locks[nextHashVal].lock();
       entries[currentElement].key = next;
       entries[currentElement].next = offsets[nextHashVal];
       offsets[nextHashVal] = currentElement;
+      locks[nextHashVal].unlock();
    }
 
    struct Entry {
@@ -104,6 +131,7 @@ private:
    SizeType nextOffset;
    std::vector<Entry> entries;
    std::vector<SizeType> offsets;
+   std::vector<util::SpinLock> locks;
 };
 
 }

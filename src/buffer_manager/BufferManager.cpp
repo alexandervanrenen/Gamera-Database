@@ -15,6 +15,7 @@ using namespace std;
 BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCount)
 : memoryPagesCount(memoryPagesCount)
 , file(fileName.c_str(), ios::out | ios::in)
+, loadGuards(memoryPagesCount)
 , bufferFrameDir(memoryPagesCount)
 , swapOutAlgorithm(util::make_unique<SwapOutAlgorithm>())
 , stats(util::make_unique<util::StatisticsCollector<collectPerformance>>("buffer manager"))
@@ -38,17 +39,17 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 {
     // Check if page is already in memory
-    BufferFrame* bufferFrame = bufferFrameDir.find(pageId);
+    BufferFrame* bufferFrame = bufferFrameDir.fuzzyFind(pageId);
     if(bufferFrame != nullptr)
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
 
     // Otherwise: Load page from disc -- this may only be done by one thread
-    loadGuard.lock();
+    loadGuards[pageId%memoryPagesCount].lock();
 
     // Ensure that the page has not been loaded by another thread while we waited
     bufferFrame = bufferFrameDir.find(pageId);
     if(bufferFrame != nullptr) {
-        loadGuard.unlock();
+        loadGuards[pageId%memoryPagesCount].unlock();
         return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
     }
 
@@ -57,16 +58,18 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
 
     // Replace page (write old and load new)
     PageId oldPageId = bufferFrame->pageId;
+    fileGuard.lock();
     if(bufferFrame->isDirty)
         saveFrame(*bufferFrame);
     loadFrame(pageId, *bufferFrame);
+    fileGuard.unlock();
 
     // Update map
     bufferFrameDir.updateKey(oldPageId, pageId);
     bufferFrame->pageId = pageId;
     if(!exclusive)
         bufferFrame->accessGuard.downgrade();
-    loadGuard.unlock();
+    loadGuards[pageId%memoryPagesCount].unlock();
     return *bufferFrame;
 }
 
@@ -114,16 +117,16 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
     assert(!frame.isDirty);
     stats->count("loads", 1);
-    file.seekg(pageId*kPageSize, ios::beg);
-    file.read(frame.data.data(), kPageSize);
+    // file.seekg(pageId*kPageSize, ios::beg);
+    // file.read(frame.data.data(), kPageSize);
     assert(file.good());
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)
 {
     if(frame.isDirty) {
-        file.seekg(frame.pageId*kPageSize, ios::beg);
-        file.write(frame.data.data(), kPageSize);
+        // file.seekg(frame.pageId*kPageSize, ios::beg);
+        // file.write(frame.data.data(), kPageSize);
     }
     frame.isDirty = false;
 }

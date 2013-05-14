@@ -4,6 +4,7 @@
 #include "util/StatisticsCollector.hpp"
 #include "SwapOutSecondChance.hpp"
 #include "SwapOutRandom.hpp"
+#include "SwapOutTwoQueue.hpp"
 #include <fstream>
 #include <cassert>
 
@@ -29,6 +30,9 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
     // Insert in map
     for(uint32_t i=0; i<memoryPagesCount; i++)
         bufferFrameDir.insert(10000000+i).pageId = 10000000+i;
+
+    // Add to swap out strategy
+    swapOutAlgorithm->initialize(bufferFrameDir);
 }
 
 BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
@@ -49,11 +53,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
     }
 
     // Find unused buffer frame (unused == not locked)
-    while(true) {
-        bufferFrame = &swapOutAlgorithm->findPageToSwapOut(bufferFrameDir);
-        if(bufferFrame->accessGuard.tryLockForWriting())
-            break;
-    }
+    bufferFrame = &swapOutAlgorithm->findPageToSwapOut(bufferFrameDir);
 
     // Replace page (write old and load new)
     PageId oldPageId = bufferFrame->pageId;
@@ -79,6 +79,7 @@ BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const P
 
     // Ensure that the loaded page has not changed (another thread could have ruled it out while this one was waiting)
     if(bufferFrame.pageId == expectedPageId) {
+        swapOutAlgorithm->onFixPage(bufferFrame);
         return bufferFrame;
     } else {
         stats->count("bad frame read", 1);

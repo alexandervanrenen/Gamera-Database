@@ -17,6 +17,7 @@ namespace util {
 }
 class SwapOutSecondChance;
 class SwapOutRandom;
+class SwapOutTwoQueue;
 
 class BufferManager {
 public:
@@ -24,7 +25,7 @@ public:
     BufferManager(const std::string& filename, uint64_t memoryPagesCount);
 
     /// A method to retrieve frames given a page ID and indicating whether the page will be held exclusively by this thread or not.
-    BufferFrame& fixPage(PageId pageId, bool exclusive);  
+    BufferFrame& fixPage(PageId pageId, bool exclusive);
 
     /// Return a frame to the buffer manager indicating whether it is dirty or not.
     void unfixPage(BufferFrame& frame, bool isDirty);
@@ -40,19 +41,22 @@ public:
     ~BufferManager();
 
 private:
+    /// Configuration
+    using LockType = util::SpinLock; // Use std::mutex when profiling with valgrind
+    using SwapOutAlgorithm = SwapOutTwoQueue;
+
+    // Constants
     uint64_t memoryPagesCount;
     uint64_t discPagesCount;
     std::fstream file;
 
     /// Indicates that pageId%numPages is currently loading
-    using LockType = util::SpinLock;
     LockType loadGuard;
 
     /// Points from a page id to the buffer frame containing this page
     util::ConcurrentOffsetHash<PageId, BufferFrame> bufferFrameDir;
 
     /// Algorithm to find a page which can be swapped out
-    using SwapOutAlgorithm = SwapOutSecondChance;
     std::unique_ptr<SwapOutAlgorithm> swapOutAlgorithm;
 
     /// Helper

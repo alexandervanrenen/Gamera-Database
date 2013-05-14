@@ -8,13 +8,19 @@ class BufferFrame;
 
 class SwapOutRandom {
 public:
+   void initialize(util::ConcurrentOffsetHash<PageId, BufferFrame>&) {}
+
    BufferFrame& findPageToSwapOut(util::ConcurrentOffsetHash<PageId, BufferFrame>& bufferFrameDir)
    {
-      return bufferFrameDir.data()[random()%bufferFrameDir.data().size()].value;
+      while(true) {
+         BufferFrame& result = bufferFrameDir.data()[random()%bufferFrameDir.data().size()].value;
+         if(result.accessGuard.tryLockForWriting())
+            return result;
+      }
    }
 
    void onUnfixPage(BufferFrame&) {}
-
+   void onFixPage(BufferFrame&) {}
 };
 
 }

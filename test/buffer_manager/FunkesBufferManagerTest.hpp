@@ -47,7 +47,7 @@ static void* readWrite(void *arg) {
    uintptr_t threadNum = reinterpret_cast<uintptr_t>(arg);
 
    uintptr_t count = 0;
-   for (unsigned i=0; i<100000/threadCount; i++) {
+   for (unsigned i=0; i<1000/threadCount; i++) {
       bool isWrite = rand_r(&threadSeed[threadNum])%128<10;
       dbi::BufferFrame& bf = bm->fixPage(randomPage(threadNum), isWrite);
 

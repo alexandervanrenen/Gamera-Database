@@ -35,8 +35,8 @@ Features:
 ** Ein fix auf eine noch nicht im Speicher vorhandene Seite beötigt einen globalen Lock (für die Datei), welcher nur während dem schreiben und lesen gehalten wird. Dazu wird der Frame lokal mit einem Write-Lock geocket und die Hashmap wird bei der Veränderung mit einem lokalen Lock blockiert. Also keine globalen Locks ausser auf dem File, welcher unvermeidlich ist, wenn wir nur eine Datei haben.
 ** Ein unfix benötigt keinen Lock.
 * Optimierte Implementierungen für kritische System teile:
-** Hash map mit fixierter Größe und Offsets.
-** Read Write lock für downgrates von Locks.
+#* Hash map mit fixierter Größe und Offsets.
+-> Read Write lock für downgrates von Locks.
 ** SpinLock wrapper.
 * Austauschbare Algorithmen zum Verdrängen von Seiten. Im BufferManager.hpp den Typen ändern.
 ** Radom

@@ -11,7 +11,7 @@ namespace dbi {
 
 namespace util {
 
-/// Features: lock free, offsets, expects unique keys, fast, no remove, max size, ONE writer, many readers
+/// Features: offsets, expects unique keys, no remove, max size, Allows for fuzzy reading
 template<class Key, class Value, class SizeType = uint32_t>
 class ConcurrentOffsetHash {
 public:
@@ -22,7 +22,7 @@ public:
    , nextOffset(0)
    , entries(size)
    , offsets(util::nextPowerOfTwo(size)<<2, invalid)
-   , locks(util::nextPowerOfTwo(size)<<2)
+   , locks(util::nextPowerOfTwo(size)<<2) // TODO: Smaller locks then offsets vector
    {
       assert(invalid > entries.size());
       for(auto& iter : entries)

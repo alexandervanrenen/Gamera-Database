@@ -1,4 +1,4 @@
-all: tester util uebung1 uebung2 uebung3
+all: tester uebung3
 
 objDir:= build/
 srcDir:= src/

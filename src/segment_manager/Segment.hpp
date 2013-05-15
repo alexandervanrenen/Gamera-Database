@@ -23,7 +23,7 @@ public:
    uint64_t getNumPages() const {return numPages;}
 
    // Add new extent to the segment (these pages need to be initialized for proper use)
-   virtual void assignExtent(const Extent& extent); 
+   virtual void assignExtent(const Extent& extent) = 0;
 
 private:
    const SegmentId id;

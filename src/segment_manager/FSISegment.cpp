@@ -12,6 +12,11 @@ FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager, const std::ve
 {
 }
 
+void FSISegment::assignExtent(const Extent& extent)
+{
+   Segment::assignExtent(extent);
+}
+
 uint32_t FSISegment::getFreeBytes(PageId id) const
 {
    // Get data

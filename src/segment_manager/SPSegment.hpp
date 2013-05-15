@@ -22,6 +22,10 @@ public:
 
    // Lookup a tuple in this segment .. keeps getting better, e_y ?
    Record lookup(TId id);
+   
+   bool remove(TId tId);
+   
+   TId update(TId tId, Record& record);
 
 private:
    FSISegment& freeSpaceInventory;

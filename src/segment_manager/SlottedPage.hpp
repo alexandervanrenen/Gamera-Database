@@ -16,6 +16,10 @@ public:
    RecordId insert(const Record& record);
 
    Record lookup(RecordId id);
+   
+   bool remove(RecordId rId);
+   
+   bool tryInPageUpdate(RecordId oldRecordId, Record& newRecord);
 
    uint16_t getFreeBytes() {return freeBytes;}
 

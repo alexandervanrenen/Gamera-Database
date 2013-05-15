@@ -4,8 +4,8 @@
 
 namespace dbi {
 
-   using TId = uint64_t;
-   using PageId = uint64_t;
+   using TId = uint64_t; // 16 Bit most significant bits are used for record id
+   using PageId = uint64_t; // 16 Bit most significant bits should be 0 otherwise page id is invalid
    using SegmentId = uint32_t;
    using RecordId = uint16_t;
 

@@ -7,8 +7,8 @@ using namespace std;
 
 namespace dbi {
 
-FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager)
-: Segment(id, bufferManager)
+FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents)
+: Segment(id, bufferManager, extents)
 {
 }
 

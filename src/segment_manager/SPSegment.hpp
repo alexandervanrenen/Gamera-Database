@@ -11,9 +11,10 @@ class Record;
 
 class SPSegment : public Segment {
 public:
-   SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager);
+   SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager, const std::vector<Extent>& extents);
    virtual ~SPSegment() {}
 
+   // Add new extent to the segment (these pages need to be initialized for proper use)
    virtual void assignExtent(const Extent& extent);
 
    // Add tuple to this segment .. awesome isn't it ?

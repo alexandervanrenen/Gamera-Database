@@ -6,8 +6,9 @@ using namespace std;
 
 namespace dbi {
 
-Segment::Segment(SegmentId id, BufferManager& bufferManager)
+Segment::Segment(SegmentId id, BufferManager& bufferManager, const vector<Extent>& extents)
 : id(id)
+, extents(extents)
 , numPages(std::accumulate(extents.begin(),extents.end(),(uint64_t)0,[](uint64_t count, const Extent& extent) {return count+extent.numPages();}))
 , bufferManager(bufferManager)
 {
@@ -22,12 +23,6 @@ void Segment::assignExtent(const Extent& extent)
          return;
       }
    extents.emplace_back(extent);
-}
-
-void Segment::restoreExtents(const vector<Extent>& alreadyUsedExtents)
-{
-   assert(extents.size() == 0);
-   extents = alreadyUsedExtents;
 }
 
 BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const

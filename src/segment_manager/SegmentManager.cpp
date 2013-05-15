@@ -21,14 +21,13 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       // Build free space inventory
       SegmentId fsiID = segmentInventory.createSegment();
       auto extent = segmentInventory.assignExtentToSegment(fsiID, FSIPages);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, vector<Extent>());
       freeSpaceInventory->assignExtent(extent);
    } else {
       // Load free space inventory
       SegmentId fsiID = 1;
       auto extents = segmentInventory.getExtentsOfSegment(fsiID);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager);
-      freeSpaceInventory->restoreExtents(extents);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, extents);
    }
 
    assert(freeSpaceInventory->getId() == 1); // for now bitches =) .. move this to meta segment later
@@ -40,7 +39,7 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
 
    // Create segment
    SegmentId id = segmentInventory.createSegment();
-   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager));
+   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager, vector<Extent>()));
    growSegment(*segment, numPages);
 
    // Store segment and return id (?)
@@ -79,8 +78,7 @@ SPSegment& SegmentManager::getSPSegment(const SegmentId id)
       return reinterpret_cast<SPSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager));
-   segment->restoreExtents(segmentInventory.getExtentsOfSegment(id));
+   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager, segmentInventory.getExtentsOfSegment(id)));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<SPSegment&>(*result.first->second);
 }

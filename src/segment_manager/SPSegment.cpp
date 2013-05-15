@@ -9,8 +9,8 @@ using namespace std;
 
 namespace dbi {
 
-SPSegment::SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager)
-: Segment(id, bufferManager)
+SPSegment::SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager, const vector<Extent>& extents)
+: Segment(id, bufferManager, extents)
 , freeSpaceInventory(freeSpaceInventory)
 {
 }
@@ -29,6 +29,7 @@ void SPSegment::assignExtent(const Extent& extent)
 
 TId SPSegment::insert(const Record& record)
 {
+   // TODO: remember id of last insert and start iteration at this position
    for(auto iter=beginPageID(); iter!=endPageID(); iter++) {
       if(freeSpaceInventory.getFreeBytes(*iter) >= record.size()) {
          auto& frame = bufferManager.fixPage(*iter, kExclusive);
@@ -40,6 +41,7 @@ TId SPSegment::insert(const Record& record)
       }
    }
 
+   // TODO: add ref to segment manager and grow
    cout << "no i am full !!!" << endl;
    throw;
 }

@@ -15,16 +15,15 @@ class BufferFrame;
 
 class Segment {
 public:
-   Segment(SegmentId id, BufferManager& bufferManager);
+   Segment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents);
    virtual ~Segment() {}
 
    SegmentId getId() const {return id;}
 
    uint64_t getNumPages() const {return numPages;}
 
-   /// Adds extend and updates the numPages count
-   virtual void assignExtent(const Extent& extent); // New pages (these pages need to be initialized for proper use)
-   virtual void restoreExtents(const std::vector<Extent>& alreadyUsedExtents); // Old pages (this means that this pages belonged to this segment before the restart of the database)
+   // Add new extent to the segment (these pages need to be initialized for proper use)
+   virtual void assignExtent(const Extent& extent); 
 
 private:
    const SegmentId id;

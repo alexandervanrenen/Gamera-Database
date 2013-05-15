@@ -56,22 +56,24 @@ Record SPSegment::lookup(TId id)
    return result;
 }
 
-bool SPSegment::remove(TId tId){
+bool SPSegment::remove(TId tId)
+{
     assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid){return pid==toPageId(tId);}));
     auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
     auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-    auto res = sp.remove(toRecordId(tId));
+    auto result = sp.remove(toRecordId(tId));
     bufferManager.unfixPage(frame, kDirty);
-    return res;
+    return result;
 }
 
-TId SPSegment::update(TId tId, Record& record){
+TId SPSegment::update(TId tId, Record& record)
+{
     auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
     auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-    bool res = sp.tryInPageUpdate(toRecordId(tId), record);
+    bool result = sp.tryInPageUpdate(toRecordId(tId), record);
     bufferManager.unfixPage(frame, kDirty);
-    
-    if(res){        
+
+    if(result){
         return tId;
     } else {
         // TODO: maybe improve this: we unfix the page after tryUpdate though we fix it again afterwards to remove it

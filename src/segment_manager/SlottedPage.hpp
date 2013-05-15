@@ -16,9 +16,9 @@ public:
    RecordId insert(const Record& record);
 
    Record lookup(RecordId id);
-   
+
    bool remove(RecordId rId);
-   
+
    bool tryInPageUpdate(RecordId oldRecordId, Record& newRecord);
 
    uint16_t getFreeBytes() {return freeBytes;}
@@ -36,7 +36,7 @@ private:
    uint16_t dataBegin; // lower end of the data
    uint16_t freeBytes; // space that would be available restructuring .. yeah ain't gonna happen ?
 
-   std::array<char, kPageSize-16> data;
+   std::array<char, kPageSize-16> data; // 16 == size of header of this page
    Slot* slotBegin() {return reinterpret_cast<Slot*>(data.data());}
    Slot* slotEnd() {return reinterpret_cast<Slot*>(data.data()) + slotCount;}
 

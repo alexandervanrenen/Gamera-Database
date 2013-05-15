@@ -51,7 +51,8 @@ Record SlottedPage::lookup(RecordId id)
    return Record(data.data() + result->offset, result->bytes);
 }
 
-bool SlottedPage::remove(RecordId rId){
+bool SlottedPage::remove(RecordId rId)
+{
     assert(rId < slotCount);
     Slot* target = slotBegin() + rId;
     // Check if tId leads to valid slot
@@ -60,26 +61,28 @@ bool SlottedPage::remove(RecordId rId){
     freeBytes += target->bytes;
     target->offset = 0;
     target->bytes = 0;        
-    firstFreeSlot = std::min(firstFreeSlot, rId);
+    firstFreeSlot = min(firstFreeSlot, rId);
     return true;
 }
 
-bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, Record& newRecord){
+bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, Record& newRecord)
+{
     assert(oldRecordId < slotCount);
     // Check if told record is valid    
     Slot* currentlyUsedSlot = slotBegin() + oldRecordId;
     assert(currentlyUsedSlot->offset != 0);
     assert(currentlyUsedSlot->bytes != 0); 
     
-    // Re-use old record if new data fit into it
-    if(newRecord.size() <= currentlyUsedSlot->bytes){
-        // In place update
+    // In place update -- Re-use old record if new data fit into it
+    if(newRecord.size() <= currentlyUsedSlot->bytes) {
         memcpy(data.data() + currentlyUsedSlot->offset, newRecord.data(), newRecord.size());
         freeBytes += currentlyUsedSlot->bytes - newRecord.size();
         currentlyUsedSlot->bytes = newRecord.size();
         return true;        
-    } else if(newRecord.size() <= currentlyUsedSlot->bytes + freeBytes){
-        // In page update
+    }
+
+    // In page update
+    if(newRecord.size() <= currentlyUsedSlot->bytes + freeBytes) {
         remove(oldRecordId);
         insert(newRecord);
         return true;

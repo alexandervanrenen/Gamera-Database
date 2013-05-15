@@ -57,6 +57,23 @@ TEST(SegmentManager, SPSegmentSimple) {
    dbi::Record record(data);
    dbi::TId tid = segment.insert(record);
    ASSERT_EQ(record, segment.lookup(tid));
+   
+   // Update existing page with value not longer than existing
+   std::string updatedData = "the clown is ?";
+   dbi::Record updatedRecord(updatedData);
+   segment.update(tid, updatedRecord);
+   ASSERT_EQ(updatedRecord, segment.lookup(tid));
+   
+   // Update existing page with value longer than existing -- will throw atm
+   std::string longerUpdatedData = "the clown was revived";
+   dbi::Record longerUpdatedRecord(longerUpdatedData);
+   segment.update(tid, longerUpdatedRecord);
+   ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
+   
+   // TODO: update with value which must be placed on another page
+   
+   // Remove created page
+   segment.remove(tid);
 
    remove(fileName.c_str());
 }

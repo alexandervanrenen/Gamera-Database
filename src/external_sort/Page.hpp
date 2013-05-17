@@ -20,13 +20,13 @@ struct Page {
 
    uint64_t get(uint64_t id) const
    {
-      assert(id*sizeof(uint64_t) < pageSize);
+      assert(id * sizeof(uint64_t) < pageSize);
       return *reinterpret_cast<uint64_t*>(memory + (id * sizeof(uint64_t)));
    }
 
    void set(uint64_t id, uint64_t value)
    {
-      assert(id*sizeof(uint64_t) < pageSize);
+      assert(id * sizeof(uint64_t) < pageSize);
       *reinterpret_cast<uint64_t*>(memory + (id * sizeof(uint64_t))) = value;
    }
 

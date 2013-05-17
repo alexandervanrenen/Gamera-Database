@@ -53,7 +53,7 @@ void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
       data[offset] |= val;
    } else {
       data[offset] &= 0x0F;
-      data[offset] |= (val<<4);
+      data[offset] |= (val << 4);
    }
    unfixPage(bufferFrame, true);
 }

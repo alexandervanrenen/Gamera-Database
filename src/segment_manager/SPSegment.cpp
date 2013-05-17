@@ -18,7 +18,7 @@ SPSegment::SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager
 void SPSegment::assignExtent(const Extent& extent)
 {
    Segment::assignExtent(extent);
-   for(PageId iter=extent.begin; iter!=extent.end; iter++) {
+   for(PageId iter = extent.begin; iter != extent.end; iter++) {
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();
@@ -30,14 +30,14 @@ void SPSegment::assignExtent(const Extent& extent)
 TId SPSegment::insert(const Record& record)
 {
    // TODO: remember id of last insert and start iteration at this position
-   for(auto iter=beginPageID(); iter!=endPageID(); iter++) {
+   for(auto iter = beginPageID(); iter != endPageID(); iter++) {
       if(freeSpaceInventory.getFreeBytes(*iter) >= record.size()) {
          auto& frame = bufferManager.fixPage(*iter, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
          RecordId id = sp.insert(record);
          freeSpaceInventory.setFreeBytes(*iter, sp.getFreeBytes());
          bufferManager.unfixPage(frame, kDirty);
-         return (*iter<<16) + id;
+         return (*iter << 16) + id;
       }
    }
 
@@ -48,7 +48,7 @@ TId SPSegment::insert(const Record& record)
 
 Record SPSegment::lookup(TId id)
 {
-   assert(any_of(beginPageID(), endPageID(), [id](const PageId& pid){return pid==toPageId(id);}));
+   assert(any_of(beginPageID(), endPageID(), [id](const PageId& pid) {return pid==toPageId(id);}));
    auto& frame = bufferManager.fixPage(toPageId(id), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    Record result = sp.lookup(toRecordId(id));
@@ -58,38 +58,37 @@ Record SPSegment::lookup(TId id)
 
 bool SPSegment::remove(TId tId)
 {
-    assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid){return pid==toPageId(tId);}));
-    auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
-    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-    auto result = sp.remove(toRecordId(tId));
-    bufferManager.unfixPage(frame, kDirty);
-    return result;
+   assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid) {return pid==toPageId(tId);}));
+   auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto result = sp.remove(toRecordId(tId));
+   bufferManager.unfixPage(frame, kDirty);
+   return result;
 }
 
 TId SPSegment::update(TId tId, Record& record)
 {
-    auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
-    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-    bool result = sp.tryInPageUpdate(toRecordId(tId), record);
-    bufferManager.unfixPage(frame, kDirty);
+   auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   bool result = sp.tryInPageUpdate(toRecordId(tId), record);
+   bufferManager.unfixPage(frame, kDirty);
 
-    if(result){
-        return tId;
-    } else {
-        // TODO: maybe improve this: we unfix the page after tryUpdate though we fix it again afterwards to remove it
-        remove(tId);
-        return insert(record);
-    }
+   if(result) {
+      return tId;
+   } else {
+      // TODO: maybe improve this: we unfix the page after tryUpdate though we fix it again afterwards to remove it
+      remove(tId);
+      return insert(record);
+   }
 }
 
 vector<Record> SPSegment::getAllRecordsOfPage(PageId pId)
 {
-  auto& frame = bufferManager.fixPage(pId, kShared);
-  auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-  auto result = sp.getAllRecords();
-  bufferManager.unfixPage(frame, kClean);
-  return result;
+   auto& frame = bufferManager.fixPage(pId, kShared);
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto result = sp.getAllRecords();
+   bufferManager.unfixPage(frame, kClean);
+   return result;
 }
-
 
 }

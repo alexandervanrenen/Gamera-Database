@@ -11,7 +11,9 @@ class FSISegment : public Segment {
 public:
    /// Constructor
    FSISegment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents);
-   virtual ~FSISegment() {}
+   virtual ~FSISegment()
+   {
+   }
 
    // Add new extent to the segment (these pages need to be initialized for proper use)
    virtual void assignExtent(const Extent& extent);

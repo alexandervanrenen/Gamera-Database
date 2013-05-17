@@ -12,16 +12,16 @@ bool createTestFileImpl(const string& fileName, uint64_t count, function<T(int)>
 {
    // Open file
    ofstream of(fileName, ios::binary);
-   if (!of.is_open() || !of.good())
+   if(!of.is_open() || !of.good())
       return false;
 
    // Write file in buffered fashion
    const uint32_t kMaxBufferSize = 1 << 22;
    vector<T> buffer(kMaxBufferSize / sizeof(uint64_t));
-   for (uint64_t i = 0; i < count;) {
+   for(uint64_t i = 0; i < count;) {
       // Fill buffer and write
       uint64_t limit = i + buffer.size();
-      for (; i < count && i < limit; i++)
+      for(; i < count && i < limit; i++)
          buffer[i % buffer.size()] = factory(i);
       of.write(reinterpret_cast<char*>(buffer.data()), (buffer.size() - (limit - i)) * sizeof(uint64_t));
    }
@@ -37,14 +37,14 @@ bool foreachInFileImpl(const string& fileName, function<void(T)> callback)
 {
    // Open file
    ifstream in(fileName, ios::binary);
-   if (!in.is_open() || !in.good())
+   if(!in.is_open() || !in.good())
       return false;
 
    // Loop over each entry
    T entry;
-   while (true) {
+   while(true) {
       in.read(reinterpret_cast<char*>(&entry), sizeof(uint64_t));
-      if (!in.good())
+      if(!in.good())
          break;
       callback(entry);
    }
@@ -52,7 +52,7 @@ bool foreachInFileImpl(const string& fileName, function<void(T)> callback)
 }
 
 bool createTestFile(const string& fileName, uint64_t count, function<
-      uint64_t(uint64_t)> factory)
+uint64_t(uint64_t)> factory)
 {
    return createTestFileImpl<uint64_t>(fileName, count, factory);
 }
@@ -80,8 +80,8 @@ bool createFile(const string& fileName, const uint64_t bytes)
 string randomWord(uint32_t length)
 {
    string word(length, '_');
-   for(uint32_t i=0; i<length; i++)
-      word[i] = 'a' + (rand()%26);
+   for(uint32_t i = 0; i < length; i++)
+      word[i] = 'a' + (rand() % 26);
    return word;
 }
 

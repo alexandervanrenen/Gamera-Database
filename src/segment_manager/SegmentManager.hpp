@@ -31,16 +31,16 @@ public:
    SPSegment& getSPSegment(const SegmentId id);
 
 private:
-  BufferManager& bufferManager;
+   BufferManager& bufferManager;
 
-  SISegment segmentInventory; // What pages belongs to a given segment ?
-  std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
+   SISegment segmentInventory; // What pages belongs to a given segment ?
+   std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
 
-  std::unordered_map<SegmentId, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
+   std::unordered_map<SegmentId, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
 
-  // Helper to access generic segment type
-  template<class T>
-  T& getGenericSegment(const SegmentId id);
+   // Helper to access generic segment type
+   template<class T>
+   T& getGenericSegment(const SegmentId id);
 };
 
 }

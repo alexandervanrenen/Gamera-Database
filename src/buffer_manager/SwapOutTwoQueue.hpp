@@ -26,7 +26,7 @@ public:
       std::unique_lock<std::mutex> l(guard);
       while(true) {
          // Loop over all entries in fifo queue and use the first one which is not locked
-         for(auto iter=fifo.begin(); iter!=fifo.end(); iter++) {
+         for(auto iter = fifo.begin(); iter != fifo.end(); iter++) {
             if((*iter)->accessGuard.tryLockForWriting()) {
                BufferFrame* result = *iter;
                fifo.erase(iter);
@@ -36,7 +36,7 @@ public:
          }
 
          // Loop over all entries in lru queue and use the first one which is not locked
-         for(auto iter=lru.begin(); iter!=lru.end(); iter++) {
+         for(auto iter = lru.begin(); iter != lru.end(); iter++) {
             if((*iter)->accessGuard.tryLockForWriting()) {
                BufferFrame* result = *iter;
                lru.erase(iter);
@@ -60,7 +60,9 @@ public:
       }
    }
 
-   void onUnfixPage(BufferFrame&) {}
+   void onUnfixPage(BufferFrame&)
+   {
+   }
 
 private:
    // Use simple locking for now. We are not planing to use this strategy.

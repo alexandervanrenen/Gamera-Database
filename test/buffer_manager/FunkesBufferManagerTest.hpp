@@ -12,29 +12,31 @@ unsigned pagesOnDisk;
 unsigned pagesInRAM;
 unsigned threadCount;
 unsigned* threadSeed;
-volatile bool stop=false;
+volatile bool stop = false;
 
-unsigned randomPage(unsigned threadNum) {
+unsigned randomPage(unsigned threadNum)
+{
    // pseudo-gaussian, causes skewed access pattern
-   unsigned page=0;
-   for (unsigned  i=0; i<20; i++)
-      page+=rand_r(&threadSeed[threadNum])%pagesOnDisk;
-   return page/20;
+   unsigned page = 0;
+   for(unsigned i = 0; i < 20; i++)
+      page += rand_r(&threadSeed[threadNum]) % pagesOnDisk;
+   return page / 20;
 }
 
-static void* scan(void * /*arg*/) {
+static void* scan(void * /*arg*/)
+{
    // scan all pages and check if the counters are not decreasing
    unsigned counters[pagesOnDisk];
-   for (unsigned i=0; i<pagesOnDisk; i++)
-      counters[i]=0;
+   for(unsigned i = 0; i < pagesOnDisk; i++)
+      counters[i] = 0;
 
-   while (!stop) {
-      unsigned start = random()%(pagesOnDisk-10);
-      for (unsigned page=start; page<start+10; page++) {
+   while(!stop) {
+      unsigned start = random() % (pagesOnDisk - 10);
+      for(unsigned page = start; page < start + 10; page++) {
          dbi::BufferFrame& bf = bm->fixPage(page, false);
          unsigned newcount = reinterpret_cast<unsigned*>(bf.getData())[0];
-         assert(counters[page]<=newcount);
-         counters[page]=newcount;
+         assert(counters[page] <= newcount);
+         counters[page] = newcount;
          bm->unfixPage(bf, false);
       }
    }
@@ -42,16 +44,17 @@ static void* scan(void * /*arg*/) {
    return NULL;
 }
 
-static void* readWrite(void *arg) {
+static void* readWrite(void *arg)
+{
    // read or write random pages
    uintptr_t threadNum = reinterpret_cast<uintptr_t>(arg);
 
    uintptr_t count = 0;
-   for (unsigned i=0; i<1000/threadCount; i++) {
-      bool isWrite = rand_r(&threadSeed[threadNum])%128<10;
+   for(unsigned i = 0; i < 1000 / threadCount; i++) {
+      bool isWrite = rand_r(&threadSeed[threadNum]) % 128 < 10;
       dbi::BufferFrame& bf = bm->fixPage(randomPage(threadNum), isWrite);
 
-      if (isWrite) {
+      if(isWrite) {
          count++;
          reinterpret_cast<unsigned*>(bf.getData())[0]++;
       }
@@ -61,8 +64,9 @@ static void* readWrite(void *arg) {
    return reinterpret_cast<void*>(count);
 }
 
-int main_funke(int argc, char** argv) {
-   if (argc==5) {
+int main_funke(int argc, char** argv)
+{
+   if(argc == 5) {
       pagesOnDisk = atoi(argv[2]);
       pagesInRAM = atoi(argv[3]);
       threadCount = atoi(argv[4]);
@@ -72,8 +76,8 @@ int main_funke(int argc, char** argv) {
    }
 
    threadSeed = new unsigned[threadCount];
-   for (unsigned i=0; i<threadCount; i++)
-      threadSeed[i] = i*97134;
+   for(unsigned i = 0; i < threadCount; i++)
+      threadSeed[i] = i * 97134;
 
    bm = new dbi::BufferManager(argv[1], pagesInRAM);
 
@@ -82,9 +86,9 @@ int main_funke(int argc, char** argv) {
    pthread_attr_init(&pattr);
 
    // set all counters to 0
-   for (unsigned i=0; i<pagesOnDisk; i++) {
+   for(unsigned i = 0; i < pagesOnDisk; i++) {
       dbi::BufferFrame& bf = bm->fixPage(i, true);
-      reinterpret_cast<unsigned*>(bf.getData())[0]=0;
+      reinterpret_cast<unsigned*>(bf.getData())[0] = 0;
       bm->unfixPage(bf, true);
    }
 
@@ -93,39 +97,39 @@ int main_funke(int argc, char** argv) {
    pthread_create(&scanThread, &pattr, scan, NULL);
 
    // start read/write threads
-   for (unsigned i=0; i<threadCount; i++)
+   for(unsigned i = 0; i < threadCount; i++)
       pthread_create(&threads[i], &pattr, readWrite, reinterpret_cast<void*>(i));
 
    // wait for read/write threads
    unsigned totalCount = 0;
-   for (unsigned i=0; i<threadCount; i++) {
+   for(unsigned i = 0; i < threadCount; i++) {
       void *ret;
       pthread_join(threads[i], &ret);
-      totalCount+=reinterpret_cast<uintptr_t>(ret);
+      totalCount += reinterpret_cast<uintptr_t>(ret);
    }
 
    // wait for scan thread
-   stop=true;
+   stop = true;
    pthread_join(scanThread, NULL);
 
    // restart buffer manager
    delete bm;
    bm = new dbi::BufferManager(argv[1], pagesInRAM);
-   
+
    // check counter
    unsigned totalCountOnDisk = 0;
-   for (unsigned i=0; i<pagesOnDisk; i++) {
-      dbi::BufferFrame& bf = bm->fixPage(i,false);
-      totalCountOnDisk+=reinterpret_cast<unsigned*>(bf.getData())[0];
+   for(unsigned i = 0; i < pagesOnDisk; i++) {
+      dbi::BufferFrame& bf = bm->fixPage(i, false);
+      totalCountOnDisk += reinterpret_cast<unsigned*>(bf.getData())[0];
       bm->unfixPage(bf, false);
    }
-   if (totalCount==totalCountOnDisk) {
-      delete [] threadSeed;
+   if(totalCount == totalCountOnDisk) {
+      delete[] threadSeed;
       delete bm;
       return 0;
    } else {
       std::cerr << "error: expected " << totalCount << " but got " << totalCountOnDisk << std::endl;
-      delete [] threadSeed;
+      delete[] threadSeed;
       delete bm;
       return 1;
    }

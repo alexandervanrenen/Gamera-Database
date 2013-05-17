@@ -14,11 +14,12 @@
 #include <string>
 #include <set>
 
-TEST(SegmentManager, Simple) {
+TEST(SegmentManager, Simple)
+{
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
 
@@ -40,12 +41,13 @@ TEST(SegmentManager, Simple) {
    remove(fileName.c_str());
 }
 
-TEST(SegmentManager, SPSegmentSimple) {
+TEST(SegmentManager, SPSegmentSimple)
+{
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
    // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
@@ -77,12 +79,13 @@ TEST(SegmentManager, SPSegmentSimple) {
    remove(fileName.c_str());
 }
 
-TEST(Operator, TableScanEmpty) {
+TEST(Operator, TableScanEmpty)
+{
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
    // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
@@ -97,12 +100,13 @@ TEST(Operator, TableScanEmpty) {
    remove(fileName.c_str());
 }
 
-TEST(Operator, TableScan) {
+TEST(Operator, TableScan)
+{
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
 
    // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
    dbi::BufferManager bufferManager(fileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
@@ -110,7 +114,7 @@ TEST(Operator, TableScan) {
 
    // Insert some values
    std::set<dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
-   for(uint32_t i=0; i<100; i++) {
+   for(uint32_t i = 0; i < 100; i++) {
       dbi::Record data = dbi::Record(dbi::util::randomWord(32));
       records.insert(data);
       segment.insert(data);
@@ -120,7 +124,7 @@ TEST(Operator, TableScan) {
    dbi::TableScanOperator scanner(segment);
    scanner.open();
    while(scanner.next()) {
-      dbi::Record data(scanner.getOutput().data(),scanner.getOutput().size());
+      dbi::Record data(scanner.getOutput().data(), scanner.getOutput().size());
       ASSERT_TRUE(records.count(data) > 0);
       records.erase(data);
    }
@@ -129,11 +133,12 @@ TEST(Operator, TableScan) {
    remove(fileName.c_str());
 }
 
-TEST(SegmentManager, FunkeTest) {
+TEST(SegmentManager, FunkeTest)
+{
    const std::string fileName = "swap_file";
-   const uint32_t pages = 1*1000;
+   const uint32_t pages = 1 * 1000;
 
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages*dbi::kPageSize));
+   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
    ASSERT_EQ(run(fileName, pages), 0);
    remove(fileName.c_str());
 }

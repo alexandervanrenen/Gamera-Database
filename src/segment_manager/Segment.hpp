@@ -17,18 +17,32 @@ class BufferFrame;
 class Segment {
 public:
    Segment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents);
-   virtual ~Segment() {}
+   virtual ~Segment()
+   {
+   }
 
-   SegmentId getId() const {return id;}
+   SegmentId getId() const
+   {
+      return id;
+   }
 
-   uint64_t getNumPages() const {return numPages;}
+   uint64_t getNumPages() const
+   {
+      return numPages;
+   }
 
    /// Add new extent to the segment (these pages need to be initialized for proper use)
    virtual void assignExtent(const Extent& extent) = 0;
 
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
-   PageIDIterator beginPageID() {return PageIDIterator(extents, extents.size()==0?kInvalidPageID:extents[0].begin);}
-   PageIDIterator endPageID() {return PageIDIterator(extents, kInvalidPageID);}
+   PageIDIterator beginPageID()
+   {
+      return PageIDIterator(extents, extents.size() == 0 ? kInvalidPageID : extents[0].begin);
+   }
+   PageIDIterator endPageID()
+   {
+      return PageIDIterator(extents, kInvalidPageID);
+   }
 
 private:
    const SegmentId id;

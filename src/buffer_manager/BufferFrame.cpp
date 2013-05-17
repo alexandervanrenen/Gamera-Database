@@ -6,7 +6,7 @@ using namespace std;
 
 char* BufferFrame::getData()
 {
-    return data.data();
+   return data.data();
 }
 
 }

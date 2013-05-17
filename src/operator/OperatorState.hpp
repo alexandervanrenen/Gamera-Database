@@ -2,6 +2,8 @@
 
 namespace dbi {
 
-enum OperatorState {kOpen, kClosed};
+enum OperatorState {
+   kOpen, kClosed
+};
 
 }

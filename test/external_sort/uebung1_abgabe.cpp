@@ -7,7 +7,8 @@
 
 using namespace std;
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
    // Check
    if(argc != 4) {
       cout << "wrong number of arguments" << endl;
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
    // The sort algorithm is not trained to handle stupid values :p
    memory -= memory % dbi::kPageSize;
    uint64_t pageSize = 4096;
-   while(pageSize!=0 && (memory%pageSize != 0 || pageSize*3 > memory)) 
+   while(pageSize != 0 && (memory % pageSize != 0 || pageSize * 3 > memory))
       pageSize /= 2;
    if(pageSize == 0) {
       cout << "sorry using to little memory .. " << endl;

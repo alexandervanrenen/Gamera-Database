@@ -1,10 +1,10 @@
-
 #include "gtest/gtest.h"
 #include "util/LoserTree.hpp"
 #include <limits>
 #include <set>
 
-TEST(LoserTree, Small) {
+TEST(LoserTree, Small)
+{
    // Build
    std::vector<uint32_t> data(4);
    data[0] = 3;
@@ -25,26 +25,27 @@ TEST(LoserTree, Small) {
    EXPECT_EQ(tree.min(), 5u); // 5,6,7,9
 }
 
-TEST(LoserTree, MinRandomized) {
+TEST(LoserTree, MinRandomized)
+{
    const uint32_t maxEntries = 4096;
-   for(uint32_t run=0; run<100; run++) {
+   for(uint32_t run = 0; run < 100; run++) {
       // Build
       uint32_t entries = rand() % maxEntries;
       std::vector<uint32_t> data(maxEntries);
       std::multiset<uint32_t> reference;
-      for(uint32_t e=0; e<entries; e++) {
+      for(uint32_t e = 0; e < entries; e++) {
          uint32_t next = rand() % maxEntries;
          reference.insert(next);
          data[e] = next;
       }
-      for(uint32_t i=entries; i<maxEntries; i++) {
+      for(uint32_t i = entries; i < maxEntries; i++) {
          data[i] = std::numeric_limits<uint32_t>::max();
          reference.insert(std::numeric_limits<uint32_t>::max());
       }
       dbi::util::LoserTree<uint32_t, std::numeric_limits<uint32_t>::max()> tree(data);
 
       // Change
-      for(uint32_t i=0; i<500; i++) {
+      for(uint32_t i = 0; i < 500; i++) {
          uint32_t next = rand() % maxEntries;
          EXPECT_EQ(*reference.begin(), tree.min());
          EXPECT_EQ(*reference.begin(), tree.popAndReplace(next));

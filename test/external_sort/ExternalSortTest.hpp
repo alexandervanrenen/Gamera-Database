@@ -15,30 +15,35 @@ void runComplexSort(uint64_t entriesCount, uint64_t pageSize, uint64_t maxMemory
    uint64_t i = 0;
    EXPECT_TRUE(dbi::util::foreachInFile("bin/dataout", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
    EXPECT_TRUE(check);
-   EXPECT_EQ(i , entriesCount);
+   EXPECT_EQ(i, entriesCount);
    remove("bin/datain");
    remove("bin/dataout");
 }
 
-TEST(ExternalSort, ComplexSmall) {
-   runComplexSort(1<<10, 64, 8*64);
+TEST(ExternalSort, ComplexSmall)
+{
+   runComplexSort(1 << 10, 64, 8 * 64);
 }
 
-TEST(ExternalSort, Complex_plus_one) {
-   runComplexSort((1<<10) + 1, 64, 8*64);
+TEST(ExternalSort, Complex_plus_one)
+{
+   runComplexSort((1 << 10) + 1, 64, 8 * 64);
 }
 
-TEST(ExternalSort, Complex_minus_one) {
-   runComplexSort((1<<10) - 1, 64, 8*64);
+TEST(ExternalSort, Complex_minus_one)
+{
+   runComplexSort((1 << 10) - 1, 64, 8 * 64);
 }
 
-TEST(ExternalSort, Complex_empty) {
-   runComplexSort(0, 64, 8*64);
+TEST(ExternalSort, Complex_empty)
+{
+   runComplexSort(0, 64, 8 * 64);
 }
 
-TEST(ExternalSort, Complex_radom) {
-   for(uint32_t i=0; i<100; i++) {
-      uint64_t entriesCount = rand() % (1<<8);
+TEST(ExternalSort, Complex_radom)
+{
+   for(uint32_t i = 0; i < 100; i++) {
+      uint64_t entriesCount = rand() % (1 << 8);
       uint64_t pageSize = 8 * (rand() % 16 + 1);
       uint64_t maxMemory = 3 * pageSize * (rand() % 16 + 1);
       runComplexSort(entriesCount, pageSize, maxMemory);
@@ -48,26 +53,32 @@ TEST(ExternalSort, Complex_radom) {
 const uint32_t size = 16;
 const bool showPerformance = false;
 
-TEST(ExternalSort, ComplexBig_8_Pages) {
-   runComplexSort(1<<size, 1024, 8*1024, showPerformance);
+TEST(ExternalSort, ComplexBig_8_Pages)
+{
+   runComplexSort(1 << size, 1024, 8 * 1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_32_Pages) {
-   runComplexSort(1<<size, 1024, 32*1024, showPerformance);
+TEST(ExternalSort, ComplexBig_32_Pages)
+{
+   runComplexSort(1 << size, 1024, 32 * 1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_128_Pages) {
-   runComplexSort(1<<size, 1024, 128*1024, showPerformance);
+TEST(ExternalSort, ComplexBig_128_Pages)
+{
+   runComplexSort(1 << size, 1024, 128 * 1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_512_Pages) {
-   runComplexSort(1<<size, 1024, 512*1024, showPerformance);
+TEST(ExternalSort, ComplexBig_512_Pages)
+{
+   runComplexSort(1 << size, 1024, 512 * 1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_1024_Pages) {
-   runComplexSort(1<<size, 1024, 1024*1024, showPerformance);
+TEST(ExternalSort, ComplexBig_1024_Pages)
+{
+   runComplexSort(1 << size, 1024, 1024 * 1024, showPerformance);
 }
 
-TEST(ExternalSort, ComplexBig_large_5GB) {
+TEST(ExternalSort, ComplexBig_large_5GB)
+{
    // runComplexSort((5ul*(1ul<<30)) / 8, 4096*1024, 1ul<<30, showPerformance);
 }

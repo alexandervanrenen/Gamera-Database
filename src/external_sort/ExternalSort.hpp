@@ -14,17 +14,17 @@ class OutputRun;
 
 class ExternalSort {
 public:
-	/// Setup sport engine
-	ExternalSort(const std::string& inputFileName, const std::string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance);
+   /// Setup sport engine
+   ExternalSort(const std::string& inputFileName, const std::string& outputFileName, uint64_t pageSize, uint64_t maxMemory, bool showPerformance);
 
    /// Start the sort
    void run();
 
 private:
-	const std::string inputFileName;
-	const std::string outputFileName;
-	const uint64_t availablePages;
-	const bool showPerformance;
+   const std::string inputFileName;
+   const std::string outputFileName;
+   const uint64_t availablePages;
+   const bool showPerformance;
    MemoryManager buffer;
 
    /// Divide and conquer the algorithm !!!!

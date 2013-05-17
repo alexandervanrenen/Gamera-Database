@@ -12,7 +12,8 @@ using namespace std;
 void baseline(const uint32_t entriesCount);
 void bench();
 
-int main() {
+int main()
+{
    // baseline(100*1024*1024/sizeof(uint64_t));
    StatisticsCollector stats;
    WinnerTree<uint32_t, 99> tree(4);
@@ -21,7 +22,7 @@ int main() {
    tree.set(2, 6);
    tree.set(3, 2);
    cout << tree.min() << endl;
-   
+
    throw;
 
    // vector<uint64_t> data(400 * 1024 * 1024 / 8);
@@ -36,7 +37,8 @@ int main() {
 //   bench();
 }
 
-void bench() {
+void bench()
+{
    const uint32_t entriesCount = 100 * 1024 * 1024 / sizeof(uint64_t);
    const uint32_t pageSize = 4 * 1024;
    const uint32_t maxMemory = 10 * 1024 * 1024;
@@ -44,7 +46,7 @@ void bench() {
    dbiu::createTestFile("bin/datain", entriesCount, [](uint64_t) {return rand();});
    StatisticsCollector stats;
 
-   for(uint32_t i=0; i<1; i++) {
+   for(uint32_t i = 0; i < 1; i++) {
       stats.start("sort");
       dbi::ExternalSort sorty("bin/datain", "bin/dataout", pageSize, maxMemory, true);
       sorty.run();
@@ -55,14 +57,16 @@ void bench() {
    remove("bin/datain");
 }
 
-void baseline(const uint32_t entriesCount) {
+void baseline(const uint32_t entriesCount)
+{
 
    dbiu::createTestFile("bin/datain", entriesCount, [](uint64_t) {return rand();});
    vector<uint8_t> data(entriesCount * sizeof(uint64_t));
-   for(auto& iter : data) iter = 0; // touch memory
+   for(auto& iter : data)
+      iter = 0; // touch memory
    StatisticsCollector stats;
 
-   for(uint32_t i=0; i<10; i++) {
+   for(uint32_t i = 0; i < 10; i++) {
       stats.start("read");
       ifstream in("bin/datain");
       in.read(reinterpret_cast<char*>(data.data()), entriesCount * sizeof(uint64_t));

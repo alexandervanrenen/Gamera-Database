@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 
-namespace dbi { 
+namespace dbi {
 
 namespace util {
 
@@ -23,7 +23,7 @@ bool foreachInFile(const std::string& fileName, std::function<void(uint64_t)> ca
 bool createFile(const std::string& fileName, const uint64_t bytes);
 
 /// Create a unique pointer
-template<class T, class... Arg>
+template<class T, class ... Arg>
 std::unique_ptr<T> make_unique(Arg&& ...args)
 {
    return std::unique_ptr<T>(new T(std::forward<Arg>(args)...));

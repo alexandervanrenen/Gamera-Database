@@ -12,19 +12,21 @@ public:
          iter = nameBase + iter;
    }
 
-   const std::string& getNext() {
-      id = (id+1) % names.size();
+   const std::string& getNext()
+   {
+      id = (id + 1) % names.size();
       return names[id];
    }
 
-   void removeAll() {
+   void removeAll()
+   {
       for(auto& iter : names)
          remove(iter.c_str());
    }
 
 private:
    uint8_t id = 0;
-   std::array<std::string, 2> names {{"yin", "yang"}};
+   std::array<std::string, 2> names { {"yin", "yang"}};
 };
 
 #endif

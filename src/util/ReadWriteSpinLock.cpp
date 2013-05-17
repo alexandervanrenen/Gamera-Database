@@ -17,13 +17,13 @@ ReadWriteSpinLock::ReadWriteSpinLock()
 
 ReadWriteSpinLock::~ReadWriteSpinLock()
 {
-   assert("clean up failed" && readCount==0 && writeCount==0);
+   assert("clean up failed" && readCount == 0 && writeCount == 0);
 }
 
 void ReadWriteSpinLock::lockForReading()
 {
    guard.lock();
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
 
    while(writeCount != 0)
    {
@@ -39,7 +39,7 @@ void ReadWriteSpinLock::lockForReading()
 void ReadWriteSpinLock::lockForWriting()
 {
    guard.lock();
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
 
    while(writeCount != 0 || readCount != 0)
    {
@@ -54,7 +54,7 @@ void ReadWriteSpinLock::lockForWriting()
 bool ReadWriteSpinLock::tryLockForReading()
 {
    guard.lock();
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
 
    if(writeCount == 0) {
       readCount++;
@@ -69,7 +69,7 @@ bool ReadWriteSpinLock::tryLockForReading()
 bool ReadWriteSpinLock::tryLockForWriting()
 {
    guard.lock();
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
 
    if(writeCount == 0 && readCount == 0) {
       writeCount++;
@@ -84,8 +84,8 @@ bool ReadWriteSpinLock::tryLockForWriting()
 void ReadWriteSpinLock::downgrade()
 {
    guard.lock();
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
-   assert(writeCount==1);
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
+   assert(writeCount == 1);
 
    writeCount--;
    readCount++;
@@ -95,11 +95,12 @@ void ReadWriteSpinLock::downgrade()
 void ReadWriteSpinLock::unlock()
 {
    guard.lock();
-   assert("no lock present" && (readCount!=0 || writeCount==1));
-   assert("read and write lock" && !(readCount!=0 && writeCount!=0));
+   assert("no lock present" && (readCount != 0 || writeCount == 1));
+   assert("read and write lock" && !(readCount != 0 && writeCount != 0));
 
-   if(writeCount!=0)
-      writeCount--; else
+   if(writeCount != 0)
+      writeCount--;
+   else
       readCount--;
 
    guard.unlock();

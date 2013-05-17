@@ -53,7 +53,7 @@ bool TableScanOperator::next()
 
 const Record& TableScanOperator::getOutput()
 {
-   assert(positionInCurrentPage<recordsInCurrentPage.size());
+   assert(positionInCurrentPage < recordsInCurrentPage.size());
    return recordsInCurrentPage[positionInCurrentPage];
 }
 

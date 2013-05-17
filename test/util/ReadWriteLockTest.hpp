@@ -2,7 +2,8 @@
 #include "util/ReadWriteLock.hpp"
 #include <thread>
 
-TEST(ReadWriteLockTest, Simple) {
+TEST(ReadWriteLockTest, Simple)
+{
    dbi::util::ReadWriteLock guard;
    guard.lockForReading();
    guard.lockForReading();
@@ -24,23 +25,24 @@ TEST(ReadWriteLockTest, Simple) {
    guard.unlock();
 }
 
-TEST(ReadWriteLockTest, Randomized) {
+TEST(ReadWriteLockTest, Randomized)
+{
    dbi::util::ReadWriteLock guard;
-   std::thread t1([&guard](){
+   std::thread t1([&guard]() {
       for(uint32_t i=0; i<1000; i++) {
          guard.lockForReading();
          usleep(10);
          guard.unlock();
       }
    });
-   std::thread t2([&guard](){
+   std::thread t2([&guard]() {
       for(uint32_t i=0; i<1000; i++) {
          guard.lockForWriting();
          usleep(10);
          guard.unlock();
       }
    });
-   std::thread t3([&guard](){
+   std::thread t3([&guard]() {
       for(uint32_t i=0; i<1000; i++) {
          guard.lockForWriting();
          guard.downgrade();
@@ -48,7 +50,7 @@ TEST(ReadWriteLockTest, Randomized) {
          guard.unlock();
       }
    });
-   std::thread t4([&guard](){
+   std::thread t4([&guard]() {
       for(uint32_t i=0; i<1000; i++) {
          if(guard.tryLockForReading()) {
             usleep(10);
@@ -56,7 +58,7 @@ TEST(ReadWriteLockTest, Randomized) {
          }
       }
    });
-   std::thread t5([&guard](){
+   std::thread t5([&guard]() {
       for(uint32_t i=0; i<1000; i++) {
          if(guard.tryLockForWriting()) {
             usleep(10);

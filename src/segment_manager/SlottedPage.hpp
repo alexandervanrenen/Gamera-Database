@@ -23,7 +23,10 @@ public:
 
    std::vector<Record> getAllRecords() const;
 
-   uint16_t getFreeBytes() {return freeBytes;}
+   uint16_t getFreeBytes()
+   {
+      return freeBytes;
+   }
 
 private:
 
@@ -38,11 +41,27 @@ private:
    uint16_t dataBegin; // lower end of the data
    uint16_t freeBytes; // space that would be available restructuring .. yeah ain't gonna happen ?
 
-   std::array<char, kPageSize-16> data; // 16 == size of header of this page
-   const Slot* slotBegin() const {return reinterpret_cast<const Slot*>(data.data());}
-   const Slot* slotEnd() const {return reinterpret_cast<const Slot*>(data.data()) + slotCount;}
-   Slot* slotBegin() {return reinterpret_cast<Slot*>(data.data());}
-   Slot* slotEnd() {return reinterpret_cast<Slot*>(data.data()) + slotCount;}
+   std::array<char, kPageSize - 16> data; // 16 == size of header of this page
+
+   const Slot* slotBegin() const
+   {
+      return reinterpret_cast<const Slot*>(data.data());
+   }
+
+   const Slot* slotEnd() const
+   {
+      return reinterpret_cast<const Slot*>(data.data()) + slotCount;
+   }
+
+   Slot* slotBegin()
+   {
+      return reinterpret_cast<Slot*>(data.data());
+   }
+
+   Slot* slotEnd()
+   {
+      return reinterpret_cast<Slot*>(data.data()) + slotCount;
+   }
 
    SlottedPage() = delete; // Just in case you try :p
 };

@@ -10,7 +10,7 @@ namespace dbi {
 class MemoryManager {
 public:
    MemoryManager(uint64_t size, uint64_t pageSize)
-      : buffer(std::vector<char>(size)), pageSize(pageSize)
+   : buffer(std::vector<char>(size)), pageSize(pageSize)
    {
    }
 

@@ -8,7 +8,7 @@ namespace util {
 
 SpinLock::SpinLock()
 {
-   if (pthread_spin_init(&spinlock,PTHREAD_PROCESS_PRIVATE)==-1)
+   if(pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE) == -1)
       throw;
 }
 

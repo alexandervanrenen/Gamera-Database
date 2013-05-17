@@ -63,7 +63,7 @@ public:
 private:
    std::unordered_map<std::string, std::pair<uint32_t, uint32_t> > finished;
    std::unordered_map<std::string, std::chrono::time_point<std::chrono::high_resolution_clock>> running;
-   std::unordered_map<std::string, uint32_t > counters;
+   std::unordered_map<std::string, uint32_t> counters;
    std::string name;
    std::mutex guard;
 };
@@ -71,15 +71,25 @@ private:
 template<>
 class StatisticsCollector<false> {
 public:
-   StatisticsCollector(const std::string&) {}
+   StatisticsCollector(const std::string&)
+   {
+   }
 
-   void start(const std::string&) {}
+   void start(const std::string&)
+   {
+   }
 
-   void end(const std::string&) {}
+   void end(const std::string&)
+   {
+   }
 
-   void count(const std::string&, int32_t) {}
+   void count(const std::string&, int32_t)
+   {
+   }
 
-   void print(std::ostream&) const {}
+   void print(std::ostream&) const
+   {
+   }
 };
 
 }

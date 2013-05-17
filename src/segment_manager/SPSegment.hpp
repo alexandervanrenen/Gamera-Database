@@ -13,7 +13,9 @@ class SPSegment : public Segment {
 public:
    /// Constructor
    SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager, const std::vector<Extent>& extents);
-   virtual ~SPSegment() {}
+   virtual ~SPSegment()
+   {
+   }
 
    /// Add new extent to the segment (these pages need to be initialized for proper use)
    virtual void assignExtent(const Extent& extent);

@@ -17,12 +17,12 @@ class ConcurrentOffsetHash {
 public:
    /// Constructor
    ConcurrentOffsetHash(SizeType size)
-   : mask((util::nextPowerOfTwo(size)<<2)-1)
+   : mask((util::nextPowerOfTwo(size) << 2) - 1)
    , invalid(std::numeric_limits<SizeType>::max())
    , nextOffset(0)
    , entries(size)
-   , offsets(util::nextPowerOfTwo(size)<<2, invalid)
-   , locks(util::nextPowerOfTwo(size)<<2) // TODO: Smaller locks then offsets vector
+   , offsets(util::nextPowerOfTwo(size) << 2, invalid)
+   , locks(util::nextPowerOfTwo(size) << 2) // TODO: Smaller locks then offsets vector
    {
       assert(invalid > entries.size());
       for(auto& iter : entries)
@@ -30,9 +30,10 @@ public:
    }
 
    /// Add element with key and value to the map
-   Value& insert(const Key& key) {
+   Value& insert(const Key& key)
+   {
       // Get hash
-      SizeType hashVal = key&mask;
+      SizeType hashVal = key & mask;
       SizeType entryOffset = nextOffset++;
       assert(entryOffset < entries.size());
 
@@ -44,13 +45,14 @@ public:
    }
 
    /// Find element with given key, null if not present
-   Value* fuzzyFind(Key key) {
+   Value* fuzzyFind(Key key)
+   {
       // Get hash
-      SizeType hashVal = key&mask;
+      SizeType hashVal = key & mask;
       uint32_t pos = offsets[hashVal];
 
       // Try to find key == key
-      for(; pos!=invalid; pos=entries[pos].next)
+      for(; pos != invalid; pos = entries[pos].next)
          if(entries[pos].key == key)
             return &entries[pos].value;
 
@@ -59,14 +61,15 @@ public:
    }
 
    /// Find element with given key, null if not present
-   Value* find(Key key) {
+   Value* find(Key key)
+   {
       // Get hash
-      SizeType hashVal = key&mask;
+      SizeType hashVal = key & mask;
       locks[hashVal].lock();
       uint32_t pos = offsets[hashVal];
 
       // Try to find key == key
-      for(; pos!=invalid; pos=entries[pos].next)
+      for(; pos != invalid; pos = entries[pos].next)
          if(entries[pos].key == key) {
             Value* result = &entries[pos].value;
             locks[hashVal].unlock();
@@ -79,15 +82,16 @@ public:
    }
 
    /// Update key of element with key equal current to next
-   void updateKey(Key current, Key next) {
+   void updateKey(Key current, Key next)
+   {
       // Get hash and lock
-      SizeType currentHashVal = current&mask;
-      SizeType nextHashVal = next&mask;
+      SizeType currentHashVal = current & mask;
+      SizeType nextHashVal = next & mask;
 
       // Find current (*currentPos will contain elements offset)
       locks[currentHashVal].lock();
       SizeType* currentPos = &offsets[currentHashVal];
-      for(; *currentPos!=invalid; currentPos=&entries[*currentPos].next)
+      for(; *currentPos != invalid; currentPos = &entries[*currentPos].next)
          if(entries[*currentPos].key == current)
             break;
       assert(*currentPos != invalid);
@@ -113,7 +117,9 @@ public:
    }
 
    struct Entry {
-      Entry() {}
+      Entry()
+      {
+      }
       Key key;
       Value value;
       SizeType next;

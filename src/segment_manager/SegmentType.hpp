@@ -4,6 +4,8 @@
 
 namespace dbi {
 
-enum SegmentType : uint8_t {SP, FSI, SI};
+enum SegmentType
+   : uint8_t {SP, FSI, SI
+};
 
 }

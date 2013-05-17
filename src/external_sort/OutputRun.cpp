@@ -26,13 +26,13 @@ void OutputRun::assignPage(std::unique_ptr<Page> page)
 void OutputRun::add(uint64_t data)
 {
    page->set(positionInPage++, data);
-   if (positionInPage >= page->entryCount())
+   if(positionInPage >= page->entryCount())
       writePage();
 }
 
 void OutputRun::flush()
 {
-   if (positionInPage != 0)
+   if(positionInPage != 0)
       writePage();
    end = file->tellp();
    file = nullptr;
@@ -41,7 +41,8 @@ void OutputRun::flush()
 void OutputRun::prepareForWriting()
 {
    if(append)
-      file = util::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::app); else
+      file = util::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::app);
+   else
       file = util::make_unique<std::ofstream>(fileName, std::ios::binary | std::ios::out);
    assert(file->is_open() && file->good());
    start = file->tellp();
@@ -51,7 +52,7 @@ void OutputRun::prepareForWriting()
 
 std::unique_ptr<InputRun> OutputRun::convertToInputRun()
 {
-   return util::make_unique<InputRun>(start, end-start, fileName);
+   return util::make_unique<InputRun>(start, end - start, fileName);
 }
 
 void OutputRun::writePage()

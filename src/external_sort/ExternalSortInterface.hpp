@@ -6,10 +6,11 @@
 #include <unistd.h>
 #include <string>
 
-std::string getFileName(int fd) {
+std::string getFileName(int fd)
+{
    char buf[4096];
-   ssize_t len = readlink(("/proc/self/fd/" + std::to_string(fd)).c_str(), buf, sizeof(buf)-1);
-   if (len == -1)
+   ssize_t len = readlink(("/proc/self/fd/" + std::to_string(fd)).c_str(), buf, sizeof(buf) - 1);
+   if(len == -1)
       throw;
    buf[len] = '\0';
    return std::string(buf);
@@ -26,7 +27,7 @@ void externalSort(int fdInput, uint64_t, int fdOutput, uint64_t memory)
    if(memory != util::nextPowerOfTwo(memory))
       memory = util::nextPowerOfTwo(memory) / 2;
    uint64_t pageSize = 4096;
-   while(pageSize!=0 && (memory%pageSize != 0 || pageSize*3 > memory)) 
+   while(pageSize != 0 && (memory % pageSize != 0 || pageSize * 3 > memory))
       pageSize /= 2;
    if(pageSize == 0) {
       std::cout << "sorry using to little memory .. " << std::endl;

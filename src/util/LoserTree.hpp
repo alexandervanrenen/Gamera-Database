@@ -28,17 +28,17 @@ LoserTree<T, max>::LoserTree(const std::vector<T>& data)
 : data(data)
 {
    // Check
-   assert(data.size()!=0 && "do not abuse the tree .. :(");
-   assert(data.size()==util::nextPowerOfTwo(data.size()) && "need power of to elements ..");
+   assert(data.size() != 0 && "do not abuse the tree .. :(");
+   assert(data.size() == util::nextPowerOfTwo(data.size()) && "need power of to elements ..");
 
    // Allocate -- Need winner for building
    tree.resize(util::nextPowerOfTwo(data.size()), 0);
    std::vector<uint32_t> winner(util::nextPowerOfTwo(data.size()), 0);
 
    // Initial build -- First level
-   for(uint32_t i=winner.size()-1; i>=winner.size()/2; i--) {
-      uint32_t left = 2*i - data.size();
-      uint32_t right = 2*i - data.size() + 1;
+   for(uint32_t i = winner.size() - 1; i >= winner.size() / 2; i--) {
+      uint32_t left = 2 * i - data.size();
+      uint32_t right = 2 * i - data.size() + 1;
       if(data[left] < data[right]) {
          winner[i] = left;
          tree[i] = right;
@@ -49,9 +49,9 @@ LoserTree<T, max>::LoserTree(const std::vector<T>& data)
    }
 
    // Initial build -- Internal nodes
-   for(uint32_t i=winner.size()/2-1; i>=1; i--) {
-      uint32_t left = i*2;
-      uint32_t right = i*2 + 1;
+   for(uint32_t i = winner.size() / 2 - 1; i >= 1; i--) {
+      uint32_t left = i * 2;
+      uint32_t right = i * 2 + 1;
       if(data[winner[left]] < data[winner[right]]) {
          winner[i] = winner[left];
          tree[i] = winner[right];
@@ -74,7 +74,7 @@ const T LoserTree<T, max>::popAndReplace(const T& replacement)
    data[position] = replacement;
 
    uint32_t winnerPosition = position;
-   position = position/2 + data.size()/2;
+   position = position / 2 + data.size() / 2;
 
    // Update internal nodes
    while(position >= 1) {

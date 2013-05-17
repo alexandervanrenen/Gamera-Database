@@ -16,7 +16,7 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
    if(isInitialSetup) {
       // Calculate required pages for free space inventory
       uint64_t FSIPages = (bufferManager.getNumDiscPages() + 1) / 2; // Required bytes
-      FSIPages = FSIPages / kPageSize + (FSIPages%kPageSize != 0); // Required pages
+      FSIPages = FSIPages / kPageSize + (FSIPages % kPageSize != 0); // Required pages
 
       // Build free space inventory
       SegmentId fsiID = segmentInventory.createSegment();
@@ -52,8 +52,10 @@ void SegmentManager::growSegment(Segment& segment)
    // Do exponential grow
    uint64_t numPages;
    if(segment.getNumPages() < 32)
-      numPages = segment.getNumPages(); else // exp(2) when small
-      numPages = segment.getNumPages()* 1.25f - segment.getNumPages(); // exp(1.25) otherwise
+      numPages = segment.getNumPages();
+   else
+      // exp(2) when small
+      numPages = segment.getNumPages() * 1.25f - segment.getNumPages(); // exp(1.25) otherwise
    growSegment(segment, numPages);
 }
 

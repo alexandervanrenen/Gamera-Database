@@ -11,7 +11,7 @@ SISegment::SISegment(const uint64_t numPages)
 : nextSegmentId(0)
 {
    assert(numPages > 0);
-   freePages.emplace_back(Extent{1, PageId(numPages)});
+   freePages.emplace_back(Extent {1, PageId(numPages)});
 }
 
 SegmentId SISegment::createSegment()
@@ -26,17 +26,17 @@ const Extent SISegment::assignExtentToSegment(const SegmentId id, const uint32_t
    assert(segmentMap.count(id) == 1);
 
    // Find free extent and assign -- using first-fit
-   for(uint64_t i=0; i<freePages.size(); i++) {
+   for(uint64_t i = 0; i < freePages.size(); i++) {
       if(numPages <= freePages[i].numPages()) {
          // Add storage to segment with given id
-         Extent extent{freePages[i].begin, freePages[i].begin+numPages};
+         Extent extent {freePages[i].begin, freePages[i].begin + numPages};
          auto& extents = segmentMap[id];
          bool found = false;
 
          // Merge to extent list
          for(auto& iter : extents)
             if(extent.end == iter.begin || extent.begin == iter.end) {
-               iter = Extent{std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)};
+               iter = Extent {std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)};
                found = true;
                break;
             }
@@ -65,7 +65,7 @@ void SISegment::dropSegment(const SegmentId id)
    auto& extents = iter->second;
 
    // Sort merge the segments extents back into the free list
-   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs){return lhs.begin < rhs.begin;});
+   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs) {return lhs.begin < rhs.begin;});
    uint64_t pos = 0;
    for(auto& extent : extents) {
       // Find position in free list
@@ -74,8 +74,9 @@ void SISegment::dropSegment(const SegmentId id)
 
       // Merge extents or insert
       if(pos < freePages.size() && (extent.begin == freePages[pos].end || extent.end == freePages[pos].begin))
-         freePages[pos] = Extent{min(extent.begin, freePages[pos].begin), max(extent.end, freePages[pos].end)}; else
-         freePages.insert(freePages.begin()+pos, extent);
+         freePages[pos] = Extent {min(extent.begin, freePages[pos].begin), max(extent.end, freePages[pos].end)};
+      else
+         freePages.insert(freePages.begin() + pos, extent);
    }
    segmentMap.erase(iter);
 }

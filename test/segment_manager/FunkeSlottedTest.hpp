@@ -9,7 +9,6 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "common/Config.hpp"
-#include "FunkeRecord.hpp"
 
 // todo: adapt to your implementation
 uint64_t extractPage(dbi::TId tid) {

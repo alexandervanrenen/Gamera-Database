@@ -9,7 +9,7 @@ namespace dbi {
 
 /// Define PageID iterator -- use to iterate over all page ids of this segment
 /// Changing the extents of the segment potentially breaks the iterator
-class PageIDIterator : public std::iterator<std::random_access_iterator_tag, PageIDIterator> {
+class PageIDIterator : public std::iterator<std::forward_iterator_tag, PageIDIterator> {
 public:
    PageIDIterator(const PageIDIterator& other)
    : extent(other.extent)
@@ -49,12 +49,6 @@ public:
       return pageID != other.pageID;
    }
 
-   uint32_t operator-(const PageIDIterator& other) const // TODO: wtf
-   {
-      throw;
-      return pageID - other.pageID;
-   }
-
    PageId operator*() const
    {
       return pageID;
@@ -64,10 +58,12 @@ private:
    uint32_t extent;
    PageId pageID;
    const std::vector<Extent>* extents;
+
    PageIDIterator(std::vector<Extent>& extents, PageId pageID)
    : extent(0), pageID(pageID), extents(&extents)
    {
    }
+
    void inc()
    {
       assert(pageID != kInvalidPageID);
@@ -80,8 +76,8 @@ private:
             pageID = (*extents)[extent].begin;
       }
    }
-   friend class Segment;
 
+   friend class Segment;
 };
 
 }

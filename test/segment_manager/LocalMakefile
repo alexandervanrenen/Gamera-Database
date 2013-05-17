@@ -1,0 +1,1 @@
+test_segment_manager_files := test/segment_manager/SegmentManagerTest.o

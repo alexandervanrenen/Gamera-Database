@@ -1,13 +1,13 @@
-all: tester uebung3
+all: tester
 
-objDir:= build/
-srcDir:= src/
-
+# Define compile and link flags
 -include config.local
-
 CXX ?= g++
-cf = -g0 -O3 -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
-lf = -g0 -O3 --std=c++0x -I./src
+cf = -g -O3 -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
+lf = -g -O3 --std=c++0x -I./src
+
+# Object director
+objDir:= build/
 build_dir = @mkdir -p $(dir $@)
 
 # Fix for clang
@@ -16,32 +16,19 @@ ifeq (ccache clang,$(filter $(CXX),ccache clang))
 	lf += -libstd=libc++
 endif
 
+# Get source file names
 -include src/LocalMakefile
-obj_files := $(addprefix $(objDir),$(src_files))
+src_files := $(addprefix $(objDir),$(src_files))
+-include test/LocalMakefile
+test_files := $(addprefix $(objDir),$(test_files))
+all_files := $(src_files) $(test_files)
 
-tester: libs/gtest $(obj_files) build/test/tester.o
+# Build tester
+tester: libs/gtest $(all_files) build/test/tester.o
 	$(build_dir) bin
-	$(CXX) -o bin/tester build/test/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
+	$(CXX) -o bin/tester build/test/tester.o $(lf) $(all_files) libs/gtest/libgtest.a -pthread
 
-util: libs/gtest $(obj_files) build/test/util/tester.o
-	$(build_dir) bin
-	$(CXX) -o bin/util build/test/util/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
-
-uebung1: libs/gtest $(obj_files) build/test/external_sort/tester.o
-	$(build_dir) bin
-	$(CXX) -o bin/uebung1 build/test/external_sort/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
-sort: libs/gtest $(obj_files) build/test/external_sort/uebung1_abgabe.o
-	$(build_dir) bin
-	$(CXX) -o bin/sort build/test/external_sort/uebung1_abgabe.o $(lfp) $(obj_files) libs/gtest/libgtest.a -pthread
-
-uebung2: libs/gtest $(obj_files) build/test/buffer_manager/tester.o
-	$(build_dir) bin
-	$(CXX) -o bin/uebung2 build/test/buffer_manager/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread
-
-uebung3: libs/gtest $(obj_files) build/test/segment_manager/tester.o
-	$(build_dir) bin
-	$(CXX) -o bin/uebung3 build/test/segment_manager/tester.o $(lf) $(obj_files) libs/gtest/libgtest.a -pthread -fPIC $(ld)
-
+# Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp
 	$(build_dir)
 	$(CXX) -MD -c -o $@ $< $(cf)
@@ -54,7 +41,7 @@ $(objDir)%.o: %.cpp
 -include $(objDir)*/*.P
 -include $(objDir)*/*/*.P
 
-# build gtest
+# Build gtest library
 libs/gtest:
 	$(build_dir)
 	cd libs/ ;\
@@ -72,7 +59,7 @@ libs/gtest:
 	rm libs/gtest-1.6.0.zip
 	rm -rf libs/gtest-1.6.0
 
-# build tbb	
+# Build tbb library
 libs/tbb:
 	$(build_dir)
 	cd libs/ ;\
@@ -87,6 +74,7 @@ libs/tbb:
 	mv tbb41_20130116oss/include/ tbb/ ;\
 	rm tbb41_20130116oss* -rf
 
+# Clean up =)
 clean:
 	rm bin -rf
 	rm build -rf

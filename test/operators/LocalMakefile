@@ -1,0 +1,1 @@
+test_operators_files := test/operators/OperatorTest.o

@@ -1,0 +1,1 @@
+test_buffer_manager_files := test/buffer_manager/BufferManagerTest.o

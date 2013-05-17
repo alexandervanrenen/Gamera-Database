@@ -77,6 +77,14 @@ bool createFile(const string& fileName, const uint64_t bytes)
    return true;
 }
 
+string randomWord(uint32_t length)
+{
+   string word(length, '_');
+   for(uint32_t i=0; i<length; i++)
+      word[i] = 'a' + (rand()%26);
+   return word;
+}
+
 }
 
 }

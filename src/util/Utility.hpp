@@ -29,6 +29,9 @@ std::unique_ptr<T> make_unique(Arg&& ...args)
    return std::unique_ptr<T>(new T(std::forward<Arg>(args)...));
 }
 
+/// Create random word
+std::string randomWord(uint32_t length);
+
 }
 
 }

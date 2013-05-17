@@ -44,10 +44,10 @@ RecordId SlottedPage::insert(const Record& record) {
    return firstFreeSlot;
 }
 
-Record SlottedPage::lookup(RecordId id)
+Record SlottedPage::lookup(RecordId id) const
 {
    assert(toRecordId(id) < slotCount);
-   Slot* result = slotBegin() + id;
+   const Slot* result = slotBegin() + id;
    return Record(data.data() + result->offset, result->bytes);
 }
 
@@ -57,10 +57,10 @@ bool SlottedPage::remove(RecordId rId)
     Slot* target = slotBegin() + rId;
     // Check if tId leads to valid slot
     assert(target->offset != 0);
-    assert(target->bytes != 0);    
+    assert(target->bytes != 0);
     freeBytes += target->bytes;
     target->offset = 0;
-    target->bytes = 0;        
+    target->bytes = 0;
     firstFreeSlot = min(firstFreeSlot, rId);
     return true;
 }
@@ -68,17 +68,17 @@ bool SlottedPage::remove(RecordId rId)
 bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, Record& newRecord)
 {
     assert(oldRecordId < slotCount);
-    // Check if told record is valid    
+    // Check if told record is valid
     Slot* currentlyUsedSlot = slotBegin() + oldRecordId;
     assert(currentlyUsedSlot->offset != 0);
-    assert(currentlyUsedSlot->bytes != 0); 
-    
+    assert(currentlyUsedSlot->bytes != 0);
+
     // In place update -- Re-use old record if new data fit into it
     if(newRecord.size() <= currentlyUsedSlot->bytes) {
         memcpy(data.data() + currentlyUsedSlot->offset, newRecord.data(), newRecord.size());
         freeBytes += currentlyUsedSlot->bytes - newRecord.size();
         currentlyUsedSlot->bytes = newRecord.size();
-        return true;        
+        return true;
     }
 
     // In page update
@@ -86,8 +86,19 @@ bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, Record& newRecord)
         remove(oldRecordId);
         insert(newRecord);
         return true;
-    } else 
+    } else
         return false;
+}
+
+vector<Record> SlottedPage::getAllRecords() const
+{
+   // Find all slots with data
+   vector<Record> result;
+   result.reserve(slotCount);
+   for(auto slot=slotBegin(); slot!=slotEnd(); slot++)
+	  if(slot->offset!=0 && slot->bytes!=0)
+	     result.emplace_back(Record(data.data() + slot->offset, slot->bytes));
+    return result;
 }
 
 }

@@ -82,4 +82,14 @@ TId SPSegment::update(TId tId, Record& record)
     }
 }
 
+vector<Record> SPSegment::getAllRecordsOfPage(PageId pId)
+{
+  auto& frame = bufferManager.fixPage(pId, kShared);
+  auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+  auto result = sp.getAllRecords();
+  bufferManager.unfixPage(frame, kClean);
+  return result;
+}
+
+
 }

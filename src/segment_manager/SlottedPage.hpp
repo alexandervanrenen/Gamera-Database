@@ -15,11 +15,13 @@ public:
 
    RecordId insert(const Record& record);
 
-   Record lookup(RecordId id);
+   Record lookup(RecordId id) const;
 
    bool remove(RecordId rId);
 
    bool tryInPageUpdate(RecordId oldRecordId, Record& newRecord);
+
+   std::vector<Record> getAllRecords() const;
 
    uint16_t getFreeBytes() {return freeBytes;}
 
@@ -37,6 +39,8 @@ private:
    uint16_t freeBytes; // space that would be available restructuring .. yeah ain't gonna happen ?
 
    std::array<char, kPageSize-16> data; // 16 == size of header of this page
+   const Slot* slotBegin() const {return reinterpret_cast<const Slot*>(data.data());}
+   const Slot* slotEnd() const {return reinterpret_cast<const Slot*>(data.data()) + slotCount;}
    Slot* slotBegin() {return reinterpret_cast<Slot*>(data.data());}
    Slot* slotEnd() {return reinterpret_cast<Slot*>(data.data()) + slotCount;}
 

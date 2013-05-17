@@ -18,11 +18,12 @@ public:
    /// Add new extent to the segment (these pages need to be initialized for proper use)
    virtual void assignExtent(const Extent& extent);
 
-   /// Change operations
+   /// Operations on records
    TId insert(const Record& record);
    Record lookup(TId id);
    bool remove(TId tId);
    TId update(TId tId, Record& record);
+   std::vector<Record> getAllRecordsOfPage(PageId pId);
 
 private:
    FSISegment& freeSpaceInventory;

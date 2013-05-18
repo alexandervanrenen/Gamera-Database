@@ -3,7 +3,8 @@
 -include test/external_sort/LocalMakefile
 -include test/operators/LocalMakefile
 -include test/segment_manager/LocalMakefile
+-include test/btree/LocalMakefile
 -include test/util/LocalMakefile
 
-test_files += $(test_util_files) $(test_external_sort_files) $(test_buffer_manager_files) $(test_operators_files) $(test_segment_manager_files)
+test_files += $(test_util_files) $(test_external_sort_files) $(test_buffer_manager_files) $(test_operators_files) $(test_segment_manager_files) $(test_btree_files)
 

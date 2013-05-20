@@ -8,7 +8,11 @@
 #include <string.h>
 
 #include "btree/BTree.hpp"
-
+#include "util/Utility.hpp"
+#include "common/Config.hpp"
+#include "buffer_manager/BufferManager.hpp"
+#include "segment_manager/SegmentManager.hpp"
+#include "segment_manager/BTreeSegment.hpp"
 
 
 /* Comparator functor for uint64_t*/
@@ -70,46 +74,51 @@ const IntPair& getKey(const uint64_t& i) {
 template <class T, class CMP>
 void test(uint64_t n) {
     typedef dbi::TID TID;
-   // Set up stuff, you probably have to change something here to match to your interfaces
-   //BufferManager bm("/tmp/db", 10ul*1024ul*1024ul); // bogus arguments
-   //SegmentManager sm(bm);
-   //SegmentID spId = sm.createSegment(Segment::SegmentType::BTree);
-   //BTreeSegment& seg = static_cast<BTreeSegment&>(sm.getSegment(spId));
-   //BTree<T, CMP> bTree(seg);
-    dbi::BTree<T, CMP> bTree;
+    const std::string fileName = "swap_file";
+    const uint32_t pages = 1000000;
+
+    // Create
+    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+    dbi::BufferManager bufferManager(fileName, pages);
+    dbi::SegmentManager segmentManager(bufferManager, true);
+    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
+    dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
+
+    // Set up stuff, you probably have to change something here to match to your interfaces
+    dbi::BTree<T, CMP> bTree(segment);
     //std::cout << "LeafnodeSize: " << bTree.getLeafNodeSize() << std::endl;
-   // Insert values
+    // Insert values
     TID tid;
     for (uint64_t i=0; i<n; ++i) {
         ASSERT_TRUE(bTree.insert(getKey<T>(i),static_cast<TID>(i*i)));
     }
     ASSERT_EQ(bTree.size(), n);
-   // Check if they can be retrieved
+    // Check if they can be retrieved
     for (uint64_t i=0; i<n; ++i) {
-      TID tid;
-      ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-      ASSERT_EQ(tid, i*i);
-   }
+        TID tid;
+        ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
+        ASSERT_EQ(tid, i*i);
+    }
    
-   // Delete some values
-   for (uint64_t i=0; i<n; ++i)
-      if ((i%7)==0)
-         ASSERT_TRUE(bTree.erase(getKey<T>(i)));
-   // Check if the right ones have been deleted
-   for (uint64_t i=0; i<n; ++i) {
-      TID tid;
-      if ((i%7)==0) {
-         ASSERT_FALSE(bTree.lookup(getKey<T>(i),tid));
-      } else {
-         ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-         ASSERT_EQ(tid, i*i);
-      }
-   }
+    // Delete some values
+    for (uint64_t i=0; i<n; ++i)
+        if ((i%7)==0)
+            ASSERT_TRUE(bTree.erase(getKey<T>(i)));
+    // Check if the right ones have been deleted
+    for (uint64_t i=0; i<n; ++i) {
+        TID tid;
+        if ((i%7)==0) {
+            ASSERT_FALSE(bTree.lookup(getKey<T>(i),tid));
+        } else {
+            ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
+            ASSERT_EQ(tid, i*i);
+        }
+    }
 
-   // Delete everything
-   for (uint64_t i=0; i<n; ++i)
-      bTree.erase(getKey<T>(i));
-   ASSERT_EQ(bTree.size(), (uint64_t)0);
+    // Delete everything
+    for (uint64_t i=0; i<n; ++i)
+        bTree.erase(getKey<T>(i));
+    ASSERT_EQ(bTree.size(), (uint64_t)0);
 }
 
 const uint64_t n = 1000*1000ul;
@@ -132,7 +141,7 @@ TEST(BTreeTest, FunkeTestCompoundKey) {
 
 
 
-
+/*
 TEST(BTreeTest, InitTest) {
     dbi::BTree<uint64_t, std::less<uint64_t>> tree;
     dbi::TID tid;
@@ -156,16 +165,15 @@ TEST(BTreeTest, InitTest) {
     }
     EXPECT_FALSE(it->value(key, tid));
     //tree.visualize();
-    /* 
     while (it->value(key, tid)) {
         std::cout << "In while\n";
         EXPECT_TRUE(key == oldkey+1);
         EXPECT_TRUE(tid == key);
         it->next();
     }
-    */
     //EXPECT_TRUE(tree.insert(tree.getLeafNodeSize(), 1));
 }
+*/
 
 /*
 int main(int argc, char **argv) {

@@ -14,8 +14,8 @@ namespace dbi {
 template <typename Key, typename C>
 class BTInnerNode : public BTNode<Key, C> {
 public:
-    typedef std::array<std::pair<Key, PageId>, (PAGESIZE - 3 *sizeof(PageId) - sizeof(uint64_t)) / (sizeof(Key)+sizeof(PageId))> Values;
-    const static uint64_t numkeys = (PAGESIZE - 3* sizeof(PageId) - sizeof(uint64_t)) / (sizeof(Key)+sizeof(PageId));
+    typedef std::array<std::pair<Key, PageId>, (PAGESIZE - 3 *sizeof(PageId) - 2* sizeof(uint64_t)) / (sizeof(Key)+sizeof(PageId))> Values;
+    const static uint64_t numkeys = (PAGESIZE - 3* sizeof(PageId) - 2* sizeof(uint64_t)) / (sizeof(Key)+sizeof(PageId));
     uint64_t nextindex = 0;
     Values values;
     PageId rightpointer;

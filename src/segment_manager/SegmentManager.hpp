@@ -4,6 +4,7 @@
 #include "SegmentType.hpp"
 #include "SISegment.hpp"
 #include "FSISegment.hpp"
+#include "BTreeSegment.hpp"
 #include <memory>
 #include <unordered_map>
 
@@ -11,6 +12,7 @@ namespace dbi {
 
 class BufferManager;
 class SPSegment;
+class BTreeSegment;
 
 class SegmentManager {
 public:
@@ -29,6 +31,8 @@ public:
 
    // Access segment with given id and cast to SPSegment
    SPSegment& getSPSegment(const SegmentId id);
+   
+   BTreeSegment& getBTreeSegment(const SegmentId id);
 
 private:
    BufferManager& bufferManager;

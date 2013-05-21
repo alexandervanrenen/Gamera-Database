@@ -411,53 +411,99 @@ public:
     class Iterator {
         BTree<Key, C>* tree;
         LeafNode* node;
+        BufferFrame* frame;
         ValuesIterator it;
         Key last;
         bool finished = false;
         public:
+
+        bool operator==(const Iterator& other) const {
+            return (finished && other.finished) || (finished == other.finished) && frame == other.frame && it == other.it ;
+        }
+        
+        bool operator!=(const Iterator& other) const {
+            return !(*this == other);
+        }
+
         void next() {
             if (finished) return;
             it++;
             if (it == node->values.begin()+node->nextindex) {
                 PageId id = node->nextpage;
+                tree->releaseNode(frame, false);
                 if (id != 0) {
-                    node = castLeaf(tree->getNode(id));
+                    std::pair<BufferFrame*, Node*> p = tree->getNode(id);
+                    node = tree->castLeaf(p.second);
+                    frame = p.first;
                     it = node->values.begin();
                 } else {
-                    finished = true;    
+                    finished = true;
+                    frame = nullptr;
+                    node = nullptr; 
                 }
             }
             C c;
-            if (c(last, (*it).first)) {
+            if (c(last, (*it).first)) { // next value smaller than last in Range, finish
                 finished = true;
             }
         }
-
-        bool value(Key& key, TID& tid) {
-            if (finished || it == node->values.end())
-                return false;
-            //std::cout << "Key in Iterator: " << (*it).first << std::endl;
-            key = (*it).first;
-            tid = (*it).second;
-            return true;
+        const Iterator operator++() {
+            Iterator result = *this;
+            next();
+            return result;
         }
-        Iterator(BTree<Key, C>* pointer, LeafNode* node, ValuesIterator it, Key last) : it(it) {
+
+        const Iterator& operator++(int) {
+            next();
+            return *this;
+        }
+
+
+        std::pair<Key, TID> operator*() const {
+            //if (finished || it == node->values.end())
+                //return;
+            return {(*it).first, (*it).second};
+        }
+
+        bool valid () const {
+            return !finished;
+        }
+
+        Iterator(BTree<Key, C>* pointer, BufferFrame* frame, LeafNode* node, ValuesIterator it, Key last) : it(it) {
             tree = pointer;
             this->node = node;
-            //this->it = it;
+            this->frame = frame;
             this->last = last;
+        }
+
+        Iterator(BTree<Key, C>* pointer) {
+            tree = pointer;
+            finished = true;
+            this->node = nullptr;
+            this->frame = nullptr;
+        }
+
+        ~Iterator() {
+            if (frame != nullptr)
+                tree->releaseNode(frame, false);
         }
 
     };
 
 
-    /*
-    Iterator* lookupRange(Key first, Key last) { 
-        LeafNode* leafnode = leafLookup(first);
-        auto it = std::find_if(leafnode->values.begin(), leafnode->values.end(), KeyEqual(first));
-        return new Iterator{this, leafnode, it, last};
+    Iterator lookupRange(Key first, Key last) { 
+        std::pair<BufferFrame*, LeafNode*> p = leafLookup(first);
+        LeafNode* leafnode = p.second;
+        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual(first));
+        if (it != leafnode->values.begin()+leafnode->nextindex)
+            return *new Iterator{this, p.first, leafnode, it, last};
+        else
+            return *new Iterator{this};
     }
-    */
+
+    Iterator* end() {
+        return new Iterator{this};
+    }
     
     void visualizeNode(std::ofstream& out, PageId id) {
         assert(id != 0);

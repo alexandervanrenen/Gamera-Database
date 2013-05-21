@@ -117,7 +117,6 @@ void test(uint64_t n) {
             ASSERT_EQ(tid, i*i);
         }
     }
-
     // Delete everything
     for (uint64_t i=0; i<n; ++i)
         bTree.erase(getKey<T>(i));
@@ -142,39 +141,41 @@ TEST(BTreeTest, FunkeTestCompoundKey) {
    test<IntPair, MyCustomIntPairCmp>(n);
 
 }
-/*
+
 TEST(BTreeTest, InitTest) {
-    dbi::BTree<uint64_t, std::less<uint64_t>> tree;
-    dbi::TID tid;
-    //EXPECT_TRUE(tree.insert((uint64_t)1, 1));
-    //EXPECT_TRUE(tree.lookup((uint64_t)1, tid));
-    //EXPECT_EQ(tid, (uint64_t)1);
+    typedef dbi::TID TID;
+    const std::string fileName = "swap_file";
+    const uint32_t pages = 100;
+
+    // Create
+    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+    dbi::BufferManager bufferManager(fileName, pages);
+    dbi::SegmentManager segmentManager(bufferManager, true);
+    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
+    dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
+
+    dbi::BTree<uint64_t, std::less<uint64_t>> tree(segment);
+    TID tid; 
+    
     EXPECT_FALSE(tree.lookup((uint64_t)2, tid));
-    //for (uint64_t i=1; i <= tree.getInnerNodeSize() * tree.getLeafNodeSize(); i++) {
-    //for (uint64_t i=tree.getInnerNodeSize() * tree.getLeafNodeSize(); i > 0; i--) {
+    
     for (uint64_t i=1; i <= tree.getLeafNodeSize()+2; i++) {
         EXPECT_TRUE(tree.insert(i, i));
+        EXPECT_TRUE(tree.lookup(i, tid));
     }
-    //auto it = tree.lookupRange(1, tree.getInnerNodeSize() * tree.getLeafNodeSize());
+
+    // Test Iterator 
     auto it = tree.lookupRange(1, tree.getLeafNodeSize()+2);
-    uint64_t key;
-    //uint64_t oldkey = 0;
     for (uint64_t i=1; i <= tree.getLeafNodeSize()+2; i++) {
-        EXPECT_TRUE(it->value(key, tid));
-        //std::cout << "Key: " << key << ", TID: " << tid << std::endl;
-        it->next();
+        EXPECT_TRUE(it.valid());
+        std::pair<uint64_t, TID> p = *it;
+        EXPECT_EQ(p.first, i); 
+        it++;
     }
-    EXPECT_FALSE(it->value(key, tid));
-    //tree.visualize();
-    while (it->value(key, tid)) {
-        std::cout << "In while\n";
-        EXPECT_TRUE(key == oldkey+1);
-        EXPECT_TRUE(tid == key);
-        it->next();
-    }
-    //EXPECT_TRUE(tree.insert(tree.getLeafNodeSize(), 1));
+
+    EXPECT_FALSE(it.valid());
+    tree.visualize();
 }
-*/
 
 /*
 int main(int argc, char **argv) {

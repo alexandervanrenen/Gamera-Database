@@ -5,3 +5,5 @@ config.local
 *.swp
 core
 swap_file
+*.png
+*.dot

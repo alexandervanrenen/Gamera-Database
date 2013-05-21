@@ -1,6 +1,7 @@
 #ifndef BTREE_HPP
 #define BTREE_HPP
 
+#include <stdlib.h>
 #include <cstdint>
 #include <array>
 #include <functional>
@@ -457,21 +458,25 @@ public:
         return new Iterator{this, leafnode, it, last};
     }
     */
-    /*
-    void visualizeNode(std::ofstream& out, PageId p) {
-        assert(p != 0);
-        InnerNode* node = castInner(getNode(p));
+    
+    void visualizeNode(std::ofstream& out, PageId id) {
+        assert(id != 0);
+        std::pair<BufferFrame*, Node*> p;
+        if (id == rootnode->pageId)
+            p = {rootframe, rootnode};
+        else
+            p = getNode(id);
+        InnerNode* node = castInner(p.second);
         if (node != nullptr) {
-            visualizeInnerNode(out, node);
+            visualizeInnerNode(out, node, p.first);
         } else {
-            LeafNode* leafnode = castLeaf(getNode(p));
+            LeafNode* leafnode = castLeaf(p.second);
             assert(leafnode != nullptr);
-            visualizeLeafNode(out, leafnode);
+            visualizeLeafNode(out, leafnode, p.first);
         }
     }
 
-    void visualizeLeafNode(std::ofstream& out, LeafNode* node) {
-        //std::cout << "VisualizeLeafNode " << node->pageId << "\n";
+    void visualizeLeafNode(std::ofstream& out, LeafNode* node, BufferFrame* frame) {
         auto it = node->values.begin();
         out << "node" << node->pageId << " [shape=record, label= \"<begin>("<< node->pageId << ") ";
         while (it != node->values.begin()+node->nextindex) {
@@ -479,10 +484,10 @@ public:
             it++;
         }
         out << "\" ];\n";
+        releaseNode(frame, false);
     }
 
-    void visualizeInnerNode(std::ofstream& out, InnerNode* node) {
-        //std::cout << "VisualizeInnerNode " << node->pageId << "\n";
+    void visualizeInnerNode(std::ofstream& out, InnerNode* node, BufferFrame* frame) {
         auto it = node->values.begin();
         std::list<PageId> pages;
         out << "node" << node->pageId << " [shape=record, label= \"<begin>("<< node->pageId << ") | ";
@@ -493,6 +498,7 @@ public:
         }
         out << "<ptr" << node->rightpointer << ">*\" ];\n\n";
         pages.push_back(node->rightpointer);
+        releaseNode(frame, false);
         for (PageId p : pages) {
             visualizeNode(out, p);
         }
@@ -501,15 +507,16 @@ public:
         }
     }
 
-    void visualize() {
+    void visualize(std::string filename = "tree.dot") {
         std::ofstream out;
-        out.open("graph.dot", std::ofstream::out);
+        out.open(filename.c_str(), std::ofstream::out);
         out << "digraph myBTree {\nnode [shape=record];\n";
+        guard.lock();
         visualizeNode(out, rootnode->pageId);
         out << "\n}\n";
         out.close();
+        system("dot -Tpng tree.dot -o tree.png");
     }
-    */
 };
 
 

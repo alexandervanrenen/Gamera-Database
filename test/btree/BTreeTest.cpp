@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 
 #include "btree/BTree.hpp"
 #include "util/Utility.hpp"
@@ -80,7 +81,7 @@ void test(uint64_t n) {
 
     // Create
     ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-    dbi::BufferManager bufferManager(fileName, pages);
+    dbi::BufferManager bufferManager(fileName, pages / 2);
     dbi::SegmentManager segmentManager(bufferManager, true);
     dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
     dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
@@ -152,7 +153,7 @@ TEST(BTreeTest, SimpleTest) {
 
     // Create
     ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-    dbi::BufferManager bufferManager(fileName, pages);
+    dbi::BufferManager bufferManager(fileName, pages / 2);
     dbi::SegmentManager segmentManager(bufferManager, true);
     dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
     dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
@@ -180,4 +181,54 @@ TEST(BTreeTest, SimpleTest) {
     tree.visualize();
 }
 
+
+
+void threadTest(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads, uint64_t threadid) {
+    dbi::TID tid;
+    // Insert values into tree
+    for (uint64_t i=threadid; i <= n; i+=numthreads) {
+        ASSERT_TRUE(tree->insert(i, i));
+        ASSERT_TRUE(tree->lookup(i, tid));
+        ASSERT_EQ(i, tid);
+    }
+    // Check values are all inserted
+    for (uint64_t i=0; i <= n; i++) {
+        ASSERT_TRUE(tree->lookup(i, tid));
+        ASSERT_EQ(i, tid);
+    }
+    
+    // Delete values
+    for (uint64_t i=(threadid+1)%numthreads; i <= n; i+=numthreads) {
+        ASSERT_TRUE(tree->erase(i));
+        ASSERT_FALSE(tree->lookup(i, tid));
+    }
+}
+
+
+
+TEST(BTreeTest, ThreadTest) {
+    const std::string fileName = "swap_file";
+    const uint32_t pages = 10000;
+    const uint64_t n = 1000*1000ul;
+    const uint64_t numthreads = 4;
+    
+    // Create
+    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+    dbi::BufferManager bufferManager(fileName, pages / 4);
+    dbi::SegmentManager segmentManager(bufferManager, true);
+    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
+    dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
+
+    dbi::BTree<uint64_t> tree(segment);
+    
+    std::array<std::thread, numthreads> threads;
+    for (uint64_t i=0; i < numthreads; i++) {
+        threads[i] = std::thread(threadTest, &tree, n, numthreads, i);
+    }
+    for (uint64_t i=0; i < numthreads; i++) {
+        threads[i].join();
+    }
+    ASSERT_EQ(tree.size(), (uint64_t)0);
+
+}
 

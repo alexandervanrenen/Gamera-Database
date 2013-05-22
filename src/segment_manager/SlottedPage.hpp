@@ -27,6 +27,8 @@ public:
    {
       return freeBytes;
    }
+   
+   void defragment();
 
 private:
 

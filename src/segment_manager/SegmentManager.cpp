@@ -40,9 +40,9 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
    SegmentId id = segmentInventory.createSegment();
    unique_ptr<Segment> segment;
    if (segmentType == SegmentType::SP) {
-      segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager, vector<Extent>()));
+      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, vector<Extent>()));
    } else if (segmentType == SegmentType::BT) {
-      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, *freeSpaceInventory, bufferManager, vector<Extent>()));
+      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, vector<Extent>()));
    }
    growSegment(*segment, numPages);
 
@@ -84,7 +84,7 @@ SPSegment& SegmentManager::getSPSegment(const SegmentId id)
       return reinterpret_cast<SPSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<SPSegment&>(*result.first->second);
 }
@@ -97,9 +97,14 @@ BTreeSegment& SegmentManager::getBTreeSegment(const SegmentId id)
       return reinterpret_cast<BTreeSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *this, *freeSpaceInventory, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<BTreeSegment&>(*result.first->second);
+}
+
+FSISegment& SegmentManager::getFSISegment()
+{
+   return *freeSpaceInventory;
 }
 
 }

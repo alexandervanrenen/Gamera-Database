@@ -1,14 +1,14 @@
 #include "BTreeSegment.hpp"
 #include "SegmentManager.hpp"
+#include "FSISegment.hpp"
 #include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
-BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, FSISegment& freeSpaceInventory, BufferManager& bufferManager, const vector<Extent>& extents)
+BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const vector<Extent>& extents)
 : Segment(id, bufferManager, extents)
-, freeSpaceInventory(freeSpaceInventory)
 , segmentManager(sm)
 {
     if (getNumPages() > 0) {

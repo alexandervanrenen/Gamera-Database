@@ -34,6 +34,8 @@ public:
    
    BTreeSegment& getBTreeSegment(const SegmentId id);
 
+   FSISegment& getFSISegment();
+
 private:
    BufferManager& bufferManager;
 
@@ -41,10 +43,6 @@ private:
    std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
 
    std::unordered_map<SegmentId, std::unique_ptr<Segment>> segments; // Buffer segments .. ?
-
-   // Helper to access generic segment type
-   template<class T>
-   T& getGenericSegment(const SegmentId id);
 };
 
 }

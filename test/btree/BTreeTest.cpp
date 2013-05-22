@@ -14,6 +14,7 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/BTreeSegment.hpp"
 
+const int CHARSIZE = 24;
 
 /* Comparator functor for uint64_t*/
 struct MyCustomUInt64Cmp {
@@ -55,12 +56,12 @@ const uint64_t& getKey(const uint64_t& i) { return i; }
 
 std::vector<std::string> char20;
 template <>
-const Char<20>& getKey(const uint64_t& i) {
+const Char<CHARSIZE>& getKey(const uint64_t& i) {
    std::stringstream ss;
    ss << i;
    std::string s(ss.str());
-   char20.push_back(std::string(20-s.size(), '0')+s);
-   return *reinterpret_cast<const Char<20>*>(char20.back().data());
+   char20.push_back(std::string(CHARSIZE-s.size(), '0')+s);
+   return *reinterpret_cast<const Char<CHARSIZE>*>(char20.back().data());
 }
 
 std::vector<IntPair> intPairs;
@@ -123,26 +124,28 @@ void test(uint64_t n) {
     ASSERT_EQ(bTree.size(), (uint64_t)0);
 }
 
-const uint64_t n = 1000*1000ul;
+//const uint64_t n = 10*1000ul;
+
 TEST(BTreeTest, FunkeTestUintKey) {
-   // Test index with 64bit unsigned integers
-   test<uint64_t, MyCustomUInt64Cmp>(n);
+    uint64_t n = 1000*1000ul;
+    // Test index with 64bit unsigned integers
+    test<uint64_t, MyCustomUInt64Cmp>(n);
 }
 
-/*
 TEST(BTreeTest, FunkeTestCharKey) {
-   // Test index with 20 character strings
-   test<Char<20>, MyCustomCharCmp<20>>(n);
+    uint64_t n = 10*1000ul;
+    // Test index with CHARSIZE character strings
+    test<Char<CHARSIZE>, MyCustomCharCmp<CHARSIZE>>(n);
 }
-*/
 
 TEST(BTreeTest, FunkeTestCompoundKey) {
-   // Test index with compound key
-   test<IntPair, MyCustomIntPairCmp>(n);
+    uint64_t n = 1000*1000ul;
+    // Test index with compound key
+    test<IntPair, MyCustomIntPairCmp>(n);
 
 }
 
-TEST(BTreeTest, InitTest) {
+TEST(BTreeTest, SimpleTest) {
     typedef dbi::TID TID;
     const std::string fileName = "swap_file";
     const uint32_t pages = 100;
@@ -177,9 +180,4 @@ TEST(BTreeTest, InitTest) {
     tree.visualize();
 }
 
-/*
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest( &argc, argv );
-    return RUN_ALL_TESTS();
-}
-*/
+

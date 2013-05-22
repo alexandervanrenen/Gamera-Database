@@ -29,6 +29,11 @@ private:
     typedef BTLeafNode<Key, C> LeafNode;
     typedef typename LeafNode::Values::iterator ValuesIterator;
     typedef typename InnerNode::Values::iterator InnerNodeIterator;
+
+    static_assert(sizeof(InnerNode) <= PAGESIZE, "InnerNode is bigger than a page");
+    static_assert(sizeof(LeafNode) <= PAGESIZE, "LeafNode is bigger than a page");
+    static_assert(sizeof(Key) % 8 == 0, "Key must be 8-byte alignable");
+
     C c{}; 
     struct KeyCompare {
         C c{};
@@ -561,7 +566,9 @@ public:
         visualizeNode(out, rootnode->pageId);
         out << "\n}\n";
         out.close();
-        system("dot -Tpng tree.dot -o tree.png");
+        if (system("dot -Tpng tree.dot -o tree.png") != 0) {
+            std::cout << "Converting tree.dot to a png-File failed" << std::endl;
+        }
     }
 };
 

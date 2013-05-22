@@ -14,7 +14,6 @@ public:
     static const uint64_t typeLeaf = 0;
     PageId pageId = 0;
     PageId parent = 0;
-    virtual void dosomething() {}; 
 };
 
 

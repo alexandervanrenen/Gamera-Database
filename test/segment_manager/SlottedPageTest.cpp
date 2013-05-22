@@ -2,7 +2,10 @@
 #include "gtest/gtest.h"
 #include "segment_manager/SlottedPage.hpp"
 #include "common/Config.hpp"
+#include "util/Utility.hpp"
 #include <cstdlib>
+#include <unordered_map>
+#include <algorithm>
 
 TEST(SlottedPage, SlotReuseAfterDelete){
     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
@@ -65,3 +68,60 @@ TEST(SlottedPage, DefragmentationBasic){
     free(slottedPage);
 }
 
+TEST(SlottedPage, Randomized)
+{
+    std::unordered_multimap<dbi::RecordId, std::string> reference;
+    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    slottedPage->initialize();
+
+    for(uint32_t i=0; i<10000; i++) {
+        uint32_t operation = random() % 100;
+
+        // Do insert
+        if(operation <= 40) {
+            std::string data = dbi::util::randomWord(random()%64);
+            if(slottedPage->getBytesFreeForRecord() < data.size())
+                continue;
+            dbi::RecordId id = slottedPage->insert(dbi::Record(data));
+            reference.insert(make_pair(id, data));
+            continue;
+        }
+
+        // Do remove
+        if(operation <= 70) {
+            if(reference.empty())
+                continue;
+            dbi::RecordId id = reference.begin()->first;
+            dbi::Record record = slottedPage->lookup(id);
+            ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
+            slottedPage->remove(id);
+            reference.erase(reference.begin());
+        }
+
+        // Do update
+        if(operation <= 98) {
+            if(reference.empty())
+                continue;
+            dbi::RecordId id = reference.begin()->first;
+            dbi::Record record = slottedPage->lookup(id);
+            ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
+            std::string data = dbi::util::randomWord(random()%64);
+            if(slottedPage->tryInPageUpdate(id, dbi::Record(data))) {
+                reference.erase(reference.begin());
+                reference.insert(make_pair(id, data));
+            }
+        }
+
+        // Do consistency check
+        if(operation <= 99) {
+            std::vector<dbi::Record> records = slottedPage->getAllRecords();
+            ASSERT_EQ(records.size(), reference.size());
+            for(auto& iter : records)
+                std::any_of(reference.begin(), reference.end(), [&iter]
+                    (const std::pair<dbi::RecordId, std::string>& ref) {
+                    return ref.second == std::string(iter.data(), iter.size());
+                });
+        }
+    }
+    free(slottedPage);
+}

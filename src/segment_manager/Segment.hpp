@@ -37,7 +37,6 @@ public:
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
    PageIDIterator beginPageID()
    {
-      //std::cout << "beginPageID: extents.size(): " << extents.size() << "extents[0].size: " << extents[0].numPages() << std::endl;
       return PageIDIterator(extents, extents.size() == 0 ? kInvalidPageID : extents[0].begin);
    }
    PageIDIterator endPageID()

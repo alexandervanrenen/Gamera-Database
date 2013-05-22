@@ -25,7 +25,7 @@ public:
     /// Add new extent to the segment (these pages need to be initialized for proper use)
     virtual void assignExtent(const Extent& extent);
 
-    BufferFrame& getPage(PageId id, bool exclusive=!kExclusive);
+    BufferFrame& getPage(PageId id, bool exclusive=kShared);
 
     void releasePage(BufferFrame& frame, bool isDirty=false);
     

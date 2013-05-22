@@ -22,7 +22,7 @@ void SPSegment::assignExtent(const Extent& extent)
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();
-      freeSpaceInventory.setFreeBytes(iter, sp.getFreeBytes());
+      freeSpaceInventory.setFreeBytes(iter, sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
    }
 }
@@ -35,7 +35,7 @@ TId SPSegment::insert(const Record& record)
          auto& frame = bufferManager.fixPage(*iter, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
          RecordId id = sp.insert(record);
-         freeSpaceInventory.setFreeBytes(*iter, sp.getFreeBytes());
+         freeSpaceInventory.setFreeBytes(*iter, sp.getBytesFreeForRecord());
          bufferManager.unfixPage(frame, kDirty);
          return (*iter << 16) + id;
       }

@@ -23,22 +23,13 @@ public:
 
    std::vector<Record> getAllRecords() const;
 
-   // TODO: remove method
-   uint16_t getFreeBytes()
-   {
-      return freeBytes;
-   }
+   /// Gets the number of bytes of this slotted page which have not been used yet. 
+   /// This value is directly returned only if there is a slot which can be reused for a respective insert.
+   /// Otherwise it is returned diminished by the size of a page slot to make sure a record as big as the return value definitely fits into the page.
+   uint16_t getBytesFreeForRecord();   
    
    void defragment();
    
-   bool canHoldRecord(const Record& record){
-       
-       return sizeof(Slot) + record.size() <= freeBytes;
-       // + fail if record size > free bytes
-       //       else search for re- usable record 
-       //               else fail
-   }
-
 private:
 
    struct Slot {

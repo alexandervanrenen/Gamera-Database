@@ -38,30 +38,29 @@ TEST(SlottedPage, DefragmentationBasic){
     dbi::RecordId fragmentationRecordId2 = slottedPage->insert(fragmentationRecord2);
     
     // Fill page with ... CRAP!
-    bool spaceLeft = slottedPage->canHoldRecord(dbi::Record(staticData));
-    while(spaceLeft){
+    while(slottedPage->getBytesFreeForRecord() >= staticData.length()){
         slottedPage->insert(dbi::Record(staticData));
-        spaceLeft = slottedPage->canHoldRecord(dbi::Record(staticData));
     }
     
-    uint16_t freeSpaceBeforeNewDataInsert = slottedPage->getFreeBytes();
-    ASSERT_FALSE(slottedPage->canHoldRecord(newDataRecord));  
+    uint16_t freeSpaceBeforeNewDataInsert = slottedPage->getBytesFreeForRecord();
+    ASSERT_TRUE(slottedPage->getBytesFreeForRecord() < newData.length());  
     ASSERT_TRUE(slottedPage->remove(fragmentationRecordId1));
     ASSERT_TRUE(slottedPage->remove(fragmentationRecordId2));
-    ASSERT_FALSE(slottedPage->canHoldRecord(newDataRecord));
+    ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
     
     // The page should now have a structure like: <freeSpace> <staticData> <freeSpace> (whereby both free space areas are to short for the new record)    
     slottedPage->defragment();
     
     // No side effects on sample record
     ASSERT_EQ(slottedPage->lookup(staticRecordId).data(), staticData);
-    ASSERT_EQ(slottedPage->getFreeBytes(), newData.length() + freeSpaceBeforeNewDataInsert);
-    //ASSERT_TRUE(slottedPage->canHoldRecord(newDataRecord));
+    //ASSERT_EQ(slottedPage->getBytesFreeForRecord(), newData.length() + freeSpaceBeforeNewDataInsert);
     
+    
+    ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
     dbi::RecordId newDataRecordId = slottedPage->insert(newDataRecord);
     ASSERT_EQ(slottedPage->lookup(newDataRecordId).data(), newData);
     // New record is as long as the two removed ones
-    ASSERT_EQ(freeSpaceBeforeNewDataInsert, slottedPage->getFreeBytes());
+    ASSERT_EQ(freeSpaceBeforeNewDataInsert, slottedPage->getBytesFreeForRecord());
     
     free(slottedPage);
 }

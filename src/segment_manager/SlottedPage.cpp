@@ -22,6 +22,7 @@ void SlottedPage::initialize()
 
 RecordId SlottedPage::insert(const Record& record)
 {
+   assert(getBytesFreeForRecord() >= record.size());
    assert(dataBegin >= sizeof(Slot) * slotCount);
    // Clean memory if fragmented
    if(dataBegin - sizeof(Slot) * slotCount < record.size()) {
@@ -137,6 +138,14 @@ void SlottedPage::defragment(){
         }
     }
     dataBegin = currentOffset;
+}
+
+uint16_t SlottedPage::getBytesFreeForRecord(){
+    if(firstFreeSlot < slotCount)
+        return freeBytes;
+    else
+        return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
+    
 }
 
 }

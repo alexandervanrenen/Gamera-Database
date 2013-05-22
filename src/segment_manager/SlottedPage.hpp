@@ -23,18 +23,27 @@ public:
 
    std::vector<Record> getAllRecords() const;
 
+   // TODO: remove method
    uint16_t getFreeBytes()
    {
       return freeBytes;
    }
    
    void defragment();
+   
+   bool canHoldRecord(const Record& record){
+       
+       return sizeof(Slot) + record.size() <= freeBytes;
+       // + fail if record size > free bytes
+       //       else search for re- usable record 
+       //               else fail
+   }
 
 private:
 
    struct Slot {
       uint16_t offset;
-      uint16_t bytes;
+      int16_t bytes;
    };
 
    uint64_t LSN; // for recovery

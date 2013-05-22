@@ -19,9 +19,6 @@ TEST(SlottedPage, SlotReuseAfterDelete){
     free(slottedPage);
 }
 
-
-//TODO: rewrite: use page size to limit amount of records to be inserted
-
 TEST(SlottedPage, DefragmentationBasic){
     
     std::string fragmentationData1 = "Hello!";

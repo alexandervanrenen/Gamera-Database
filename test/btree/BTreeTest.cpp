@@ -14,7 +14,7 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/BTreeSegment.hpp"
 
-const int CHARSIZE = 24;
+const int CHARSIZE = 20;
 
 /* Comparator functor for uint64_t*/
 struct MyCustomUInt64Cmp {

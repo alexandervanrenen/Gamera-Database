@@ -32,7 +32,6 @@ private:
 
     static_assert(sizeof(InnerNode) <= PAGESIZE, "InnerNode is bigger than a page");
     static_assert(sizeof(LeafNode) <= PAGESIZE, "LeafNode is bigger than a page");
-    static_assert(sizeof(Key) % 8 == 0, "Key must be 8-byte alignable");
 
     C c{}; 
     struct KeyCompare {

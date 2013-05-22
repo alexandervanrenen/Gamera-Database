@@ -66,7 +66,7 @@ bool SPSegment::remove(TId tId)
    return result;
 }
 
-TId SPSegment::update(TId tId, Record& record)
+TId SPSegment::update(TId tId, const Record& record)
 {
    auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());

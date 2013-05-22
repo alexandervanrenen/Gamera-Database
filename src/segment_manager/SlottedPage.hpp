@@ -19,7 +19,7 @@ public:
 
    bool remove(RecordId rId);
 
-   bool tryInPageUpdate(RecordId oldRecordId, Record& newRecord);
+   bool tryInPageUpdate(RecordId oldRecordId, const Record& newRecord);
 
    std::vector<Record> getAllRecords() const;
 

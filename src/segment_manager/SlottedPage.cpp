@@ -69,7 +69,7 @@ bool SlottedPage::remove(RecordId rId)
    return true;
 }
 
-bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, Record& newRecord)
+bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, const Record& newRecord)
 {
    assert(oldRecordId < slotCount);
    // Check if told record is valid

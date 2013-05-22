@@ -24,7 +24,7 @@ public:
    TId insert(const Record& record);
    Record lookup(TId id);
    bool remove(TId tId);
-   TId update(TId tId, Record& record);
+   TId update(TId tId, const Record& record);
    std::vector<Record> getAllRecordsOfPage(PageId pId);
 
 private:

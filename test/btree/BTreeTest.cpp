@@ -1,3 +1,9 @@
+#include "btree/BTree.hpp"
+#include "util/Utility.hpp"
+#include "common/Config.hpp"
+#include "buffer_manager/BufferManager.hpp"
+#include "segment_manager/SegmentManager.hpp"
+#include "segment_manager/BTreeSegment.hpp"
 #include <gtest/gtest.h>
 #include <string>
 #include <cstdint>
@@ -8,12 +14,6 @@
 #include <string.h>
 #include <thread>
 
-#include "btree/BTree.hpp"
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
-#include "buffer_manager/BufferManager.hpp"
-#include "segment_manager/SegmentManager.hpp"
-#include "segment_manager/BTreeSegment.hpp"
 
 const int CHARSIZE = 20;
 
@@ -123,6 +123,8 @@ void test(uint64_t n) {
     for (uint64_t i=0; i<n; ++i)
         bTree.erase(getKey<T>(i));
     ASSERT_EQ(bTree.size(), (uint64_t)0);
+
+    remove(fileName.c_str());
 }
 
 //const uint64_t n = 10*1000ul;
@@ -179,6 +181,8 @@ TEST(BTreeTest, SimpleTest) {
 
     EXPECT_FALSE(it.valid());
     tree.visualize();
+
+    remove(fileName.c_str());
 }
 
 
@@ -230,5 +234,6 @@ TEST(BTreeTest, ThreadTest) {
     }
     ASSERT_EQ(tree.size(), (uint64_t)0);
 
+    remove(fileName.c_str());
 }
 

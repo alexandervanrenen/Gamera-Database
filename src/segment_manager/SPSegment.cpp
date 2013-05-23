@@ -2,6 +2,7 @@
 #include "Record.hpp"
 #include "SlottedPage.hpp"
 #include "FSISegment.hpp"
+#include "SegmentManager.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include <iostream>
 
@@ -9,9 +10,13 @@ using namespace std;
 
 namespace dbi {
 
-SPSegment::SPSegment(SegmentId id, FSISegment& freeSpaceInventory, BufferManager& bufferManager, const vector<Extent>& extents)
+SPSegment::SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const vector<Extent>& extents)
 : Segment(id, bufferManager, extents)
-, freeSpaceInventory(freeSpaceInventory)
+, segmentManager(segmentManager)
+{
+}
+
+SPSegment::~SPSegment()
 {
 }
 
@@ -22,7 +27,7 @@ void SPSegment::assignExtent(const Extent& extent)
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();
-      freeSpaceInventory.setFreeBytes(iter, sp.getFreeBytes());
+      segmentManager.getFSISegment().setFreeBytes(iter, sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
    }
 }
@@ -31,11 +36,11 @@ TId SPSegment::insert(const Record& record)
 {
    // TODO: remember id of last insert and start iteration at this position
    for(auto iter = beginPageID(); iter != endPageID(); iter++) {
-      if(freeSpaceInventory.getFreeBytes(*iter) >= record.size()) {
+      if(segmentManager.getFSISegment().getFreeBytes(*iter) >= record.size()) {
          auto& frame = bufferManager.fixPage(*iter, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
          RecordId id = sp.insert(record);
-         freeSpaceInventory.setFreeBytes(*iter, sp.getFreeBytes());
+         segmentManager.getFSISegment().setFreeBytes(*iter, sp.getBytesFreeForRecord());
          bufferManager.unfixPage(frame, kDirty);
          return (*iter << 16) + id;
       }
@@ -66,7 +71,7 @@ bool SPSegment::remove(TId tId)
    return result;
 }
 
-TId SPSegment::update(TId tId, Record& record)
+TId SPSegment::update(TId tId, const Record& record)
 {
    auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());

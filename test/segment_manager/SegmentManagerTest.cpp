@@ -63,7 +63,7 @@ TEST(SegmentManager, SPSegmentSimple)
    segment.update(tid, updatedRecord);
    ASSERT_EQ(updatedRecord, segment.lookup(tid));
 
-   // Update existing page with value longer than existing -- will throw atm
+   // Update existing page with value longer than existing
    std::string longerUpdatedData = "the clown was revived";
    dbi::Record longerUpdatedRecord(longerUpdatedData);
    segment.update(tid, longerUpdatedRecord);

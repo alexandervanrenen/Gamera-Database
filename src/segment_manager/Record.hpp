@@ -23,14 +23,14 @@ public:
    {
       memcpy(memory.data(), dataIn.data(), dataIn.size());
    }
-
-   explicit Record(const Record& t)
-   : memory(t.memory)
-   {
-   }
    Record(Record&& other)
    : memory(std::move(other.memory))
    {
+   }
+   const Record& operator= (Record&& other)
+   {
+      memory = std::move(other.memory);
+      return *this;
    }
 
    bool operator==(const Record& other) const
@@ -59,6 +59,7 @@ public:
 private:
    std::vector<char> memory;
    Record& operator=(Record& rhs) = delete;
+   Record(const Record& other) = delete;
 };
 
 }

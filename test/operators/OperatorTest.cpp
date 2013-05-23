@@ -47,9 +47,9 @@ TEST(Operator, TableScan)
    // Insert some values
    std::set<dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
    for(uint32_t i = 0; i < 100; i++) {
-      dbi::Record data = dbi::Record(dbi::util::randomWord(32));
-      records.insert(data);
-      segment.insert(data);
+      std::string data = dbi::util::randomWord(32);
+      records.insert(dbi::Record(data));
+      segment.insert(dbi::Record(data));
    }
 
    // Do scan empty

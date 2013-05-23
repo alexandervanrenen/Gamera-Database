@@ -1,7 +1,7 @@
 #include "SISegment.hpp"
+#include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <algorithm>
 
 using namespace std;
 

@@ -3,9 +3,9 @@
 #include "common/Config.hpp"
 #include "util/ReadWriteSpinLock.hpp"
 #include <array>
-#include <list>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
+#include <list>
 
 namespace dbi {
 

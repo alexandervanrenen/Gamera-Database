@@ -1,6 +1,6 @@
 #include "BTreeSegment.hpp"
-#include "SegmentManager.hpp"
 #include "FSISegment.hpp"
+#include "SegmentManager.hpp"
 #include <iostream>
 
 using namespace std;

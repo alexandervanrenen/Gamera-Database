@@ -1,12 +1,12 @@
 #ifndef __Page
 #define __Page
 
-#include <stdio.h>
+#include <cassert>
 #include <fstream>
 #include <iostream>
-#include <cassert>
 #include <list>
 #include <memory>
+#include <stdio.h>
 
 namespace dbi {
 

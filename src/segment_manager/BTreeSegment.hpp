@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-#include "common/Config.hpp"
-#include "Segment.hpp"
 #include "BTreeMetadata.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "common/Config.hpp"
+#include "Segment.hpp"
+#include <vector>
 
 namespace dbi {
 

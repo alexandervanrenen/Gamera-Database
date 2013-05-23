@@ -1,9 +1,9 @@
 #pragma once
 
 #include "util/ConcurrentOffsetHash.hpp"
+#include <iostream>
 #include <list>
 #include <mutex>
-#include <iostream>
 
 namespace dbi {
 

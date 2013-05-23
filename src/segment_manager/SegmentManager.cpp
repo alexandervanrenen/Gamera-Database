@@ -1,9 +1,9 @@
-#include "SegmentManager.hpp"
 #include "buffer_manager/BufferManager.hpp"
-#include "util/Utility.hpp"
+#include "SegmentManager.hpp"
 #include "SPSegment.hpp"
-#include <iostream>
+#include "util/Utility.hpp"
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 

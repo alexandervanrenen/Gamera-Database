@@ -1,6 +1,6 @@
-#include "TableScanOperator.hpp"
-#include "segment_manager/SPSegment.hpp"
 #include "segment_manager/Record.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include "TableScanOperator.hpp"
 #include <iostream>
 
 using namespace std;

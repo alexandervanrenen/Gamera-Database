@@ -1,12 +1,12 @@
 #include "InputRun.hpp"
 #include "Page.hpp"
 #include "util/Utility.hpp"
-#include <stdio.h>
+#include <cassert>
 #include <fstream>
 #include <iostream>
-#include <cassert>
-#include <list>
 #include <iostream>
+#include <list>
+#include <stdio.h>
 
 namespace dbi {
 

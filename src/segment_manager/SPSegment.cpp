@@ -1,9 +1,9 @@
-#include "SPSegment.hpp"
-#include "Record.hpp"
-#include "SlottedPage.hpp"
-#include "FSISegment.hpp"
-#include "SegmentManager.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "FSISegment.hpp"
+#include "Record.hpp"
+#include "SegmentManager.hpp"
+#include "SlottedPage.hpp"
+#include "SPSegment.hpp"
 #include <iostream>
 
 using namespace std;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Segment.hpp"
 #include "common/Config.hpp"
+#include "Segment.hpp"
 
 namespace dbi {
 

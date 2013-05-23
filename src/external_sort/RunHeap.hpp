@@ -2,10 +2,10 @@
 #define __MinHeap
 
 #include "InputRun.hpp"
+#include <cassert>
+#include <memory>
 #include <set>
 #include <vector>
-#include <memory>
-#include <cassert>
 
 namespace dbi {
 

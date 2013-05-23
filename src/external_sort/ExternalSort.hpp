@@ -2,10 +2,10 @@
 #define __ExternalSort
 
 #include "MemoryManager.hpp"
-#include <string>
 #include <list>
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
+#include <string>
 
 namespace dbi {
 

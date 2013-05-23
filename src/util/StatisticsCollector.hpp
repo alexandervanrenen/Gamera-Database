@@ -1,11 +1,11 @@
 #pragma once
 
-#include <unordered_map>
-#include <string>
-#include <cstdint>
 #include <chrono>
-#include <sstream>
+#include <cstdint>
 #include <mutex>
+#include <sstream>
+#include <string>
+#include <unordered_map>
 
 namespace dbi {
 

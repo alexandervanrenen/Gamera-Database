@@ -1,13 +1,13 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "PageIDIterator.hpp"
 #include "Extent.hpp"
-#include <cstdint>
-#include <vector>
+#include "PageIDIterator.hpp"
 #include <algorithm>
-#include <iostream>
 #include <cassert>
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
 namespace dbi {
 

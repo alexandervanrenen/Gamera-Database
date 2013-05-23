@@ -2,10 +2,10 @@
 
 #include "common/Config.hpp"
 #include "Operator.hpp"
-#include "segment_manager/PageIDIterator.hpp"
 #include "OperatorState.hpp"
-#include <cstdint>
+#include "segment_manager/PageIDIterator.hpp"
 #include <array>
+#include <cstdint>
 #include <memory>
 
 namespace dbi {

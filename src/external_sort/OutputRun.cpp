@@ -1,13 +1,13 @@
-#include "OutputRun.hpp"
-#include "util/Utility.hpp"
-#include "Page.hpp"
 #include "InputRun.hpp"
-#include <stdio.h>
+#include "OutputRun.hpp"
+#include "Page.hpp"
+#include "util/Utility.hpp"
+#include <cassert>
 #include <fstream>
 #include <iostream>
-#include <cassert>
-#include <list>
 #include <iostream>
+#include <list>
+#include <stdio.h>
 
 using namespace std;
 

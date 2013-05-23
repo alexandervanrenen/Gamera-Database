@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/Utility.hpp"
 #include "Page.hpp"
+#include "util/Utility.hpp"
 #include <cassert>
 #include <vector>
 

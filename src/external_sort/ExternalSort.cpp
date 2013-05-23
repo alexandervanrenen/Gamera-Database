@@ -1,22 +1,22 @@
 #include "ExternalSort.hpp"
-#include "Page.hpp"
+#include "FileNameProvider.hpp"
 #include "InputRun.hpp"
 #include "OutputRun.hpp"
+#include "Page.hpp"
 #include "RunHeap.hpp"
-#include "util/Utility.hpp"
 #include "util/StatisticsCollector.hpp"
-#include "FileNameProvider.hpp"
-#include <stdio.h>
+#include "util/Utility.hpp"
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <cassert>
 #include <list>
 #include <memory>
-#include <cstdio>
-#include <chrono>
-#include <set>
 #include <queue>
-#include <algorithm>
+#include <set>
+#include <stdio.h>
 
 namespace dbi {
 

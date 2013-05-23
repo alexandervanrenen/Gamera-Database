@@ -1,10 +1,10 @@
 #pragma once
 
+#include "BTreeSegment.hpp"
 #include "common/Config.hpp"
+#include "FSISegment.hpp"
 #include "SegmentType.hpp"
 #include "SISegment.hpp"
-#include "FSISegment.hpp"
-#include "BTreeSegment.hpp"
 #include <memory>
 #include <unordered_map>
 

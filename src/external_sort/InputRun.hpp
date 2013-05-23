@@ -1,9 +1,9 @@
 #ifndef __InputRun
 #define __InputRun
 
+#include <cstdint>
 #include <memory>
 #include <string>
-#include <cstdint>
 
 namespace dbi {
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Extent.hpp"
 #include "common/Config.hpp"
-#include <vector>
+#include "Extent.hpp"
 #include <cassert>
+#include <vector>
 
 namespace dbi {
 

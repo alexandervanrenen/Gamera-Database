@@ -1,9 +1,9 @@
 #include "SlottedPage.hpp"
-#include <cassert>
-#include <iostream>
 #include <algorithm>
-#include <stdint.h>
+#include <cassert>
 #include <cstdlib>
+#include <iostream>
+#include <stdint.h>
 
 using namespace std;
 

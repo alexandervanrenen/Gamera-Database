@@ -3,8 +3,8 @@
 #include "ExternalSort.hpp"
 #include "util/Math.hpp"
 #include <iostream>
-#include <unistd.h>
 #include <string>
+#include <unistd.h>
 
 std::string getFileName(int fd)
 {

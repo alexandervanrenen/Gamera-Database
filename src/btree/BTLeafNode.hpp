@@ -1,12 +1,12 @@
 #ifndef BTLEAFNODE_HPP
 #define BTLEAFNODE_HPP
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <iostream>
 
-#include "btree/BTreeBase.hpp"
 #include "btree/BTNode.hpp"
+#include "btree/BTreeBase.hpp"
 
 namespace dbi {
 

@@ -2,8 +2,8 @@
 
 #include "common/Config.hpp"
 #include "Record.hpp"
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <memory>
 
 namespace dbi {

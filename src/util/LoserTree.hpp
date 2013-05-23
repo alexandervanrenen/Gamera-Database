@@ -2,8 +2,8 @@
 
 #include "util/Math.hpp"
 #include <cassert>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 namespace dbi {
 

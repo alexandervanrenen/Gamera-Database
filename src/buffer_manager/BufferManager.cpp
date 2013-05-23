@@ -1,15 +1,15 @@
 #include "BufferManager.hpp"
 #include "common/Config.hpp"
-#include "util/Utility.hpp"
-#include "util/StatisticsCollector.hpp"
-#include "SwapOutSecondChance.hpp"
 #include "SwapOutRandom.hpp"
+#include "SwapOutSecondChance.hpp"
 #include "SwapOutTwoQueue.hpp"
-#include <fstream>
+#include "util/StatisticsCollector.hpp"
+#include "util/Utility.hpp"
 #include <cassert>
-#include <unistd.h>
 #include <fcntl.h>
+#include <fstream>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace dbi {
 

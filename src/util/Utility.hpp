@@ -1,13 +1,13 @@
 #ifndef __Utility
 #define __Utility
 
-#include <stdint.h>
-#include <functional>
-#include <utility>
 #include <fstream>
-#include <string>
-#include <vector>
+#include <functional>
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace dbi {
 

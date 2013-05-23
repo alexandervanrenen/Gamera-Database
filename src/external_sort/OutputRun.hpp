@@ -1,8 +1,8 @@
 #ifndef __OutputRun
 #define __OutputRun
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 namespace dbi {

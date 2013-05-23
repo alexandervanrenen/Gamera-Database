@@ -1,5 +1,5 @@
-#include "Segment.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "Segment.hpp"
 #include <cassert>
 
 using namespace std;

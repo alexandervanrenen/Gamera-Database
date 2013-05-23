@@ -9,7 +9,7 @@
 #include <array>
 #include <fstream>
 #include <string>
-#include <set>
+#include <unordered_map>
 
 TEST(Operator, TableScanEmpty)
 {
@@ -45,20 +45,21 @@ TEST(Operator, TableScan)
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Insert some values
-   std::set<dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
+   std::unordered_map<dbi::TId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
    for(uint32_t i = 0; i < 100; i++) {
       std::string data = dbi::util::randomWord(32);
-      records.insert(dbi::Record(data));
-      segment.insert(dbi::Record(data));
+      dbi::TId id = segment.insert(dbi::Record(data));
+      records.insert(std::make_pair(id, dbi::Record(data)));
    }
 
    // Do scan empty
    dbi::TableScanOperator scanner(segment);
    scanner.open();
    while(scanner.next()) {
-      dbi::Record data(scanner.getOutput().data(), scanner.getOutput().size());
-      ASSERT_TRUE(records.count(data) > 0);
-      records.erase(data);
+      const std::pair<dbi::TId, dbi::Record>& record = scanner.getOutput();
+      ASSERT_TRUE(records.count(record.first) > 0);
+      ASSERT_TRUE(record.second == records.find(record.first)->second);
+      records.erase(record.first);
    }
    scanner.close();
 

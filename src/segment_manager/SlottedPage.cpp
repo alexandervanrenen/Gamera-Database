@@ -98,14 +98,14 @@ bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, const Record& newRecord)
       return false;
 }
 
-vector<Record> SlottedPage::getAllRecords() const
+vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
 {
    // Find all slots with data
-   vector<Record> result;
+   vector<pair<TId, Record>> result;
    result.reserve(slotCount);
    for(auto slot = slotBegin(); slot != slotEnd(); slot++)
-      if(slot->offset != 0 && slot->bytes != 0)
-         result.emplace_back(Record(data.data() + slot->offset, slot->bytes));
+      if(slot->offset != 0 && slot->bytes > 0)
+         result.emplace_back(make_pair(toTID(thisPageId, slot-slotBegin()), Record(data.data() + slot->offset, slot->bytes)));
    return result;
 }
 

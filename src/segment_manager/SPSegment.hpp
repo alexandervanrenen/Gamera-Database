@@ -23,7 +23,7 @@ public:
    Record lookup(TId id);
    bool remove(TId tId);
    TId update(TId tId, const Record& record);
-   std::vector<Record> getAllRecordsOfPage(PageId pId);
+   std::vector<std::pair<TId, Record>> getAllRecordsOfPage(PageId pageId);
 
 private:
    SegmentManager& segmentManager;

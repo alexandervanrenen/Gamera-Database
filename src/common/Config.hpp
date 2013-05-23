@@ -27,4 +27,5 @@ inline TId toTID(PageId pid, RecordId rId)
 static const uint32_t kPageSize = 1 << 14; // less than 1<<14 .. otherwise slotted page breaks (terribly(!))
 
 static const PageId kInvalidPageID = -1;
+static const RecordId kInvalidRecordID = -1;
 }

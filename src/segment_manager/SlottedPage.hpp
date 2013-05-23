@@ -21,7 +21,7 @@ public:
 
    bool tryInPageUpdate(RecordId oldRecordId, const Record& newRecord);
 
-   std::vector<Record> getAllRecords() const;
+   std::vector<std::pair<TId, Record>> getAllRecords(PageId thisPageId) const;
 
    /// Gets the number of bytes of this slotted page which have not been used yet. 
    /// This value is directly returned only if there is a slot which can be reused for a respective insert.

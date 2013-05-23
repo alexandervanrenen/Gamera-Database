@@ -39,50 +39,50 @@ TEST(SegmentManager, Simple)
    remove(fileName.c_str());
 }
 
-TEST(SegmentManager, SPSegmentSimple)
-{
-   const std::string fileName = "swap_file";
-   const uint32_t pages = 100;
+// TEST(SegmentManager, SPSegmentSimple)
+// {
+//    const std::string fileName = "swap_file";
+//    const uint32_t pages = 100;
 
-   // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-   dbi::BufferManager bufferManager(fileName, pages / 2);
-   dbi::SegmentManager segmentManager(bufferManager, true);
-   dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
-   dbi::SPSegment& segment = segmentManager.getSPSegment(id);
+//    // Create
+//    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+//    dbi::BufferManager bufferManager(fileName, pages / 2);
+//    dbi::SegmentManager segmentManager(bufferManager, true);
+//    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
+//    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
-   // Insert and look up
-   std::string data = "the clown is down";
-   dbi::Record record(data);
-   dbi::TId tid = segment.insert(record);
-   ASSERT_EQ(record, segment.lookup(tid));
+//    // Insert and look up
+//    std::string data = "the clown is down";
+//    dbi::Record record(data);
+//    dbi::TId tid = segment.insert(record);
+//    ASSERT_EQ(record, segment.lookup(tid));
 
-   // Update existing page with value not longer than existing
-   std::string updatedData = "the clown is ?";
-   dbi::Record updatedRecord(updatedData);
-   segment.update(tid, updatedRecord);
-   ASSERT_EQ(updatedRecord, segment.lookup(tid));
+//    // Update existing page with value not longer than existing
+//    std::string updatedData = "the clown is ?";
+//    dbi::Record updatedRecord(updatedData);
+//    segment.update(tid, updatedRecord);
+//    ASSERT_EQ(updatedRecord, segment.lookup(tid));
 
-   // Update existing page with value longer than existing
-   std::string longerUpdatedData = "the clown was revived";
-   dbi::Record longerUpdatedRecord(longerUpdatedData);
-   segment.update(tid, longerUpdatedRecord);
-   ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
+//    // Update existing page with value longer than existing
+//    std::string longerUpdatedData = "the clown was revived";
+//    dbi::Record longerUpdatedRecord(longerUpdatedData);
+//    segment.update(tid, longerUpdatedRecord);
+//    ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
 
-   // TODO: update with value which must be placed on another page
+//    // TODO: update with value which must be placed on another page
 
-   // Remove created page
-   segment.remove(tid);
+//    // Remove created page
+//    segment.remove(tid);
 
-   remove(fileName.c_str());
-}
+//    remove(fileName.c_str());
+// }
 
-TEST(SegmentManager, FunkeTest)
-{
-   const std::string fileName = "swap_file";
-   const uint32_t pages = 1 * 1000;
+// TEST(SegmentManager, FunkeTest)
+// {
+//    const std::string fileName = "swap_file";
+//    const uint32_t pages = 1 * 1000;
 
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-   ASSERT_EQ(run(fileName, pages), 0);
-   remove(fileName.c_str());
-}
+//    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+//    ASSERT_EQ(run(fileName, pages), 0);
+//    remove(fileName.c_str());
+// }

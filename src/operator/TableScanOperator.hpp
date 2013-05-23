@@ -22,7 +22,7 @@ public:
 
    bool next();
 
-   const Record& getOutput();
+   const std::pair<TId, Record>& getOutput();
 
    void close();
 
@@ -31,7 +31,7 @@ public:
 private:
    SPSegment& segment;
    PageIDIterator nextPage;
-   std::vector<Record> recordsInCurrentPage;
+   std::vector<std::pair<TId, Record>> recordsInCurrentPage;
    uint32_t positionInCurrentPage;
    OperatorState state;
 };

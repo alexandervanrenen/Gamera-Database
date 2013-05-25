@@ -1,5 +1,6 @@
 #include "Utility.hpp"
 #include <vector>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -64,17 +65,12 @@ bool foreachInFile(const string& fileName, function<void(uint64_t)> callback)
 
 bool createFile(const string& fileName, const uint64_t bytes)
 {
-   ofstream out(fileName);
-   if(!out.is_open() || !out.good())
+   if(system(("touch " + fileName).c_str()) == -1)
       return false;
-   vector<char> data(bytes);
-   out.write(data.data(), bytes);
-   out.flush();
-   if(!out.good()) {
-      remove(fileName.c_str());
+   int fileFD = open(fileName.c_str(), O_RDWR);
+   if(fcntl(fileFD, F_GETFD) == -1)
       return false;
-   }
-   return true;
+   return posix_fallocate(fileFD, 0, bytes) == 0;
 }
 
 string randomWord(uint32_t length)

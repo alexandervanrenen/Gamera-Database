@@ -1,0 +1,1 @@
+freePages.add(Extent {1, PageId(numPages)});

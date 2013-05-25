@@ -4,6 +4,7 @@
 #include "BTreeSegment.hpp"
 #include "FSISegment.hpp"
 #include "util/Utility.hpp"
+#include "SegmentInventory.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -13,22 +14,23 @@ namespace dbi {
 
 SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup)
 : bufferManager(bufferManager)
-, segmentInventory(bufferManager.getNumDiscPages())
 {
+   segmentInventory = util::make_unique<SegmentInventory>(bufferManager, isInitialSetup);
+
    if(isInitialSetup) {
       // Calculate required pages for free space inventory
       uint64_t FSIPages = (bufferManager.getNumDiscPages() + 1) / 2; // Required bytes
       FSIPages = FSIPages / kPageSize + (FSIPages % kPageSize != 0); // Required pages
 
       // Build free space inventory
-      SegmentId fsiID = segmentInventory.createSegment();
-      auto extent = segmentInventory.assignExtentToSegment(fsiID, FSIPages);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, segmentInventory.getExtentsOfSegment(fsiID));
+      SegmentId fsiID = segmentInventory->createSegment();
+      auto extent = segmentInventory->assignExtentToSegment(fsiID, FSIPages);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, segmentInventory->getExtentsOfSegment(fsiID));
       freeSpaceInventory->initializeExtent(extent);
    } else {
       // Load free space inventory
       SegmentId fsiID = 1;
-      auto& extents = segmentInventory.getExtentsOfSegment(fsiID);
+      auto& extents = segmentInventory->getExtentsOfSegment(fsiID);
       freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, extents);
    }
 
@@ -43,12 +45,12 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
 {
    //assert(segmentType == SegmentType::SP);
    // Create segment
-   SegmentId id = segmentInventory.createSegment();
+   SegmentId id = segmentInventory->createSegment();
    unique_ptr<Segment> segment;
    if (segmentType == SegmentType::SP) {
-      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
    } else if (segmentType == SegmentType::BT) {
-      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
    }
    growSegment(*segment, numPages);
 
@@ -72,13 +74,13 @@ void SegmentManager::growSegment(Segment& segment)
 void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
 {
    // Get extent and add to segment
-   Extent extent = segmentInventory.assignExtentToSegment(segment.getId(), numPages);
+   Extent extent = segmentInventory->assignExtentToSegment(segment.getId(), numPages);
    segment.initializeExtent(extent);
 }
 
 void SegmentManager::dropSegment(Segment& segment)
 {
-   segmentInventory.dropSegment(segment.getId());
+   segmentInventory->dropSegment(segment.getId());
    segments.erase(segment.getId());
 }
 
@@ -90,7 +92,7 @@ SPSegment& SegmentManager::getSPSegment(const SegmentId id)
       return reinterpret_cast<SPSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<SPSegment&>(*result.first->second);
 }
@@ -103,7 +105,7 @@ BTreeSegment& SegmentManager::getBTreeSegment(const SegmentId id)
       return reinterpret_cast<BTreeSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<BTreeSegment&>(*result.first->second);
 }

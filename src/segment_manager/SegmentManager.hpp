@@ -2,7 +2,6 @@
 
 #include "common/Config.hpp"
 #include "SegmentType.hpp"
-#include "SegmentInventory.hpp"
 #include <memory>
 #include <unordered_map>
 
@@ -13,6 +12,7 @@ class SPSegment;
 class BTreeSegment;
 class FSISegment;
 class Segment;
+class SegmentInventory;
 
 class SegmentManager {
 public:
@@ -40,7 +40,7 @@ public:
 private:
    BufferManager& bufferManager;
 
-   SegmentInventory segmentInventory; // What pages belongs to a given segment ?
+   std::unique_ptr<SegmentInventory> segmentInventory; // What pages belongs to a given segment ?
    std::unique_ptr<FSISegment> freeSpaceInventory; // How full is a given page ?
 
    std::unordered_map<SegmentId, std::unique_ptr<Segment>> segments; // Buffer segments .. ?

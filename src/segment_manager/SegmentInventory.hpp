@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Persister.hpp"
 #include "Extent.hpp"
 #include "ExtentStore.hpp"
 #include <unordered_map>
@@ -9,7 +10,7 @@ namespace dbi {
 class SegmentInventory {
 public:
    /// Constructor
-   SegmentInventory(uint64_t numPages);
+   SegmentInventory(BufferManager& bufferManager, bool isInitialSetup);
 
    /// Create an empty segment
    SegmentId createSegment();
@@ -24,12 +25,16 @@ public:
    void dropSegment(const SegmentId id);
 
 private:
-   /// Maps a segment id to all its extents
-   std::unordered_map<SegmentId, ExtentStore> segmentMap;
-   /// Stores free pages
-   ExtentStore freePages;
    /// Keep track of min segment id
    SegmentId nextSegmentId;
+
+   /// Maps a segment id to all its extents
+   std::unordered_map<SegmentId, std::pair<TId, ExtentStore>> segmentMap;
+   /// Helps storing the segment mapping on disc
+   Persister persister;
+
+   /// Stores free pages
+   ExtentStore freePages;
 };
 
 }

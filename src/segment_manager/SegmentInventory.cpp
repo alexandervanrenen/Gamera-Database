@@ -7,30 +7,35 @@ using namespace std;
 
 namespace dbi {
 
-SegmentInventory::SegmentInventory(const uint64_t numPages)
+SegmentInventory::SegmentInventory(BufferManager& bufferManager, bool isInitialSetup)
 : nextSegmentId(0)
+, persister(bufferManager, freePages)
 {
-   assert(numPages > 0);
-   freePages.add(Extent {1, PageId(numPages)});
+   if(isInitialSetup)
+      persister.create(segmentMap); else
+      persister.load(segmentMap);
 }
 
 SegmentId SegmentInventory::createSegment()
 {
-   SegmentId id = ++nextSegmentId;
-   segmentMap.insert(make_pair(id, ExtentStore()));
-   return id;
+   SegmentId sid = ++nextSegmentId;
+   TId tid = persister.insert(sid, ExtentStore());
+   segmentMap.insert(make_pair(sid, make_pair(tid, ExtentStore())));
+   return sid;
 }
 
-const Extent SegmentInventory::assignExtentToSegment(const SegmentId id, const uint32_t numPages)
+const Extent SegmentInventory::assignExtentToSegment(const SegmentId sid, const uint32_t numPages)
 {
-   assert(segmentMap.count(id)==1 && numPages>0);
+   assert(segmentMap.count(sid)==1 && numPages>0);
 
    // Find free extent -- using first-fit
    for(uint64_t i = 0; i < freePages.get().size(); i++)
       if(numPages <= freePages.get()[i].numPages()) {
          Extent freeExtent = Extent{freePages.get()[i].begin(), freePages.get()[i].begin() + numPages};
          freePages.remove(freeExtent);
-         segmentMap[id].add(freeExtent);
+         auto& segment = segmentMap[sid];
+         segment.second.add(freeExtent);
+         segment.first = persister.update(segment.first, sid, segment.second);
          return freeExtent;
       }
 
@@ -45,20 +50,21 @@ void SegmentInventory::dropSegment(const SegmentId id)
 
    // Find segments extents
    auto iter = segmentMap.find(id);
-   auto& extents = iter->second;
+   auto& segment = iter->second;
 
    // Add back to free list
-   for(auto& extent : extents.get())
+   for(auto& extent : segment.second.get())
       freePages.add(extent);
 
    // Remove from segment -> extent mapping
+   persister.remove(segment.first);
    segmentMap.erase(iter);
 }
 
 const ExtentStore& SegmentInventory::getExtentsOfSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
-   return segmentMap[id];
+   return segmentMap[id].second;
 }
 
 }

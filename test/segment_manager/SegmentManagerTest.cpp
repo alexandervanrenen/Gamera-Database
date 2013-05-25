@@ -12,18 +12,21 @@
 #include <string>
 #include <set>
 
+using namespace std;
+using namespace dbi;
+
 TEST(SegmentManager, Simple)
 {
-   const std::string fileName = "swap_file";
+   const string fileName = "swap_file";
    const uint32_t pages = 100;
 
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-   dbi::BufferManager bufferManager(fileName, pages / 2);
-   dbi::SegmentManager segmentManager(bufferManager, true);
+   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+   BufferManager bufferManager(fileName, pages / 2);
+   SegmentManager segmentManager(bufferManager, true);
 
    // Create
-   dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
-   dbi::SPSegment& segment = segmentManager.getSPSegment(id);
+   SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
+   SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Grow
    ASSERT_EQ(segment.getNumPages(), 10ul);
@@ -32,8 +35,8 @@ TEST(SegmentManager, Simple)
 
    // Drop
    segmentManager.dropSegment(segment);
-   dbi::SegmentId id_b = segmentManager.createSegment(dbi::SegmentType::SP, 98);
-   dbi::SPSegment& segment_b = segmentManager.getSPSegment(id_b);
+   SegmentId id_b = segmentManager.createSegment(SegmentType::SP, 98);
+   SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.getNumPages(), 98ul);
 
    remove(fileName.c_str());
@@ -41,31 +44,31 @@ TEST(SegmentManager, Simple)
 
 // TEST(SegmentManager, SPSegmentSimple)
 // {
-//    const std::string fileName = "swap_file";
+//    const string fileName = "swap_file";
 //    const uint32_t pages = 100;
 
 //    // Create
-//    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-//    dbi::BufferManager bufferManager(fileName, pages / 2);
-//    dbi::SegmentManager segmentManager(bufferManager, true);
-//    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
-//    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
+//    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+//    BufferManager bufferManager(fileName, pages / 2);
+//    SegmentManager segmentManager(bufferManager, true);
+//    SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
+//    SPSegment& segment = segmentManager.getSPSegment(id);
 
 //    // Insert and look up
-//    std::string data = "the clown is down";
-//    dbi::Record record(data);
-//    dbi::TId tid = segment.insert(record);
+//    string data = "the clown is down";
+//    Record record(data);
+//    TId tid = segment.insert(record);
 //    ASSERT_EQ(record, segment.lookup(tid));
 
 //    // Update existing page with value not longer than existing
-//    std::string updatedData = "the clown is ?";
-//    dbi::Record updatedRecord(updatedData);
+//    string updatedData = "the clown is ?";
+//    Record updatedRecord(updatedData);
 //    segment.update(tid, updatedRecord);
 //    ASSERT_EQ(updatedRecord, segment.lookup(tid));
 
 //    // Update existing page with value longer than existing
-//    std::string longerUpdatedData = "the clown was revived";
-//    dbi::Record longerUpdatedRecord(longerUpdatedData);
+//    string longerUpdatedData = "the clown was revived";
+//    Record longerUpdatedRecord(longerUpdatedData);
 //    segment.update(tid, longerUpdatedRecord);
 //    ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
 
@@ -79,10 +82,10 @@ TEST(SegmentManager, Simple)
 
 // TEST(SegmentManager, FunkeTest)
 // {
-//    const std::string fileName = "swap_file";
+//    const string fileName = "swap_file";
 //    const uint32_t pages = 1 * 1000;
 
-//    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
+//    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
 //    ASSERT_EQ(run(fileName, pages), 0);
 //    remove(fileName.c_str());
 // }

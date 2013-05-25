@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "Extent.hpp"
+#include "util/Extent.hpp"
 #include "PageIDIterator.hpp"
 #include <algorithm>
 #include <cassert>
@@ -37,7 +37,7 @@ public:
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
    PageIDIterator beginPageID()
    {
-      return PageIDIterator(extents, extents.size() == 0 ? kInvalidPageID : extents[0].begin);
+      return PageIDIterator(extents, extents.size() == 0 ? kInvalidPageID : extents[0].begin());
    }
    PageIDIterator endPageID()
    {

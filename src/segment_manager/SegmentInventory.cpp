@@ -29,14 +29,14 @@ const Extent SegmentInventory::assignExtentToSegment(const SegmentId id, const u
    for(uint64_t i = 0; i < freePages.size(); i++) {
       if(numPages <= freePages[i].numPages()) {
          // Add storage to segment with given id
-         Extent extent {freePages[i].begin, freePages[i].begin + numPages};
+         Extent extent {freePages[i].begin(), freePages[i].begin() + numPages};
          auto& extents = segmentMap[id];
          bool found = false;
 
          // Merge to extent list
          for(auto& iter : extents)
-            if(extent.end == iter.begin || extent.begin == iter.end) {
-               iter = Extent {std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)};
+            if(extent.end() == iter.begin() || extent.begin() == iter.end()) {
+               iter = Extent {std::min(extent.begin(), iter.begin()), std::max(extent.end(), iter.end())};
                found = true;
                break;
             }
@@ -44,7 +44,7 @@ const Extent SegmentInventory::assignExtentToSegment(const SegmentId id, const u
             extents.emplace_back(extent);
 
          // Remove storage from the fitting extent
-         freePages[i].begin += numPages;
+         freePages[i] = Extent(freePages[i].begin()+numPages, freePages[i].end());
          if(freePages[i].numPages() == 0)
             freePages.erase(freePages.begin() + i);
          return extent;
@@ -65,16 +65,16 @@ void SegmentInventory::dropSegment(const SegmentId id)
    auto& extents = iter->second;
 
    // Sort merge the segments extents back into the free list
-   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs) {return lhs.begin < rhs.begin;});
+   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs) {return lhs.begin() < rhs.begin();});
    uint64_t pos = 0;
    for(auto& extent : extents) {
       // Find position in free list
-      while(pos < freePages.size() && extent.end < freePages[pos].begin)
+      while(pos < freePages.size() && extent.end() < freePages[pos].begin())
          pos++;
 
       // Merge extents or insert
-      if(pos < freePages.size() && (extent.begin == freePages[pos].end || extent.end == freePages[pos].begin))
-         freePages[pos] = Extent {min(extent.begin, freePages[pos].begin), max(extent.end, freePages[pos].end)};
+      if(pos < freePages.size() && (extent.begin() == freePages[pos].end() || extent.end() == freePages[pos].begin()))
+         freePages[pos] = Extent {min(extent.begin(), freePages[pos].begin()), max(extent.end(), freePages[pos].end())};
       else
          freePages.insert(freePages.begin() + pos, extent);
    }

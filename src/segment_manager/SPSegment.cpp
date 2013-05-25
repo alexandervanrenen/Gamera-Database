@@ -23,7 +23,7 @@ SPSegment::~SPSegment()
 void SPSegment::assignExtent(const Extent& extent)
 {
    Segment::assignExtent(extent);
-   for(PageId iter = extent.begin; iter != extent.end; iter++) {
+   for(PageId iter = extent.begin(); iter != extent.end(); iter++) {
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();

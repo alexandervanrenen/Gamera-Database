@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "Extent.hpp"
+#include "util/Extent.hpp"
 #include <cassert>
 #include <vector>
 
@@ -68,12 +68,12 @@ private:
    {
       assert(pageID != kInvalidPageID);
       pageID++;
-      if(pageID >= (*extents)[extent].end) {
+      if(pageID >= (*extents)[extent].end()) {
          extent++;
          if(extent >= extents->size())
             pageID = kInvalidPageID;
          else
-            pageID = (*extents)[extent].begin;
+            pageID = (*extents)[extent].begin();
       }
    }
 

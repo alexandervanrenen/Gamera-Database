@@ -29,4 +29,9 @@ static const uint32_t kPageSize = 1 << 14; // less than 1<<14 .. otherwise slott
 static const TId kInvalidTupleID = -1;
 static const PageId kInvalidPageID = -1;
 static const RecordId kInvalidRecordID = -1;
+
+static const SegmentId kFreeSpaceInventoryId = 0;
+
+static const PageId kMetaPageId = 0;
+static const PageId kFirstFreePageId = 1;
 }

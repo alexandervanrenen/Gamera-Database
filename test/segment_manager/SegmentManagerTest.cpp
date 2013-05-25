@@ -31,6 +31,7 @@ TEST(SegmentManager, Simple)
    // Grow
    ASSERT_EQ(segment.getNumPages(), 10ul);
    segmentManager.growSegment(segment, 20ul);
+
    segmentManager.growSegment(segment, 10ul);
    ASSERT_EQ(segment.getNumPages(), 40ul);
 
@@ -39,6 +40,35 @@ TEST(SegmentManager, Simple)
    SegmentId id_b = segmentManager.createSegment(SegmentType::SP, 98);
    SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.getNumPages(), 98ul);
+
+   remove(fileName.c_str());
+}
+
+TEST(SegmentManager, RestartSimple)
+{
+   const string fileName = "swap_file";
+   const uint32_t pages = 100;
+
+   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+   SegmentId sid;
+   TId tid;
+
+   // Create
+   {
+      BufferManager bufferManager(fileName, pages / 2);
+      SegmentManager segmentManager(bufferManager, true);
+      sid = segmentManager.createSegment(SegmentType::SP, 10);
+      SPSegment& segment = segmentManager.getSPSegment(sid);
+      tid = segment.insert(Record("gemini wars crashed so i am back to coding :/"));
+   }
+
+   // Restart
+   {
+      BufferManager bufferManager(fileName, pages / 2);
+      SegmentManager segmentManager(bufferManager, false);
+      SPSegment& segment = segmentManager.getSPSegment(sid);
+      ASSERT_EQ(segment.lookup(tid), Record("gemini wars crashed so i am back to coding :/"));
+   }
 
    remove(fileName.c_str());
 }

@@ -4,5 +4,6 @@ src_segment_manager_files :=  src/segment_manager/SegmentManager.o   \
                               src/segment_manager/SPSegment.o        \
                               src/segment_manager/SlottedPage.o      \
                               src/segment_manager/ExtentStore.o      \
-                              src/segment_manager/Segment.o			   \
+                              src/segment_manager/Segment.o          \
+                              src/segment_manager/Persister.o        \
                               src/segment_manager/BTreeSegment.o     

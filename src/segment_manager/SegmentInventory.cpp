@@ -12,7 +12,7 @@ SegmentInventory::SegmentInventory(BufferManager& bufferManager, bool isInitialS
 , persister(bufferManager, freePages)
 {
    if(isInitialSetup)
-      persister.create(segmentMap); else
+      persister.create(); else
       persister.load(segmentMap);
 }
 

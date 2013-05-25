@@ -15,6 +15,8 @@ struct Extent {
    PageId begin() const {return beginPage;}
    PageId end() const {return beginPage+pageCount;}
 
+   bool operator==(const Extent& other) const {return beginPage==other.beginPage && pageCount==other.pageCount;}
+
 private:
    // Pages belonging to this extent: [begin, end)
    PageId beginPage;

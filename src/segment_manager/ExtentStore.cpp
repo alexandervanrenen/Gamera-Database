@@ -53,6 +53,7 @@ void ExtentStore::add(const Extent& extent)
 void ExtentStore::remove(const Extent& extent)
 {
    assert(extent.numPages() > 0);
+   pageCount -= extent.numPages();
 
    // The has to be completely inside an already existing one (iterators are not stable)
    for(uint32_t i=0; i<extents.size(); i++)

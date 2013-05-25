@@ -37,6 +37,7 @@ TEST(SegmentManager, ExtentStore)
    extentStore.remove(Extent(19,20));
    extentStore.remove(Extent(9,11));
    extentStore.remove(Extent(6,9));
+   ASSERT_EQ(extentStore.numPages(), 8ull);
    ASSERT_EQ(extentStore.get().size(), 1ull);
    ASSERT_EQ(extentStore.get()[1], Extent(11,19));
 }

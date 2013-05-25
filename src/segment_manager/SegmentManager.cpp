@@ -1,6 +1,8 @@
 #include "buffer_manager/BufferManager.hpp"
 #include "SegmentManager.hpp"
 #include "SPSegment.hpp"
+#include "BTreeSegment.hpp"
+#include "FSISegment.hpp"
 #include "util/Utility.hpp"
 #include <cassert>
 #include <iostream>
@@ -31,6 +33,10 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
    }
 
    assert(freeSpaceInventory->getId() == 1); // for now bitches =) .. move this to meta segment later
+}
+
+SegmentManager::~SegmentManager()
+{
 }
 
 SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPages)

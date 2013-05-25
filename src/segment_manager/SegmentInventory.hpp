@@ -6,10 +6,10 @@
 
 namespace dbi {
 
-class SISegment {
+class SegmentInventory {
 public:
    /// Constructor
-   SISegment(uint64_t numPages);
+   SegmentInventory(uint64_t numPages);
 
    /// Create an empty segment
    SegmentId createSegment();

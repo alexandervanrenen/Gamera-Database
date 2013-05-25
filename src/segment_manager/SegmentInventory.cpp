@@ -1,4 +1,4 @@
-#include "SISegment.hpp"
+#include "SegmentInventory.hpp"
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -7,21 +7,21 @@ using namespace std;
 
 namespace dbi {
 
-SISegment::SISegment(const uint64_t numPages)
+SegmentInventory::SegmentInventory(const uint64_t numPages)
 : nextSegmentId(0)
 {
    assert(numPages > 0);
    freePages.emplace_back(Extent {1, PageId(numPages)});
 }
 
-SegmentId SISegment::createSegment()
+SegmentId SegmentInventory::createSegment()
 {
    SegmentId id = ++nextSegmentId;
    segmentMap.insert(make_pair(id, vector<Extent>()));
    return id;
 }
 
-const Extent SISegment::assignExtentToSegment(const SegmentId id, const uint32_t numPages)
+const Extent SegmentInventory::assignExtentToSegment(const SegmentId id, const uint32_t numPages)
 {
    assert(segmentMap.count(id) == 1);
 
@@ -56,7 +56,7 @@ const Extent SISegment::assignExtentToSegment(const SegmentId id, const uint32_t
    throw;
 }
 
-void SISegment::dropSegment(const SegmentId id)
+void SegmentInventory::dropSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
 
@@ -81,7 +81,7 @@ void SISegment::dropSegment(const SegmentId id)
    segmentMap.erase(iter);
 }
 
-const vector<Extent> SISegment::getExtentsOfSegment(const SegmentId id)
+const vector<Extent> SegmentInventory::getExtentsOfSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
    return segmentMap[id];

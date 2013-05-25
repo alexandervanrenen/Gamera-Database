@@ -22,7 +22,7 @@ public:
 
    SegmentId getId() const {return id;}
 
-   uint64_t getNumPages() const;
+   uint64_t getNumPages() const; // TODO: rename
 
    /// Called by segment manager after a extent has been added to this object
    virtual void initializeExtent(const Extent& extent) = 0;

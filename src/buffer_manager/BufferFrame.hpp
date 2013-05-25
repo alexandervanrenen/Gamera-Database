@@ -13,7 +13,7 @@ namespace dbi {
 class BufferFrame {
 public:
    /// Access page memory, is mapped to disc by the buffer manager
-   char* getData();
+   char* getData(); // TODO: rename
 
 private:
    std::array<char, kPageSize> data;

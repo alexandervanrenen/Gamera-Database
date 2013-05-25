@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "util/Extent.hpp"
+#include "Extent.hpp"
 #include <cassert>
 #include <vector>
 
@@ -59,7 +59,7 @@ private:
    PageId pageID;
    const std::vector<Extent>* extents;
 
-   PageIDIterator(std::vector<Extent>& extents, PageId pageID)
+   PageIDIterator(const std::vector<Extent>& extents, PageId pageID)
    : extent(0), pageID(pageID), extents(&extents)
    {
    }

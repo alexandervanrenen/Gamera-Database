@@ -1,6 +1,6 @@
-#include "util/ExtentStore.hpp"
-#include "util/Extent.hpp"
 #include "gtest/gtest.h"
+#include "segment_manager/ExtentStore.hpp"
+#include "segment_manager/Extent.hpp"
 #include <array>
 #include <fstream>
 #include <string>
@@ -9,7 +9,6 @@
 
 using namespace std;
 using namespace dbi;
-using namespace dbi::util;
 
 TEST(SegmentManager, ExtentStore)
 {

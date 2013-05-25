@@ -31,7 +31,8 @@ TEST(SegmentManager, Simple)
    // Grow
    ASSERT_EQ(segment.getNumPages(), 10ul);
    segmentManager.growSegment(segment, 20ul);
-   ASSERT_EQ(segment.getNumPages(), 30ul);
+   segmentManager.growSegment(segment, 10ul);
+   ASSERT_EQ(segment.getNumPages(), 40ul);
 
    // Drop
    segmentManager.dropSegment(segment);
@@ -42,43 +43,43 @@ TEST(SegmentManager, Simple)
    remove(fileName.c_str());
 }
 
-// TEST(SegmentManager, SPSegmentSimple)
-// {
-//    const string fileName = "swap_file";
-//    const uint32_t pages = 100;
+TEST(SegmentManager, SPSegmentSimple)
+{
+   const string fileName = "swap_file";
+   const uint32_t pages = 100;
 
-//    // Create
-//    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-//    BufferManager bufferManager(fileName, pages / 2);
-//    SegmentManager segmentManager(bufferManager, true);
-//    SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
-//    SPSegment& segment = segmentManager.getSPSegment(id);
+   // Create
+   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+   BufferManager bufferManager(fileName, pages / 2);
+   SegmentManager segmentManager(bufferManager, true);
+   SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
+   SPSegment& segment = segmentManager.getSPSegment(id);
 
-//    // Insert and look up
-//    string data = "the clown is down";
-//    Record record(data);
-//    TId tid = segment.insert(record);
-//    ASSERT_EQ(record, segment.lookup(tid));
+   // Insert and look up
+   string data = "the clown is down";
+   Record record(data);
+   TId tid = segment.insert(record);
+   ASSERT_EQ(record, segment.lookup(tid));
 
-//    // Update existing page with value not longer than existing
-//    string updatedData = "the clown is ?";
-//    Record updatedRecord(updatedData);
-//    segment.update(tid, updatedRecord);
-//    ASSERT_EQ(updatedRecord, segment.lookup(tid));
+   // Update existing page with value not longer than existing
+   string updatedData = "the clown is ?";
+   Record updatedRecord(updatedData);
+   segment.update(tid, updatedRecord);
+   ASSERT_EQ(updatedRecord, segment.lookup(tid));
 
-//    // Update existing page with value longer than existing
-//    string longerUpdatedData = "the clown was revived";
-//    Record longerUpdatedRecord(longerUpdatedData);
-//    segment.update(tid, longerUpdatedRecord);
-//    ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
+   // Update existing page with value longer than existing
+   string longerUpdatedData = "the clown was revived";
+   Record longerUpdatedRecord(longerUpdatedData);
+   segment.update(tid, longerUpdatedRecord);
+   ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
 
-//    // TODO: update with value which must be placed on another page
+   // TODO: update with value which must be placed on another page
 
-//    // Remove created page
-//    segment.remove(tid);
+   // Remove created page
+   segment.remove(tid);
 
-//    remove(fileName.c_str());
-// }
+   remove(fileName.c_str());
+}
 
 // TEST(SegmentManager, FunkeTest)
 // {

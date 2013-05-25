@@ -23,12 +23,12 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       // Build free space inventory
       SegmentId fsiID = segmentInventory.createSegment();
       auto extent = segmentInventory.assignExtentToSegment(fsiID, FSIPages);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, vector<Extent>());
-      freeSpaceInventory->assignExtent(extent);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, segmentInventory.getExtentsOfSegment(fsiID));
+      freeSpaceInventory->initializeExtent(extent);
    } else {
       // Load free space inventory
       SegmentId fsiID = 1;
-      auto extents = segmentInventory.getExtentsOfSegment(fsiID);
+      auto& extents = segmentInventory.getExtentsOfSegment(fsiID);
       freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, extents);
    }
 
@@ -46,9 +46,9 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
    SegmentId id = segmentInventory.createSegment();
    unique_ptr<Segment> segment;
    if (segmentType == SegmentType::SP) {
-      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, vector<Extent>()));
+      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
    } else if (segmentType == SegmentType::BT) {
-      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, vector<Extent>()));
+      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory.getExtentsOfSegment(id)));
    }
    growSegment(*segment, numPages);
 
@@ -73,7 +73,7 @@ void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
 {
    // Get extent and add to segment
    Extent extent = segmentInventory.assignExtentToSegment(segment.getId(), numPages);
-   segment.assignExtent(extent);
+   segment.initializeExtent(extent);
 }
 
 void SegmentManager::dropSegment(Segment& segment)

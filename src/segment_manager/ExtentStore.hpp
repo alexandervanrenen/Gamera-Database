@@ -5,8 +5,6 @@
 
 namespace dbi {
 
-namespace util {
-
 /// Takes care of storing extents in order and merged: [3,4[ and [4,5[ => [3,5[
 /// Think of extents as ranges. Given the extent [1,100[ removing [2,5[ results in [1,1[ and [5,100[
 /// Illegal instructs will be prevented:
@@ -32,7 +30,5 @@ private:
    uint64_t pageCount = 0;
    std::vector<Extent> extents;
 };
-
-}
 
 }

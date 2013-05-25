@@ -7,7 +7,7 @@ using namespace std;
 
 namespace dbi {
 
-BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const vector<Extent>& extents)
+BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const ExtentStore& extents)
 : Segment(id, bufferManager, extents)
 , segmentManager(sm)
 {
@@ -17,10 +17,9 @@ BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& buff
     } 
 }
 
-void BTreeSegment::assignExtent(const Extent& extent) {
+void BTreeSegment::initializeExtent(const Extent& extent) {
     //std::cout << "Assigning extent with begin: " << extent.begin << ", end: " << extent.end << std::endl;
     if (getNumPages() == 0) { // first extent -> initialize metadata
-        Segment::assignExtent(extent);
         metadataFrame = &Segment::fixPage(metadataPage, kExclusive);
         metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
         metadata->nextFreePage = 1;
@@ -30,9 +29,7 @@ void BTreeSegment::assignExtent(const Extent& extent) {
         bufferManager.unfixPage(p.first, true);
         metadata->rootPage = p.second;
     } else {
-        Segment::assignExtent(extent);
         metadata->numberOfPages += extent.numPages();
-
     }
 }
 

@@ -1,5 +1,5 @@
 #include "ExtentStore.hpp"
-#include "StupidUserException.hpp"
+#include "util/StupidUserException.hpp"
 #include <vector>
 #include <iostream>
 #include <exception>
@@ -8,8 +8,6 @@
 using namespace std;
 
 namespace dbi {
-
-namespace util {
 
 ExtentStore::ExtentStore()
 {
@@ -34,7 +32,7 @@ void ExtentStore::add(const Extent& extent)
    for(auto iter : extents)
       if( (iter.begin() <= extent.begin() && extent.begin() < iter.end())
        || (iter.begin() < extent.end() && extent.end() <= iter.end()))
-         throw StupidUserException("extent store: overlapping extents");
+         throw util::StupidUserException("extent store: overlapping extents");
 
    // Add extent
    pageCount += extent.numPages();
@@ -68,7 +66,7 @@ void ExtentStore::remove(const Extent& extent)
          return;
       }
 
-   throw StupidUserException("extent store: removing extent which does not belong to this store");
+   throw util::StupidUserException("extent store: removing extent which does not belong to this store");
 }
 
 const vector<Extent>& ExtentStore::get() const
@@ -79,8 +77,6 @@ const vector<Extent>& ExtentStore::get() const
 uint64_t ExtentStore::numPages() const
 {
    return pageCount;
-}
-
 }
 
 }

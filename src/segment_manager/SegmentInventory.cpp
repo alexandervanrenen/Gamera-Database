@@ -11,47 +11,30 @@ SegmentInventory::SegmentInventory(const uint64_t numPages)
 : nextSegmentId(0)
 {
    assert(numPages > 0);
-   freePages.emplace_back(Extent {1, PageId(numPages)});
+   freePages.add(Extent {1, PageId(numPages)});
 }
 
 SegmentId SegmentInventory::createSegment()
 {
    SegmentId id = ++nextSegmentId;
-   segmentMap.insert(make_pair(id, vector<Extent>()));
+   segmentMap.insert(make_pair(id, ExtentStore()));
    return id;
 }
 
 const Extent SegmentInventory::assignExtentToSegment(const SegmentId id, const uint32_t numPages)
 {
-   assert(segmentMap.count(id) == 1);
+   assert(segmentMap.count(id)==1 && numPages>0);
 
-   // Find free extent and assign -- using first-fit
-   for(uint64_t i = 0; i < freePages.size(); i++) {
-      if(numPages <= freePages[i].numPages()) {
-         // Add storage to segment with given id
-         Extent extent {freePages[i].begin(), freePages[i].begin() + numPages};
-         auto& extents = segmentMap[id];
-         bool found = false;
-
-         // Merge to extent list
-         for(auto& iter : extents)
-            if(extent.end() == iter.begin() || extent.begin() == iter.end()) {
-               iter = Extent {std::min(extent.begin(), iter.begin()), std::max(extent.end(), iter.end())};
-               found = true;
-               break;
-            }
-         if(!found) // If failed append
-            extents.emplace_back(extent);
-
-         // Remove storage from the fitting extent
-         freePages[i] = Extent(freePages[i].begin()+numPages, freePages[i].end());
-         if(freePages[i].numPages() == 0)
-            freePages.erase(freePages.begin() + i);
-         return extent;
+   // Find free extent -- using first-fit
+   for(uint64_t i = 0; i < freePages.get().size(); i++)
+      if(numPages <= freePages.get()[i].numPages()) {
+         Extent freeExtent = Extent{freePages.get()[i].begin(), freePages.get()[i].begin() + numPages};
+         freePages.remove(freeExtent);
+         segmentMap[id].add(freeExtent);
+         return freeExtent;
       }
-   }
 
-   // Otherwise there is no free extent of this size
+   // "controlled shutdown" if not found
    assert(false && "out of pages :(");
    throw;
 }
@@ -60,28 +43,19 @@ void SegmentInventory::dropSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
 
-   // Remove segment
+   // Find segments extents
    auto iter = segmentMap.find(id);
    auto& extents = iter->second;
 
-   // Sort merge the segments extents back into the free list
-   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs) {return lhs.begin() < rhs.begin();});
-   uint64_t pos = 0;
-   for(auto& extent : extents) {
-      // Find position in free list
-      while(pos < freePages.size() && extent.end() < freePages[pos].begin())
-         pos++;
+   // Add back to free list
+   for(auto& extent : extents.get())
+      freePages.add(extent);
 
-      // Merge extents or insert
-      if(pos < freePages.size() && (extent.begin() == freePages[pos].end() || extent.end() == freePages[pos].begin()))
-         freePages[pos] = Extent {min(extent.begin(), freePages[pos].begin()), max(extent.end(), freePages[pos].end())};
-      else
-         freePages.insert(freePages.begin() + pos, extent);
-   }
+   // Remove from segment -> extent mapping
    segmentMap.erase(iter);
 }
 
-const vector<Extent> SegmentInventory::getExtentsOfSegment(const SegmentId id)
+const ExtentStore& SegmentInventory::getExtentsOfSegment(const SegmentId id)
 {
    assert(segmentMap.count(id) == 1);
    return segmentMap[id];

@@ -10,7 +10,7 @@ using namespace std;
 
 namespace dbi {
 
-SPSegment::SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const vector<Extent>& extents)
+SPSegment::SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const ExtentStore& extents)
 : Segment(id, bufferManager, extents)
 , segmentManager(segmentManager)
 {
@@ -20,9 +20,9 @@ SPSegment::~SPSegment()
 {
 }
 
-void SPSegment::assignExtent(const Extent& extent)
+void SPSegment::initializeExtent(const Extent& extent)
 {
-   Segment::assignExtent(extent);
+   assert(getNumPages() > 0);
    for(PageId iter = extent.begin(); iter != extent.end(); iter++) {
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());

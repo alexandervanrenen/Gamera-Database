@@ -7,14 +7,13 @@ using namespace std;
 
 namespace dbi {
 
-FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents)
+FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents)
 : Segment(id, bufferManager, extents)
 {
 }
 
-void FSISegment::assignExtent(const Extent& extent)
+void FSISegment::initializeExtent(const Extent&)
 {
-   Segment::assignExtent(extent);
 }
 
 uint32_t FSISegment::getFreeBytes(PageId id) const

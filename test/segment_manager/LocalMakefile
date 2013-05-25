@@ -1,2 +1,3 @@
-test_segment_manager_files :=	test/segment_manager/SegmentManagerTest.o	\
-				test/segment_manager/SlottedPageTest.o
+test_segment_manager_files :=	test/segment_manager/SegmentManagerTest.o	 \
+                              test/segment_manager/ExtentStoreTest.o     \
+				                  test/segment_manager/SlottedPageTest.o

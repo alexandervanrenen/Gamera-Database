@@ -1,8 +1,8 @@
 #pragma once
 
-#include "util/Extent.hpp"
+#include "Extent.hpp"
+#include "ExtentStore.hpp"
 #include <unordered_map>
-#include <vector>
 
 namespace dbi {
 
@@ -18,16 +18,16 @@ public:
    const Extent assignExtentToSegment(const SegmentId id, const uint32_t numPages);
 
    /// Access all extents of a given segment
-   const std::vector<Extent> getExtentsOfSegment(const SegmentId id);
+   const ExtentStore& getExtentsOfSegment(const SegmentId id);
 
    /// Remove a segment and add its extents to free list
    void dropSegment(const SegmentId id);
 
 private:
    /// Maps a segment id to all its extents
-   std::unordered_map<SegmentId, std::vector<Extent>> segmentMap;
+   std::unordered_map<SegmentId, ExtentStore> segmentMap;
    /// Stores free pages
-   std::vector<Extent> freePages;
+   ExtentStore freePages;
    /// Keep track of min segment id
    SegmentId nextSegmentId;
 };

@@ -12,11 +12,11 @@ class SegmentManager;
 class SPSegment : public Segment {
 public:
    /// Constructor
-   SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const std::vector<Extent>& extents);
+   SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const ExtentStore& extents);
    virtual ~SPSegment();
 
-   /// Add new extent to the segment (these pages need to be initialized for proper use)
-   virtual void assignExtent(const Extent& extent);
+   /// Called by segment manager after a extent has been added to this object
+   virtual void initializeExtent(const Extent& extent);
 
    /// Operations on records
    TId insert(const Record& record);

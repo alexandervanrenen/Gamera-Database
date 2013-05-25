@@ -140,12 +140,24 @@ void SlottedPage::defragment(){
     dataBegin = currentOffset;
 }
 
-uint16_t SlottedPage::getBytesFreeForRecord(){
+uint16_t SlottedPage::getBytesFreeForRecord() const
+{
     if(firstFreeSlot < slotCount)
         return freeBytes;
     else
         return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
     
+}
+
+void SlottedPage::dump() const
+{
+  for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)
+    cout << "slot: (" << slot->offset << ", " << slot->bytes << ")" << endl;
+  cout << "LSN: " << LSN << "  ";
+  cout << "slotCount: " << slotCount << "  ";
+  cout << "firstFreeSlot: " << firstFreeSlot << "  ";
+  cout << "dataBegin: " << dataBegin << "  ";
+  cout << "freeBytes: " << freeBytes << "  " << endl;
 }
 
 }

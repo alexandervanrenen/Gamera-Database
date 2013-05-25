@@ -26,12 +26,13 @@ public:
    /// Gets the number of bytes of this slotted page which have not been used yet. 
    /// This value is directly returned only if there is a slot which can be reused for a respective insert.
    /// Otherwise it is returned diminished by the size of a page slot to make sure a record as big as the return value definitely fits into the page.
-   uint16_t getBytesFreeForRecord();   
-   
-   void defragment();
-   
-private:
+   uint16_t getBytesFreeForRecord() const;
 
+   void defragment();
+
+   void dump() const;
+
+private:
    struct Slot {
       uint16_t offset;
       int16_t bytes;

@@ -76,7 +76,7 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
 {
    /// Find a nice spot and do the insert .. no magic here
    Record record = marshall(sid, extents);
-   if(record.size() > SlottedPage::maximumRecordSize() - 12) { // need 12 byte for linked list structure
+   if(record.size()+12 > SlottedPage::maximumRecordSize()) { // need 12 byte for linked list structure
       assert(false&&"There is a limit on the record size");
       throw;
    }
@@ -102,8 +102,7 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
    // Add new page to linked list
    auto& lastElementInList = bufferManager.fixPage(pages.back().pid, kExclusive);
    auto& lastSp = reinterpret_cast<SlottedPage&>(*lastElementInList.getData());
-   if(!lastSp.tryInPageUpdate(0, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))))
-      throw; // Needs to work, because record has the same size
+   lastSp.update(0, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))); // Needs to work, because record has the same size
    bufferManager.unfixPage(lastElementInList, kDirty);
 
    // Setup new page
@@ -111,7 +110,7 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
    auto& newSp = reinterpret_cast<SlottedPage&>(*newFrame.getData());
    newSp.initialize();
    if(newSp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != 0)
-      throw; // assuming record id zero for first insert
+      throw; // Assuming record id zero for first insert
 
    // Insert record into new page
    RecordId rid = newSp.insert(record);

@@ -17,13 +17,13 @@ public:
 
    Record lookup(RecordId id) const;
 
-   bool remove(RecordId rId);
+   void remove(RecordId rId);
 
-   bool tryInPageUpdate(RecordId recordId, const Record& newRecord);
+   void update(RecordId recordId, const Record& newRecord);
 
    std::vector<std::pair<TId, Record>> getAllRecords(PageId thisPageId) const;
 
-   /// Gets the number of bytes of this slotted page which have not been used yet. 
+   /// Gets the number of bytes of this slotted page which have not been used yet.
    /// This value is directly returned only if there is a slot which can be reused for a respective insert.
    /// Otherwise it is returned diminished by the size of a page slot to make sure a record as big as the return value definitely fits into the page.
    uint16_t getBytesFreeForRecord() const;
@@ -41,7 +41,7 @@ private:
 
    uint64_t LSN; // for recovery
    uint16_t slotCount; // number of used slots
-   uint16_t firstFreeSlot; // to speed up locating free slots
+   uint16_t firstFreeSlot; // ensures only that there is no other free slot in front of it
    uint16_t dataBegin; // lower end of the data
    uint16_t freeBytes; // space that would be available restructuring .. yeah ain't gonna happen ?
 

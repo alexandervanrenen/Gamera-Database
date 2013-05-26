@@ -73,7 +73,7 @@ Record SlottedPage::lookup(RecordId id) const
    return Record(data.data() + result->offset, result->bytes);
 }
 
-bool SlottedPage::remove(RecordId rId)
+void SlottedPage::remove(RecordId rId)
 {
    assert(dataBegin >= sizeof(Slot) * slotCount);
    assert(rId < slotCount);
@@ -87,10 +87,9 @@ bool SlottedPage::remove(RecordId rId)
    firstFreeSlot = min(firstFreeSlot, rId);
 
    assert(dataBegin >= sizeof(Slot) * slotCount);
-   return true;
 }
 
-bool SlottedPage::tryInPageUpdate(RecordId recordId, const Record& newRecord)
+void SlottedPage::update(RecordId recordId, const Record& newRecord)
 {
    // Get and check everything .. *pretty paranoid*
    Slot* slot = slotBegin() + recordId;
@@ -106,7 +105,7 @@ bool SlottedPage::tryInPageUpdate(RecordId recordId, const Record& newRecord)
       memcpy(data.data() + slot->offset, newRecord.data(), newRecord.size());
       freeBytes += slot->bytes - newRecord.size();
       slot->bytes = newRecord.size();
-      return true;
+      return;
    }
 
    // Remove record (so that de-fragment can recycle it) (keep slot .. does not matter)

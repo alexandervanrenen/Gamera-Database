@@ -18,18 +18,9 @@ TEST(SlottedPage, Simple)
     slottedPage->initialize();
 
     // Insert
-    dbi::RecordId master = slottedPage->insert(dbi::Record("windmill")); // 8 byte
-    dbi::RecordId fsi = slottedPage->insert(dbi::Record("windmill")); // 8 byte
+    slottedPage->insert(dbi::Record("windmill"));
+    dbi::RecordId fsi = slottedPage->insert(dbi::Record("windmill"));
     slottedPage->remove(fsi);
-    fsi = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 24 byte
-
-    dbi::RecordId first = slottedPage->insert(dbi::Record("windmill")); // 8 byte
-    slottedPage->remove(first);
-    first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
-    slottedPage->remove(first);
-    first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
-    slottedPage->remove(first);
-    first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
 
     free(slottedPage);
 }
@@ -41,12 +32,12 @@ TEST(SlottedPage, SlotReuseAfterDelete)
 
     // Checks if a slot is reused
     dbi::RecordId dataRecordId1 = slottedPage->insert(dbi::Record("Hello World!"));
-    ASSERT_TRUE(slottedPage->remove(dataRecordId1));
+    slottedPage->remove(dataRecordId1);
     dbi::RecordId dataRecordId2 = slottedPage->insert(dbi::Record("Hello World!"));
     ASSERT_EQ(dataRecordId1, dataRecordId2);
 
     // Even with smaller vales ?
-    ASSERT_TRUE(slottedPage->remove(dataRecordId2));
+    slottedPage->remove(dataRecordId2);
     dbi::RecordId dataRecordId = slottedPage->insert(dbi::Record("Hello World"));
     ASSERT_EQ(dataRecordId, dataRecordId2);
 
@@ -154,7 +145,7 @@ TEST(SlottedPage, Randomized)
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 std::string data = dbi::util::randomWord(random()%64 + 1);
                 if(data.size()<=record.size() || data.size()-record.size() <= slottedPage->getBytesFreeForRecord()) {
-                    slottedPage->tryInPageUpdate(id, dbi::Record(data));
+                    slottedPage->update(id, dbi::Record(data));
                     reference.erase(reference.begin());
                     reference.insert(make_pair(id, data));
                 }

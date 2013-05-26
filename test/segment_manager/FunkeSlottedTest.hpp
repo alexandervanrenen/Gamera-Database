@@ -106,7 +106,7 @@ int run(const std::string& dbFile, uint32_t pages)
       assert(memcmp(rec.data(), value.c_str(), len)==0);
 
       if (del) { // do delete
-         assert(sp.remove(tid));
+         sp.remove(tid);
          values.erase(tid);
          usage[pageId]-=len;
       }

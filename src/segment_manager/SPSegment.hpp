@@ -21,8 +21,8 @@ public:
    /// Operations on records
    TId insert(const Record& record);
    Record lookup(TId id);
-   bool remove(TId tId);
-   TId update(TId tId, const Record& record);
+   void remove(TId tId);
+   void update(TId tId, const Record& record);
    std::vector<std::pair<TId, Record>> getAllRecordsOfPage(PageId pageId);
 
 private:

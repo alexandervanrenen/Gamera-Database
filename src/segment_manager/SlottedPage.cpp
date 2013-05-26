@@ -114,7 +114,7 @@ RecordId SlottedPage::insertForeigner(const Record&, TId)
 
 bool SlottedPage::canHoldRecord(const Record& record) const
 {
-  return getBytesFreeForRecord() <= record.size();
+  return getBytesFreeForRecord() >= record.size();
 }
 
 bool SlottedPage::canUpdateRecord(RecordId rid, const Record& newRecord) const

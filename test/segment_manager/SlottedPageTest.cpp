@@ -20,43 +20,39 @@ TEST(SlottedPage, Simple)
     dbi::RecordId fsi = slottedPage->insert(dbi::Record("windmill")); // 8 byte
     slottedPage->remove(fsi);
     fsi = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 24 byte
-cout << "1111111111111111111111111111111111111111" << endl;
 
     dbi::RecordId first = slottedPage->insert(dbi::Record("windmill")); // 8 byte
     slottedPage->remove(first);
     first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
-cout << "2222222222222222222222222222222222222222" << endl;
     slottedPage->remove(first);
     first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
-cout << "3333333333333333333333333333333333333333" << endl;
     slottedPage->remove(first);
     first = slottedPage->insert(dbi::Record("windmillwindmillwindmill")); // 8 byte
 
     free(slottedPage);
 }
 
-// TEST(SlottedPage, SlotReuseAfterDelete)
-// {
-//     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
-//     slottedPage->initialize();
+TEST(SlottedPage, SlotReuseAfterDelete)
+{
+    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    slottedPage->initialize();
 
-//     // Checks if a slot is reused
-//     dbi::RecordId dataRecordId1 = slottedPage->insert(dbi::Record("Hello World!"));
-//     ASSERT_TRUE(slottedPage->remove(dataRecordId1));
-//     dbi::RecordId dataRecordId2 = slottedPage->insert(dbi::Record("Hello World!"));
-//     ASSERT_EQ(dataRecordId1, dataRecordId2);
+    // Checks if a slot is reused
+    dbi::RecordId dataRecordId1 = slottedPage->insert(dbi::Record("Hello World!"));
+    ASSERT_TRUE(slottedPage->remove(dataRecordId1));
+    dbi::RecordId dataRecordId2 = slottedPage->insert(dbi::Record("Hello World!"));
+    ASSERT_EQ(dataRecordId1, dataRecordId2);
 
-//     // Even with smaller vales ?
-//     ASSERT_TRUE(slottedPage->remove(dataRecordId2));
-//     dbi::RecordId dataRecordId = slottedPage->insert(dbi::Record("Hello World"));
-//     ASSERT_EQ(dataRecordId, dataRecordId2);
+    // Even with smaller vales ?
+    ASSERT_TRUE(slottedPage->remove(dataRecordId2));
+    dbi::RecordId dataRecordId = slottedPage->insert(dbi::Record("Hello World"));
+    ASSERT_EQ(dataRecordId, dataRecordId2);
 
-//     free(slottedPage);
-// }
+    free(slottedPage);
+}
 
 // TEST(SlottedPage, DefragmentationBasic)
 // {
-    
 //     std::string fragmentationData1 = "Hello!";
 //     std::string fragmentationData2 = "World!";
 //     std::string staticData = "block";
@@ -90,8 +86,7 @@ cout << "3333333333333333333333333333333333333333" << endl;
 //     // No side effects on sample record
 //     ASSERT_EQ(slottedPage->lookup(staticRecordId).data(), staticData);
 //     //ASSERT_EQ(slottedPage->getBytesFreeForRecord(), newData.length() + freeSpaceBeforeNewDataInsert);
-    
-    
+
 //     ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
 //     dbi::RecordId newDataRecordId = slottedPage->insert(newDataRecord);
 //     ASSERT_EQ(slottedPage->lookup(newDataRecordId).data(), newData);

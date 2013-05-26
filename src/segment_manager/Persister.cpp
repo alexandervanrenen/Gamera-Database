@@ -42,7 +42,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TId, ExtentStore>>&
    // Load linked list structure
    do {
       // Load current page
-      auto& frame = bufferManager.fixPage(kMetaPageId, kExclusive);
+      auto& frame = bufferManager.fixPage(currentPageId, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       auto records = sp.getAllRecords(currentPageId);
 
@@ -55,7 +55,6 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TId, ExtentStore>>&
          if(toRecordId(iter.first) == 0) {
             // Update page id
             nextPageId = *reinterpret_cast<const PageId*>(iter.second.data());
-            assert(nextPageId == kMetaPageId);
          } else {
             // Otherwise it is a mapping entry
             pair<SegmentId, ExtentStore> mapping = unmarshall(iter.second);
@@ -93,8 +92,6 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
          return toTID(page.pid, rid);
       }
    }
-
-   cout << "grow" << endl;
 
    // Otherwise structure is full => find new page
    assert(freePages.numPages() != 0);

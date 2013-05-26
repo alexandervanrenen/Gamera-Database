@@ -15,12 +15,14 @@ ExtentStore::ExtentStore()
 
 ExtentStore::ExtentStore(ExtentStore&& other)
 : extents(move(other.extents))
+, pageCount(other.pageCount)
 {
 }
 
 const ExtentStore& ExtentStore::operator=(ExtentStore&& other)
 {
    extents = move(other.extents);
+   pageCount = other.pageCount;
    return *this;
 }
 
@@ -32,7 +34,7 @@ void ExtentStore::add(const Extent& extent)
    for(auto iter : extents)
       if( (iter.begin() <= extent.begin() && extent.begin() < iter.end())
        || (iter.begin() < extent.end() && extent.end() <= iter.end()))
-         throw util::StupidUserException("extent store: overlapping extents");
+         throw;
 
    // Add extent
    pageCount += extent.numPages();
@@ -67,7 +69,7 @@ void ExtentStore::remove(const Extent& extent)
          return;
       }
 
-   throw util::StupidUserException("extent store: removing extent which does not belong to this store");
+   throw;
 }
 
 const vector<Extent>& ExtentStore::get() const

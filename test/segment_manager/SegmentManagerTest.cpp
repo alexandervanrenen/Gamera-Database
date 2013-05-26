@@ -115,9 +115,9 @@ TEST(SegmentManager, PersistentSIList)
       SPSegment& segment2 = segmentManager.getSPSegment(sid2);
       SPSegment& segment3 = segmentManager.getSPSegment(sid3);
 
-      ASSERT_TRUE(segment1.getNumPages() == kPageSize/16 + 1);
-      ASSERT_TRUE(segment2.getNumPages() == kPageSize/16 + 1);
-      ASSERT_TRUE(segment3.getNumPages() == kPageSize/16 + 1);
+      ASSERT_EQ(segment1.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment2.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment3.getNumPages(), kPageSize/16 - 11);
    }
 
    remove(fileName.c_str());

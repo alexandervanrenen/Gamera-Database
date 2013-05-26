@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static const uint32_t kTestScale = 100;
+static const uint32_t kTestScale = 1;
 
 TEST(SlottedPage, Simple)
 {
@@ -130,8 +130,9 @@ TEST(SlottedPage, Randomized)
                     continue;
                 dbi::RecordId id = reference.begin()->first;
                 // std::cout << "remove " << id << std::endl;
-                dbi::Record record = slottedPage->lookup(id);
-                ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
+                pair<dbi::TId, dbi::Record> record = slottedPage->lookup(id);
+                ASSERT_EQ(record.first, dbi::kInvalidTupleID);
+                ASSERT_EQ(std::string(record.second.data(), record.second.size()), reference.begin()->second);
                 slottedPage->remove(id);
                 reference.erase(reference.begin());
             }
@@ -141,10 +142,11 @@ TEST(SlottedPage, Randomized)
                 if(reference.empty())
                     continue;
                 dbi::RecordId id = reference.begin()->first;
-                dbi::Record record = slottedPage->lookup(id);
-                ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
+                pair<dbi::TId, dbi::Record> record = slottedPage->lookup(id);
+                ASSERT_EQ(record.first, dbi::kInvalidTupleID);
+                ASSERT_EQ(std::string(record.second.data(), record.second.size()), reference.begin()->second);
                 std::string data = dbi::util::randomWord(random()%64 + 1);
-                if(data.size()<=record.size() || data.size()-record.size() <= slottedPage->getBytesFreeForRecord()) {
+                if(slottedPage->canUpdateRecord(id, dbi::Record(data))) {
                     slottedPage->update(id, dbi::Record(data));
                     reference.erase(reference.begin());
                     reference.insert(make_pair(id, data));

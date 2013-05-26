@@ -34,31 +34,27 @@ void SPSegment::initializeExtent(const Extent& extent)
 
 TId SPSegment::insert(const Record& record)
 {
-   // TODO: remember id of last insert and start iteration at this position
-   for(auto iter = beginPageID(); iter != endPageID(); iter++) {
-      if(segmentManager.getFSISegment().getFreeBytes(*iter) >= record.size()) {
-         auto& frame = bufferManager.fixPage(*iter, kExclusive);
-         auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-         RecordId id = sp.insert(record);
-         segmentManager.getFSISegment().setFreeBytes(*iter, sp.getBytesFreeForRecord());
-         bufferManager.unfixPage(frame, kDirty);
-         return (*iter << 16) + id;
-      }
-   }
-
-   // TODO: add ref to segment manager and grow
-   cout << "no i am full !!!" << endl;
-   throw;
+   PageId pid = aquirePage(record.size());
+   auto& frame = bufferManager.fixPage(pid, kExclusive);
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   RecordId rid = sp.insert(record);
+   segmentManager.getFSISegment().setFreeBytes(pid, sp.getBytesFreeForRecord());
+   bufferManager.unfixPage(frame, kDirty);
+   return toTID(pid, rid);
 }
 
 Record SPSegment::lookup(TId id)
 {
    assert(any_of(beginPageID(), endPageID(), [id](const PageId& pid) {return pid==toPageId(id);}));
+
    auto& frame = bufferManager.fixPage(toPageId(id), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   Record result = sp.lookup(toRecordId(id));
+   pair<TId, Record> result = sp.lookup(toRecordId(id));
    bufferManager.unfixPage(frame, kClean);
-   return result;
+
+   if(result.first == kInvalidTupleID)
+      return move(result.second); else
+      return lookup(result.first);
 }
 
 void SPSegment::remove(TId tId)
@@ -70,21 +66,38 @@ void SPSegment::remove(TId tId)
    bufferManager.unfixPage(frame, kDirty);
 }
 
-void SPSegment::update(TId tId, const Record& record)
+void SPSegment::update(TId tid, const Record& record)
 {
-   auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
+   auto& frame = bufferManager.fixPage(toPageId(tid), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   sp.update(toRecordId(tId), record);
-   bufferManager.unfixPage(frame, kDirty);
+   pair<TId, Record> result = sp.lookup(toRecordId(tid));
 
-   throw;
-   // if(result) {
-   //    return tId;
-   // } else {
-   //    // TODO: maybe improve this: we unfix the page after tryUpdate though we fix it again afterwards to remove it
-   //    remove(tId);
-   //    return insert(record);
-   // }
+   // Record is on this page
+   if(result.first == kInvalidTupleID) {
+      if(sp.canUpdateRecord(toRecordId(tid), record)) {
+         // Do simple in page update
+         sp.update(toRecordId(tid), record);
+         bufferManager.unfixPage(frame, kDirty);
+         return;
+      } else {
+         // Store on some other page -- lets call it 2
+         PageId pid2 = aquirePage(record.size());
+         auto& frame2 = bufferManager.fixPage(pid2, kExclusive);
+         auto& sp2 = reinterpret_cast<SlottedPage&>(*frame2.getData());
+         RecordId rid = sp2.insertForeigner(record, tid);
+         segmentManager.getFSISegment().setFreeBytes(pid2, sp2.getBytesFreeForRecord());
+         bufferManager.unfixPage(frame2, kDirty);
+         TId tid2 = toTID(pid2, rid);
+
+         /// Add reference on original page to this page
+         sp.updateToReference(toRecordId(tid), tid2);
+         bufferManager.unfixPage(frame, kDirty);
+         return;
+      }
+   } else {
+      // Record is distributed across two pages -- fuck
+      throw;
+   }
 }
 
 vector<pair<TId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
@@ -94,6 +107,15 @@ vector<pair<TId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
    auto result = sp.getAllRecords(pageId);
    bufferManager.unfixPage(frame, kClean);
    return result;
+}
+
+PageId SPSegment::aquirePage(uint16_t length)
+{
+   for(auto iter = beginPageID(); iter != endPageID(); iter++)
+      if(segmentManager.getFSISegment().getFreeBytes(*iter) >= length)
+         return *iter;
+   segmentManager.growSegment(*this);
+   return aquirePage(length);
 }
 
 }

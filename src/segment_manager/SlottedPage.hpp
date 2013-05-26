@@ -19,8 +19,10 @@ public:
    /// Add a record -- assumes canHoldRecord true
    RecordId insert(const Record& record);
 
-   /// Lookup a record -- TId is only valid if the record is on another page
-   Record lookup(RecordId id) const;
+   /// Lookup a record -- TId is only valid if the record is a reference (hence one can differ between real records and references)
+   /// I think one does not need to know if the record is foreign, as one would never lookup such a value directly.
+   /// The TID which is added to each foreign record is stripped away.
+   std::pair<TId, Record> lookup(RecordId id) const;
 
    /// Remove the given rid
    void remove(RecordId rid);

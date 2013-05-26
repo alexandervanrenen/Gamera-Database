@@ -20,8 +20,11 @@ public:
 
    bool isMemoryUnused() const;
    bool isNormal() const;
+
+   bool isEmpty() const;
+
 private:
-   uint16_t qwe;
+   uint16_t offset;
    uint16_t length;
 };
 

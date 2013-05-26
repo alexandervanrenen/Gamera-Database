@@ -27,6 +27,9 @@ public:
 
 private:
    SegmentManager& segmentManager;
+
+   /// Looks for a page in this segment large enough to hold length (grows if not found)
+   PageId aquirePage(uint16_t length);
 };
 
 }

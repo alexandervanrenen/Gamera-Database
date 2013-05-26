@@ -153,6 +153,7 @@ TEST(SlottedPage, Randomized)
 
             // Do consistency check
             else if(operation<=99 || i==iterations-1 || i==0) {
+                ASSERT_TRUE(slottedPage->isValid());
                 auto records = slottedPage->getAllRecords(0); // page id does not matter
                 ASSERT_EQ(records.size(), reference.size());
                 for(auto& iter : records) {

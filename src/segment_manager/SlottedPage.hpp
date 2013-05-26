@@ -2,6 +2,7 @@
 
 #include "common/Config.hpp"
 #include "Record.hpp"
+#include "Slot.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -33,21 +34,18 @@ public:
 
    void dump() const;
 
-private:
-   struct Slot {
-      uint16_t offset;
-      int16_t bytes;
-   };
+   bool isValid() const;
 
+private:
    uint64_t LSN; // for recovery
    uint16_t slotCount; // number of used slots
-   uint16_t firstFreeSlot; // ensures only that there is no other free slot in front of it
+   mutable uint16_t firstFreeSlot; // ensures only that there is no other free slot in front of it
    uint16_t dataBegin; // lower end of the data
    uint16_t freeBytes; // space that would be available restructuring .. yeah ain't gonna happen ?
 
    std::array<char, kPageSize - 16> data; // 16 == size of header of this page
 
-   const Slot* slotBegin() const
+   const Slot* slotBegin() const // TODO: to body
    {
       return reinterpret_cast<const Slot*>(data.data());
    }

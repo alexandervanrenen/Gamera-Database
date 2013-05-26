@@ -22,45 +22,10 @@ void SlottedPage::initialize()
 
 RecordId SlottedPage::insert(const Record& record)
 {
-   assert(getBytesFreeForRecord() >= record.size());
-   assert(dataBegin >= sizeof(Slot) * slotCount);
-   assert(record.size() > 0);
-   uint32_t count = getAllRecords(0).size();
-
-   // Try to reuse old slot including its space
-   for(Slot* slot=slotBegin() + firstFreeSlot; slot!=slotEnd(); slot++)
-      if(slot->isMemoryUnused() && slot->getLength() >= record.size()) {
-         freeBytes -= record.size();
-         *slot = Slot(slot->getOffset() , record.size(), Slot::Type::kNormal);
-         memcpy(data.data() + slot->getOffset(), record.data(), slot->getLength());
-         assert(getAllRecords(0).size() == count+1);
-         assert(dataBegin >= sizeof(Slot) * slotCount);
-         return slot - slotBegin();
-      }
-
-   // Otherwise: We have to insert it into the free space: ensure there is enough
-   if(dataBegin - sizeof(Slot) * slotCount < record.size() + sizeof(Slot))
-      defragment();
-   assert(dataBegin - sizeof(Slot) * slotCount >= record.size());
-
-   // Now we know that the new record will fit into the free space: find a slot
-   Slot* slot;
-   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++)
-      if(slot->getOffset() == 0)
-         break;
-
-   // The slot variable points to the slot to be used
-   dataBegin -= record.size();
+   Slot* slot = aquireSlot(record.size());
    *slot = Slot(dataBegin, record.size(), Slot::Type::kNormal);
    memcpy(data.data()+slot->getOffset(), record.data(), slot->getLength());
-   freeBytes -= record.size();
-   freeBytes -= slotEnd() == slot ? sizeof(Slot) : 0;
-   slotCount = max(slotCount, static_cast<uint16_t>(1 + slot - slotBegin()));
-   firstFreeSlot = slot - slotBegin(); // No free slot before this one
-
-   assert(getAllRecords(0).size() == count+1);
-   assert(dataBegin >= sizeof(Slot) * slotCount);
-   return firstFreeSlot;
+   return slot - slotBegin();
 }
 
 Record SlottedPage::lookup(RecordId id) const
@@ -204,6 +169,72 @@ bool SlottedPage::isValid() const
     if(slot->isNormal() && slot->getOffset() != 0)
       usedBytes += slot->getLength();
   return usedBytes + slotCount*sizeof(Slot) + freeBytes + 16 == kPageSize;
+}
+
+Slot* SlottedPage::aquireSlot(uint16_t length)
+{
+   assert(getBytesFreeForRecord() >= length);
+   assert(dataBegin >= sizeof(Slot) * slotCount);
+   assert(length > 0);
+   uint32_t count = getAllRecords(0).size();
+
+   // Try to reuse old slot including its space
+   for(Slot* slot=slotBegin() + firstFreeSlot; slot!=slotEnd(); slot++)
+      if(slot->isMemoryUnused() && slot->getLength() >= length) {
+         freeBytes -= length;
+         *slot = Slot(slot->getOffset() , length, Slot::Type::kNormal);
+         assert(getAllRecords(0).size() == count+1);
+         assert(dataBegin >= sizeof(Slot) * slotCount);
+         return slot;
+      }
+
+   // Otherwise: We have to insert it into the free space: ensure there is enough
+   if(dataBegin - sizeof(Slot) * slotCount < length + sizeof(Slot))
+      defragment();
+   assert(dataBegin - sizeof(Slot) * slotCount >= length);
+
+   // Now we know that the new record will fit into the free space: find a slot
+   Slot* slot;
+   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++)
+      if(slot->getOffset() == 0)
+         break;
+
+   // The slot variable points to the slot to be used
+   dataBegin -= length;
+   *slot = Slot(dataBegin, length, Slot::Type::kNormal);
+   freeBytes -= length;
+   freeBytes -= slotEnd() == slot ? sizeof(Slot) : 0;
+   slotCount = max(slotCount, static_cast<uint16_t>(1 + slot - slotBegin()));
+   firstFreeSlot = slot - slotBegin(); // No free slot before this one
+
+   assert(getAllRecords(0).size() == count+1);
+   assert(dataBegin >= sizeof(Slot) * slotCount);
+   return slot;
+}
+
+uint32_t SlottedPage::countAllRecords() const
+{
+  throw;
+}
+
+const Slot* SlottedPage::slotBegin() const
+{
+  return reinterpret_cast<const Slot*>(data.data());
+}
+
+const Slot* SlottedPage::slotEnd() const
+{
+  return reinterpret_cast<const Slot*>(data.data()) + slotCount;
+}
+
+Slot* SlottedPage::slotBegin()
+{
+  return reinterpret_cast<Slot*>(data.data());
+}
+
+Slot* SlottedPage::slotEnd()
+{
+  return reinterpret_cast<Slot*>(data.data()) + slotCount;
 }
 
 }

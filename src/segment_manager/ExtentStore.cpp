@@ -34,7 +34,7 @@ void ExtentStore::add(const Extent& extent)
    for(auto iter : extents)
       if( (iter.begin() <= extent.begin() && extent.begin() < iter.end())
        || (iter.begin() < extent.end() && extent.end() <= iter.end()))
-         throw;
+         throw util::StupidUserException("extent store: overlapping extents");
 
    // Add extent
    pageCount += extent.numPages();
@@ -55,11 +55,11 @@ void ExtentStore::add(const Extent& extent)
 void ExtentStore::remove(const Extent& extent)
 {
    assert(extent.numPages() > 0);
-   pageCount -= extent.numPages();
 
    // The has to be completely inside an already existing one (iterators are not stable)
    for(uint32_t i=0; i<extents.size(); i++)
       if(extents[i].begin() <= extent.begin() && extent.end() <= extents[i].end()) {
+         pageCount -= extent.numPages();
          // Is there a range before the removed extent ?
          if(extents[i].end() != extent.end())
             extents.insert(extents.begin()+i+1, Extent(extent.end(), extents[i].end()));
@@ -69,7 +69,7 @@ void ExtentStore::remove(const Extent& extent)
          return;
       }
 
-   throw;
+   throw util::StupidUserException("extent store: removing extent which does not belong to this store");
 }
 
 const vector<Extent>& ExtentStore::get() const

@@ -44,30 +44,80 @@ TEST(SegmentManager, Simple)
    remove(fileName.c_str());
 }
 
-TEST(SegmentManager, RestartSimple)
+TEST(SegmentManager, PersistentSISingle)
 {
    const string fileName = "swap_file";
    const uint32_t pages = 100;
 
    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-   SegmentId sid;
+   SegmentId sid1;
    TId tid;
+
+   // Create
+   {
+      // Add one 10 page segment
+      BufferManager bufferManager(fileName, pages / 2);
+      SegmentManager segmentManager(bufferManager, true);
+      sid1 = segmentManager.createSegment(SegmentType::SP, 10);
+      SPSegment& segment1 = segmentManager.getSPSegment(sid1);
+      tid = segment1.insert(Record("gemini wars crashed so i am back to coding :/"));
+   }
+
+   // Restart
+   {
+      // Check that the 10 page segment is still there
+      BufferManager bufferManager(fileName, pages / 2);
+      SegmentManager segmentManager(bufferManager, false);
+      SPSegment& segment1 = segmentManager.getSPSegment(sid1);
+      ASSERT_EQ(segment1.lookup(tid), Record("gemini wars crashed so i am back to coding :/"));
+   }
+
+   remove(fileName.c_str());
+}
+
+TEST(SegmentManager, PersistentSIList)
+{
+   const string fileName = "swap_file";
+   const uint32_t pages = 4000;
+
+   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+   SegmentId sid1;
+   SegmentId sid2;
+   SegmentId sid3;
 
    // Create
    {
       BufferManager bufferManager(fileName, pages / 2);
       SegmentManager segmentManager(bufferManager, true);
-      sid = segmentManager.createSegment(SegmentType::SP, 10);
-      SPSegment& segment = segmentManager.getSPSegment(sid);
-      tid = segment.insert(Record("gemini wars crashed so i am back to coding :/"));
+      sid1 = segmentManager.createSegment(SegmentType::SP, 1);
+      SPSegment& segment1 = segmentManager.getSPSegment(sid1);
+      sid2 = segmentManager.createSegment(SegmentType::SP, 1);
+      SPSegment& segment2 = segmentManager.getSPSegment(sid2);
+      sid3 = segmentManager.createSegment(SegmentType::SP, 1);
+      SPSegment& segment3 = segmentManager.getSPSegment(sid3);
+
+      for(uint32_t i=0; i<kPageSize/16 - 12; i++) {
+         segmentManager.growSegment(segment1, 1);
+         segmentManager.growSegment(segment2, 1);
+         segmentManager.growSegment(segment3, 1);
+      }
+
+      ASSERT_EQ(segment1.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment2.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment3.getNumPages(), kPageSize/16 - 11);
    }
 
    // Restart
    {
       BufferManager bufferManager(fileName, pages / 2);
       SegmentManager segmentManager(bufferManager, false);
-      SPSegment& segment = segmentManager.getSPSegment(sid);
-      ASSERT_EQ(segment.lookup(tid), Record("gemini wars crashed so i am back to coding :/"));
+      SPSegment& segment1 = segmentManager.getSPSegment(sid1);
+      SPSegment& segment2 = segmentManager.getSPSegment(sid2);
+      SPSegment& segment3 = segmentManager.getSPSegment(sid3);
+
+      ASSERT_TRUE(segment1.getNumPages() == kPageSize/16 + 1);
+      ASSERT_TRUE(segment2.getNumPages() == kPageSize/16 + 1);
+      ASSERT_TRUE(segment3.getNumPages() == kPageSize/16 + 1);
    }
 
    remove(fileName.c_str());

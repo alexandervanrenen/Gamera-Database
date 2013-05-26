@@ -19,8 +19,7 @@ void Persister::create()
    auto& frame = bufferManager.fixPage(kMetaPageId, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    sp.initialize();
-   PageId next = kMetaPageId;
-   if(sp.insert(Record(reinterpret_cast<char*>(&next), sizeof(PageId))) != 0) {
+   if(sp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != 0) {
       assert(false&&"assuming record id zero for first insert");
       throw;
    }
@@ -78,10 +77,16 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
 {
    /// Find a nice spot and do the insert .. no magic here
    Record record = marshall(sid, extents);
+   if(record.size() > SlottedPage::maximumRecordSize() - 12) { // need 12 byte for linked list structure
+      assert(false&&"There is a limit on the record size");
+      throw;
+   }
+
    for(auto& page : pages) {
       if(page.freeBytes >= record.size()) {
          auto& frame = bufferManager.fixPage(page.pid, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+         assert(page.freeBytes == sp.getBytesFreeForRecord());
          RecordId rid = sp.insert(record);
          page.freeBytes = sp.getBytesFreeForRecord();
          bufferManager.unfixPage(frame, kDirty);
@@ -89,8 +94,37 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
       }
    }
 
-   assert(false&&"first segment full");
-   throw;
+   cout << "grow" << endl;
+
+   // Otherwise structure is full => find new page
+   assert(freePages.numPages() != 0);
+   Extent singlePage(freePages.get()[0].begin(), freePages.get()[0].begin()+1);
+   freePages.remove(singlePage);
+   PageReference newPage{0, singlePage.begin()};
+
+   // Add new page to linked list
+   auto& lastElementInList = bufferManager.fixPage(pages.back().pid, kExclusive);
+   auto& lastSp = reinterpret_cast<SlottedPage&>(*lastElementInList.getData());
+   if(!lastSp.tryInPageUpdate(0, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))))
+      throw; // Needs to work, because record has the same size
+   bufferManager.unfixPage(lastElementInList, kDirty);
+
+   // Setup new page
+   auto& newFrame = bufferManager.fixPage(newPage.pid, kExclusive);
+   auto& newSp = reinterpret_cast<SlottedPage&>(*newFrame.getData());
+   newSp.initialize();
+   if(newSp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != 0)
+      throw; // assuming record id zero for first insert
+
+   // Insert record into new page
+   RecordId rid = newSp.insert(record);
+   newPage.freeBytes = newSp.getBytesFreeForRecord();
+   bufferManager.unfixPage(newFrame, kDirty);
+
+   // Remember the new page
+   pages.push_back(newPage);
+
+   return toTID(newPage.pid, rid);
 }
 
 TId Persister::update(TId tid, SegmentId sid, const ExtentStore& extents)

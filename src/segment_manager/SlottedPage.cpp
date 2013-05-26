@@ -149,6 +149,11 @@ uint16_t SlottedPage::getBytesFreeForRecord() const
     
 }
 
+uint16_t SlottedPage::maximumRecordSize()
+{
+  return kPageSize - 16 - 4;
+}
+
 void SlottedPage::dump() const
 {
   for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)

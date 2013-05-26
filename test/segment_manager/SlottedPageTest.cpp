@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static const uint32_t kTestScale = 1;
+static const uint32_t kTestScale = 100;
 
 TEST(SlottedPage, Simple)
 {
@@ -101,6 +101,7 @@ TEST(SlottedPage, SlotReuseAfterDelete)
 TEST(SlottedPage, Randomized)
 {
     const uint32_t iterations = 10000;
+
     for(uint32_t j=0; j<kTestScale; j++) {
         std::unordered_map<dbi::RecordId, std::string> reference;
         dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
@@ -144,19 +145,20 @@ TEST(SlottedPage, Randomized)
                 reference.erase(reference.begin());
             }
 
-            // // Do update
-            // else if(operation <= 98) {
-            //     if(reference.empty())
-            //         continue;
-            //     dbi::RecordId id = reference.begin()->first;
-            //     dbi::Record record = slottedPage->lookup(id);
-            //     ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
-            //     std::string data = dbi::util::randomWord(random()%64 + 1);
-            //     if(slottedPage->tryInPageUpdate(id, dbi::Record(data))) {
-            //         reference.erase(reference.begin());
-            //         reference.insert(make_pair(id, data));
-            //     }
-            // }
+            // Do update
+            else if(operation <= 98) {
+                if(reference.empty())
+                    continue;
+                dbi::RecordId id = reference.begin()->first;
+                dbi::Record record = slottedPage->lookup(id);
+                ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
+                std::string data = dbi::util::randomWord(random()%64 + 1);
+                if(data.size()<=record.size() || data.size()-record.size() <= slottedPage->getBytesFreeForRecord()) {
+                    slottedPage->tryInPageUpdate(id, dbi::Record(data));
+                    reference.erase(reference.begin());
+                    reference.insert(make_pair(id, data));
+                }
+            }
 
             // Do consistency check
             else if(operation<=99 || i==iterations-1 || i==0) {

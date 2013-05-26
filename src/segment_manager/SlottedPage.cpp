@@ -90,33 +90,41 @@ bool SlottedPage::remove(RecordId rId)
    return true;
 }
 
-bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, const Record& newRecord)
+bool SlottedPage::tryInPageUpdate(RecordId recordId, const Record& newRecord)
 {
+   // Get and check everything .. *pretty paranoid*
+   Slot* slot = slotBegin() + recordId;
    assert(dataBegin >= sizeof(Slot) * slotCount);
-   assert(oldRecordId < slotCount);
+   assert(recordId < slotCount);
    assert(newRecord.size() > 0);
+   assert(slot->offset != 0);   
+   assert(slot->bytes > 0);
+   assert(slot->bytes>=newRecord.size() || (uint16_t)(newRecord.size()-slot->bytes) <= getBytesFreeForRecord());
 
-   // Check if old record is valid
-   Slot* currentlyUsedSlot = slotBegin() + oldRecordId;
-   assert(currentlyUsedSlot->offset != 0);   
-   assert(currentlyUsedSlot->bytes > 0);
-
-   // In place update -- Re-use old record if new data fit into it
-   if(newRecord.size() <= (uint16_t) currentlyUsedSlot->bytes) {
-      memcpy(data.data() + currentlyUsedSlot->offset, newRecord.data(), newRecord.size());
-      freeBytes += currentlyUsedSlot->bytes - newRecord.size();
-      currentlyUsedSlot->bytes = newRecord.size();
+   // In place update -- Re-use old space if new data fit into it
+   if(newRecord.size() <= (uint16_t) slot->bytes) {
+      memcpy(data.data() + slot->offset, newRecord.data(), newRecord.size());
+      freeBytes += slot->bytes - newRecord.size();
+      slot->bytes = newRecord.size();
       return true;
    }
-throw;
-   // In page update
-   if(newRecord.size() <= (uint16_t) currentlyUsedSlot->bytes + freeBytes) {
-      remove(oldRecordId);
-      insert(newRecord);
-      return true;
-   } else {
-      return false;
-    }
+
+   // Remove record (so that de-fragment can recycle it) (keep slot .. does not matter)
+   freeBytes += slot->bytes;
+   slot->offset = 0;
+   slot->bytes = 0;
+
+   // Ensure there is enough
+   if(dataBegin - sizeof(Slot) * slotCount < newRecord.size())
+      defragment();
+   assert(dataBegin - sizeof(Slot) * slotCount >= newRecord.size());
+
+   // Insert it
+   freeBytes -= newRecord.size();
+   dataBegin -= newRecord.size();
+   slot->offset = dataBegin;
+   slot->bytes = newRecord.size();
+   memcpy(data.data()+slot->offset, newRecord.data(), slot->bytes);
 }
 
 vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const

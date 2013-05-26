@@ -14,8 +14,8 @@ ExtentStore::ExtentStore()
 }
 
 ExtentStore::ExtentStore(ExtentStore&& other)
-: extents(move(other.extents))
-, pageCount(other.pageCount)
+: pageCount(other.pageCount)
+, extents(move(other.extents))
 {
 }
 

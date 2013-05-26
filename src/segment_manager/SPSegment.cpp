@@ -81,6 +81,7 @@ TId SPSegment::update(TId tId, const Record& record)
    if(result) {
       return tId;
    } else {
+      throw;
       // TODO: maybe improve this: we unfix the page after tryUpdate though we fix it again afterwards to remove it
       remove(tId);
       return insert(record);

@@ -24,31 +24,42 @@ RecordId SlottedPage::insert(const Record& record)
 {
    assert(getBytesFreeForRecord() >= record.size());
    assert(dataBegin >= sizeof(Slot) * slotCount);
-   // Clean memory if fragmented
-   if(dataBegin - sizeof(Slot) * slotCount < record.size() + sizeof(Slot)) {
-      defragment();
-      assert(dataBegin - sizeof(Slot) * slotCount >= record.size()); // Assumes reuse of slot
-   }
+   assert(record.size() > 0);
+   uint32_t count = getAllRecords(0).size();
 
-   // Find slot to place data in
+   // Try to reuse old slot including its space
+   for(Slot* slot=slotBegin() + firstFreeSlot; slot!=slotEnd(); slot++)
+      if(slot->bytes < 0 && abs(slot->bytes) >= record.size()) {
+         freeBytes -= record.size();
+         slot->bytes = record.size();
+         memcpy(data.data() + slot->offset, record.data(), slot->bytes);
+         assert(getAllRecords(0).size() == count+1);
+         assert(dataBegin >= sizeof(Slot) * slotCount);
+         return slot - slotBegin();
+      }
+
+   // Otherwise: We have to insert it into the free space: ensure there is enough
+   if(dataBegin - sizeof(Slot) * slotCount < record.size() + sizeof(Slot))
+      defragment();
+   assert(dataBegin - sizeof(Slot) * slotCount >= record.size() + sizeof(Slot));
+
+   // Now we know that the new record will fit into the free space: find a slot
    Slot* slot;
    for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++)
-      // Slot is not used or respective record is marked as deleted and at least as big as the one to be inserted
-      if((slot->offset == 0 && slot->bytes == 0) || (slot->bytes < 0 && abs(slot->bytes) >= record.size()))
+      if(slot->offset == 0)
          break;
 
-   // Insert data into slot
+   // The slot variable points to the slot to be used
    dataBegin -= record.size();
    slot->offset = dataBegin;
    slot->bytes = record.size();
-   memcpy(data.data() + slot->offset, record.data(), slot->bytes);
-
-   // Update data
+   memcpy(data.data()+slot->offset, record.data(), slot->bytes);
    freeBytes -= record.size();
    freeBytes -= slotEnd() == slot ? sizeof(Slot) : 0;
    slotCount = max(slotCount, static_cast<uint16_t>(1 + slot - slotBegin()));
-   firstFreeSlot = slot - slotBegin();
+   firstFreeSlot = slot - slotBegin(); // No free slot before this one
 
+   assert(getAllRecords(0).size() == count+1);
    assert(dataBegin >= sizeof(Slot) * slotCount);
    return firstFreeSlot;
 }
@@ -82,8 +93,9 @@ bool SlottedPage::remove(RecordId rId)
 bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, const Record& newRecord)
 {
    assert(dataBegin >= sizeof(Slot) * slotCount);
-
    assert(oldRecordId < slotCount);
+   assert(newRecord.size() > 0);
+
    // Check if old record is valid
    Slot* currentlyUsedSlot = slotBegin() + oldRecordId;
    assert(currentlyUsedSlot->offset != 0);   
@@ -94,18 +106,15 @@ bool SlottedPage::tryInPageUpdate(RecordId oldRecordId, const Record& newRecord)
       memcpy(data.data() + currentlyUsedSlot->offset, newRecord.data(), newRecord.size());
       freeBytes += currentlyUsedSlot->bytes - newRecord.size();
       currentlyUsedSlot->bytes = newRecord.size();
-      assert(dataBegin >= sizeof(Slot) * slotCount);
       return true;
    }
-
+throw;
    // In page update
    if(newRecord.size() <= (uint16_t) currentlyUsedSlot->bytes + freeBytes) {
       remove(oldRecordId);
       insert(newRecord);
-      assert(dataBegin >= sizeof(Slot) * slotCount);
       return true;
    } else {
-      assert(dataBegin >= sizeof(Slot) * slotCount);
       return false;
     }
 }
@@ -130,7 +139,7 @@ void SlottedPage::defragment()
     std::sort(slotIndices.begin(), slotIndices.end(), [this](uint16_t x, uint16_t y){ return (slotBegin() + x)->offset > (slotBegin() + y)->offset; });
 
     // Start at max index of data
-    uint16_t currentOffset = data.size();
+    dataBegin = data.size();
     for(uint16_t slotIndex : slotIndices) {
         Slot* currentSlot = slotBegin() + slotIndex;
         if(currentSlot->bytes <= 0) {
@@ -139,24 +148,24 @@ void SlottedPage::defragment()
             currentSlot->bytes = 0;
             firstFreeSlot = min(firstFreeSlot, slotIndex);
         } else {
+            assert(currentSlot->offset > 0);
+            assert(currentSlot->bytes > 0);
+
             // Move the entry 
-            uint16_t newPosition = currentOffset - currentSlot->bytes;
-            std::memcpy(data.data() + newPosition, data.data() + currentSlot->offset, currentSlot->bytes);
+            uint16_t newPosition = dataBegin - currentSlot->bytes;
+            std::memmove(data.data() + newPosition, data.data() + currentSlot->offset, currentSlot->bytes);
             currentSlot->offset = newPosition;
 
             // Advance (towards beginning) in index by length of currently processed record
-            currentOffset -= currentSlot->bytes;
+            dataBegin -= currentSlot->bytes;
+            assert(dataBegin >= sizeof(Slot) * slotCount);
         }
     }
-    dataBegin = currentOffset; // data begin marks first used byte
 }
 
 uint16_t SlottedPage::getBytesFreeForRecord() const
 {
-    if(firstFreeSlot < slotCount)
-        return freeBytes;
-    else
-        return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
+  return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
 }
 
 uint16_t SlottedPage::maximumRecordSize()

@@ -30,6 +30,8 @@ private:
 
    /// Looks for a page in this segment large enough to hold length (grows if not found)
    PageId aquirePage(uint16_t length);
+   /// Insert record on a new page
+   TId insertForeigner(TId originalTId, const Record& record);
 };
 
 }

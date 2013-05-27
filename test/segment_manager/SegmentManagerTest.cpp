@@ -168,6 +168,8 @@ TEST(SegmentManager, SPSegmentManyPageUpdate)
    const Record smallRecord = Record("the tree of liberty must be refreshed from time to time with the blood of patriots and tyrants. it is it's natural manure.");
    const Record bigRecord1 = Record(string(kPageSize/2, 'a'));
    const Record bigRecord2 = Record(string(kPageSize/2, 'b'));
+   const Record bigRecord3 = Record(string(kPageSize/2, 'c'));
+   const Record memdiumRecord = Record(string(kPageSize/4, 'd'));
 
    // Create
    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
@@ -176,33 +178,46 @@ TEST(SegmentManager, SPSegmentManyPageUpdate)
    SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
    SPSegment& segment = segmentManager.getSPSegment(id);
 
-   // Establish structure: <12 Byte> <kPageSize/2>
+   // Trigger local update: p1:[1=small, 2=big] p2:[] p3:[]
    TId tid1 = segment.insert(smallRecord);
-   TId tid2 = segment.insert(bigRecord2);
+   TId tid2 = segment.insert(smallRecord);
+   segment.update(tid2, bigRecord2);
 
-   // Now trigger a non page local update by increasing the 12 Byte to kPageSize/2 byte
+   // Trigger a non page local update: p1:[2=big] p2:[1=big] p3:[]
    segment.update(tid1, bigRecord1);
-
-   // Check result
    ASSERT_EQ(bigRecord1, segment.lookup(tid1));
    ASSERT_EQ(bigRecord2, segment.lookup(tid2));
-   TableScanOperator scanner(segment);
+
+   // Trigger update on reference value: p1:[2=big] p2:[1=big] p3:[]
+   segment.update(tid1, bigRecord3);
+   ASSERT_EQ(bigRecord3, segment.lookup(tid1));
+   ASSERT_EQ(bigRecord2, segment.lookup(tid2));
+
+   // Trigger update on reference value with overflow: p1:[2=big, 3=medium] p2:[1=big] p3:[4=big]
+   TId tid3 = segment.insert(memdiumRecord);
+   TId tid4 = segment.insert(smallRecord);
+   segment.update(tid4, memdiumRecord);
+   segment.update(tid4, bigRecord3);
+   ASSERT_EQ(bigRecord3, segment.lookup(tid4));
+
+   // Trigger collapse reference: p1:[2=big, 3=medium, 4=small] p2:[1=big] p3:[]
+   segment.update(tid4, smallRecord);
+   ASSERT_EQ(bigRecord3, segment.lookup(tid1));
+   ASSERT_EQ(bigRecord2, segment.lookup(tid2));
+   ASSERT_EQ(memdiumRecord, segment.lookup(tid3));
+   ASSERT_EQ(smallRecord, segment.lookup(tid4));
+
+   // Remove everything
+   segment.remove(tid1);
+   segment.remove(tid2);
+   segment.remove(tid3);
+   segment.remove(tid4);
+
+   // Check that page is empty
+   dbi::TableScanOperator scanner(segment);
    scanner.open();
-   while(scanner.next()) {
-      const pair<TId, Record>& record = scanner.getOutput();
-      ASSERT_TRUE(record.first == tid1 || record.first == tid2);
-      if(record.first == tid1)
-         ASSERT_TRUE(record.second == bigRecord1); else
-         ASSERT_TRUE(record.second == bigRecord2);
-   }
+   ASSERT_TRUE(!scanner.next());
    scanner.close();
-
-   // Update back to smaller record
-
-
-   // Remove both records
-   // segment.remove(tid1);
-   // segment.remove(tid2);
 }
 
 // TEST(SegmentManager, FunkeTest)

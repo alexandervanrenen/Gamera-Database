@@ -65,3 +65,15 @@ TEST(Operator, TableScan)
 
    remove(fileName.c_str());
 }
+
+
+   // TableScanOperator scanner(segment);
+   // scanner.open();
+   // while(scanner.next()) {
+   //    const pair<TId, Record>& record = scanner.getOutput();
+   //    ASSERT_TRUE(record.first == tid1 || record.first == tid2);
+   //    if(record.first == tid1)
+   //       ASSERT_TRUE(record.second == bigRecord3); else
+   //       ASSERT_TRUE(record.second == bigRecord2);
+   // }
+   // scanner.close();

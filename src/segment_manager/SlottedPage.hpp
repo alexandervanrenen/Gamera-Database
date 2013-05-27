@@ -32,7 +32,7 @@ public:
    void update(RecordId rid, const Record& newRecord);
 
    /// Update record -- assumes canUpdateForeignRecord
-   void updateForeigner(RecordId rid, TId remoteTId, const Record& newRecord);
+   void updateForeigner(RecordId rid, TId remoteTId, const Record& newRecord); // TODO: remove rid
 
    /// Use this if record could not be updated in-page
    void updateToReference(RecordId rid, TId newLocation);

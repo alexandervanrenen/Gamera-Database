@@ -260,8 +260,8 @@ Slot* SlottedPage::prepareSlotForInsert(uint16_t length)
 
    // Now we know that the new record will fit into the free space: find a slot
    Slot* slot;
-   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++) // Try to use an empty one
-      if(slot->isEmpty())
+   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++)
+      if(slot->isEmpty() || slot->isMemoryUnused()) // Not the best way .. be smarter TODO
          break;
 
    // The slot variable points to the slot to be used

@@ -220,12 +220,12 @@ TEST(SegmentManager, SPSegmentManyPageUpdate)
    scanner.close();
 }
 
-// TEST(SegmentManager, FunkeTest)
-// {
-//    const string fileName = "swap_file";
-//    const uint32_t pages = 1 * 1000;
+TEST(SegmentManager, FunkeTest)
+{
+   const string fileName = "swap_file";
+   const uint32_t pages = 1 * 1000;
 
-//    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-//    ASSERT_EQ(run(fileName, pages), 0);
-//    remove(fileName.c_str());
-// }
+   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
+   ASSERT_EQ(run(fileName, pages), 0);
+   remove(fileName.c_str());
+}

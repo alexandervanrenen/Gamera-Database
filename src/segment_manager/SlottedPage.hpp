@@ -74,7 +74,8 @@ private:
    std::array<char, kPageSize - 16> data; // 16 == size of header of this page
 
    /// Get a slot for the specified length and update the header. Caller only has to place data into the slot.
-   Slot* aquireSlot(uint16_t length);
+   Slot* prepareSlotForInsert(uint16_t length);
+   Slot* prepareSlotForUpdate(RecordId rid, uint16_t length);
 
    const Slot* slotBegin() const;
    const Slot* slotEnd() const;

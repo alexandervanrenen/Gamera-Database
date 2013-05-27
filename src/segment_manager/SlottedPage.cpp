@@ -23,9 +23,10 @@ void SlottedPage::initialize()
 
 RecordId SlottedPage::insert(const Record& record)
 {
-   Slot* slot = aquireSlot(record.size());
+   assert(canHoldRecord(record));
+   Slot* slot = prepareSlotForInsert(record.size());
    *slot = Slot(slot->getOffset(), record.size(), Slot::Type::kNormal);
-   memcpy(data.data()+slot->getOffset(), record.data(), slot->getLength());
+   memcpy(data.data()+slot->getOffset(), record.data(), record.size());
    return slot - slotBegin();
 }
 
@@ -72,34 +73,10 @@ void SlottedPage::remove(RecordId rId)
 
 void SlottedPage::update(RecordId recordId, const Record& newRecord)
 {
-   // Get and check everything .. *pretty paranoid*
-   Slot* slot = slotBegin() + recordId;
-   assert(canUpdateRecord(recordId, newRecord));
-   assert(dataBegin >= sizeof(Slot) * slotCount);
-
-   // In place update -- Re-use old space if new data fit into it
-   if(newRecord.size() <= slot->getLength()) {
-      memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
-      freeBytes += slot->getLength();
-      freeBytes -= newRecord.size();
-      slot->setLength(newRecord.size());
-      return;
-   }
-
-   // Remove record (so that de-fragment can recycle it) (keep slot .. does not matter)
-   freeBytes += slot->getLength();
-   *slot = Slot(0, 0, Slot::Type::kNormal);
-
-   // Ensure there is enough
-   if(dataBegin - sizeof(Slot) * slotCount < newRecord.size())
-      defragment();
-   assert(dataBegin - sizeof(Slot) * slotCount >= newRecord.size());
-
-   // Insert it
-   freeBytes -= newRecord.size();
-   dataBegin -= newRecord.size();
-   *slot = Slot(dataBegin, newRecord.size(), Slot::Type::kNormal);
-   memcpy(data.data()+slot->getOffset(), newRecord.data(), slot->getLength());
+  assert(canUpdateRecord(recordId, newRecord));
+  Slot* slot = prepareSlotForUpdate(recordId, newRecord.size());
+  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kNormal);
+  memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
 }
 
 void SlottedPage::updateToReference(RecordId, TId)
@@ -109,7 +86,8 @@ void SlottedPage::updateToReference(RecordId, TId)
 
 RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
 {
-  Slot* slot = aquireSlot(record.size() + sizeof(tid));
+  assert(canHoldForeignRecord(record));
+  Slot* slot = prepareSlotForInsert(record.size() + sizeof(tid));
   *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
   memcpy(data.data()+slot->getOffset()+sizeof(TId), record.data(), record.size());
@@ -233,7 +211,7 @@ bool SlottedPage::isValid() const
   return usedBytes + slotCount*sizeof(Slot) + freeBytes + 16 == kPageSize;
 }
 
-Slot* SlottedPage::aquireSlot(uint16_t length)
+Slot* SlottedPage::prepareSlotForInsert(uint16_t length)
 {
    assert(getBytesFreeForRecord() >= length);
    assert(dataBegin >= sizeof(Slot) * slotCount);
@@ -271,6 +249,36 @@ Slot* SlottedPage::aquireSlot(uint16_t length)
 
    assert(countAllRecords() == count+1);
    assert(dataBegin >= sizeof(Slot) * slotCount);
+   return slot;
+}
+
+Slot* SlottedPage::prepareSlotForUpdate(RecordId rid, uint16_t length)
+{
+   // Get and check invariant
+   Slot* slot = slotBegin() + rid;
+   assert(dataBegin >= sizeof(Slot) * slotCount);
+
+   // In place update -- Re-use old space if new data fit into it
+   if(length <= slot->getLength()) {
+      freeBytes += slot->getLength();
+      freeBytes -= length;
+      slot->setLength(length);
+      return slot;
+   }
+
+   // Remove record (so that de-fragment can recycle it) (keep slot .. does not matter)
+   freeBytes += slot->getLength();
+   *slot = Slot(0, 0, Slot::Type::kNormal);
+
+   // Ensure there is enough
+   if(dataBegin - sizeof(Slot) * slotCount < length)
+      defragment();
+   assert(dataBegin - sizeof(Slot) * slotCount >= length);
+
+   // Insert it
+   freeBytes -= length;
+   dataBegin -= length;
+   *slot = Slot(dataBegin, length, Slot::Type::kNormal);
    return slot;
 }
 

@@ -108,21 +108,21 @@ TEST(SlottedPage, ForeignRecords)
     free(slottedPage);
 }
 
-TEST(SlottedPage, ReferenceRecords)
-{
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
-    slottedPage->initialize();
+// TEST(SlottedPage, ReferenceRecords)
+// {
+//     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+//     slottedPage->initialize();
 
-    dbi::TId tid = 8129;
-    dbi::RecordId rid = slottedPage->insert(dbi::Record("6=3!"));
-    slottedPage->updateToReference(rid, tid);
-    ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
-    ASSERT_EQ(tid, slottedPage->lookup(rid).first);
-    slottedPage->remove(rid);
-    ASSERT_EQ(slottedPage->countAllRecords(), 0u);
+//     dbi::TId tid = 8129;
+//     dbi::RecordId rid = slottedPage->insert(dbi::Record("6=3!"));
+//     slottedPage->updateToReference(rid, tid);
+//     ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
+//     ASSERT_EQ(tid, slottedPage->lookup(rid).first);
+//     slottedPage->remove(rid);
+//     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
-    free(slottedPage);
-}
+//     free(slottedPage);
+// }
 
 TEST(SlottedPage, Randomized)
 {

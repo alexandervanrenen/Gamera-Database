@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/Config.hpp"
 #include <cstring>
 #include <string>
 #include <vector>
@@ -12,19 +13,19 @@ public:
    explicit Record(const char* const dataIn, unsigned length)
    : memory(length)
    {
-      assert(length>=8);
+      assert(kMinimumRecordSize<=length && length<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn, length);
    }
    explicit Record(const std::string& dataIn)
    : memory(dataIn.size())
    {
-      assert(dataIn.size()>=8);
+      assert(kMinimumRecordSize<=dataIn.size() && dataIn.size()<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn.data(), dataIn.size());
    }
    explicit Record(const std::vector<char>& dataIn)
    : memory(dataIn.size())
    {
-      assert(dataIn.size()>=8);
+      assert(kMinimumRecordSize<=dataIn.size() && dataIn.size()<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn.data(), dataIn.size());
    }
    Record(Record&& other)

@@ -34,4 +34,7 @@ static const SegmentId kFreeSpaceInventoryId = 0;
 
 static const PageId kMetaPageId = 0;
 static const PageId kFirstFreePageId = 1;
+
+static const uint16_t kMinimumRecordSize = 8;
+static const uint16_t kMaximumRecordSize = kPageSize - 16 - 4; // 16 == Slotted page header; 4 == slot
 }

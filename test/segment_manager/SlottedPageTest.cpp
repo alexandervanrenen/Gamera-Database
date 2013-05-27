@@ -102,6 +102,14 @@ TEST(SlottedPage, ForeignRecords)
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
+    // Update the foreign record
+    slottedPage->updateForeigner(rid, 8129, dbi::Record("but i am afraid of the dark"));
+    ASSERT_EQ(dbi::Record("but i am afraid of the dark"), slottedPage->lookup(rid).second);
+    ASSERT_EQ(dbi::kInvalidTupleID, slottedPage->lookup(rid).first);
+    ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
+    ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
+    ASSERT_EQ(dbi::Record("but i am afraid of the dark"), slottedPage->getAllRecords(0)[0].second);
+
     // Remove foreign record
     slottedPage->remove(rid);
     ASSERT_EQ(slottedPage->getBytesFreeForRecord(), freeBytes);

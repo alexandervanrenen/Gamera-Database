@@ -30,6 +30,9 @@ public:
    /// Update record -- assumes canUpdateRecord
    void update(RecordId rid, const Record& newRecord);
 
+   /// Update record -- assumes canUpdateForeignRecord
+   void updateForeigner(RecordId rid, TId remoteTId, const Record& newRecord);
+
    /// Use this if record could not be updated in-page
    void updateToReference(RecordId rid, TId newLocation);
 
@@ -40,6 +43,7 @@ public:
    bool canHoldRecord(const Record& rid) const;
    bool canHoldForeignRecord(const Record& rid) const;
    bool canUpdateRecord(RecordId rid, const Record& newRecord) const;
+   bool canUpdateForeignRecord(RecordId rid, const Record& newRecord) const;
 
    /// Get all Records actually on this pages (will ignore reference records and use foreign records)
    std::vector<std::pair<TId, Record>> getAllRecords(PageId thisPageId) const;

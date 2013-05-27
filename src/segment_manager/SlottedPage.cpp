@@ -43,7 +43,7 @@ RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
 pair<TId, Record> SlottedPage::lookup(RecordId id) const
 {
    const Slot* result = slotBegin() + id;
-   assert(toRecordId(id) < slotCount);
+   assert(id < slotCount);
    assert(result->getOffset() != 0);
    assert(result->getLength() > 0);
 
@@ -69,6 +69,16 @@ void SlottedPage::update(RecordId recordId, const Record& newRecord)
    Slot* slot = prepareSlotForUpdate(recordId, newRecord.size());
    *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kNormal);
    memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
+}
+
+void SlottedPage::updateForeigner(RecordId rid, TId tid, const Record& newRecord)
+{
+   assert(canUpdateForeignRecord(rid, newRecord));
+   assert(*reinterpret_cast<TId*>(data.data()+(slotBegin()+rid)->getOffset()) == tid);
+   Slot* slot = prepareSlotForUpdate(rid, newRecord.size() + sizeof(TId));
+   *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
+   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
+   memcpy(data.data()+slot->getOffset()+sizeof(TId), newRecord.data(), newRecord.size());
 }
 
 void SlottedPage::updateToReference(RecordId rid, TId tid)
@@ -110,10 +120,19 @@ bool SlottedPage::canHoldForeignRecord(const Record& record) const
 bool SlottedPage::canUpdateRecord(RecordId rid, const Record& newRecord) const
 {
    const Slot* result = slotBegin() + rid;
-   assert(toRecordId(rid) < slotCount);
+   assert(rid < slotCount);
    assert(result->getOffset() != 0);
    assert(result->getLength() > 0);
    return freeBytes + result->getLength() >= newRecord.size();
+}
+
+bool SlottedPage::canUpdateForeignRecord(RecordId rid, const Record& newRecord) const
+{
+   const Slot* result = slotBegin() + rid;
+   assert(rid < slotCount);
+   assert(result->getOffset() != 0);
+   assert(result->getLength() > 0);
+   return freeBytes + result->getLength() >= newRecord.size() + sizeof(TId);
 }
 
 vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const

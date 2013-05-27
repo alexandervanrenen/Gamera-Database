@@ -47,7 +47,7 @@ TEST(Operator, TableScan)
    // Insert some values
    std::unordered_map<dbi::TId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
    for(uint32_t i = 0; i < 100; i++) {
-      std::string data = dbi::util::randomWord(32);
+      std::string data = dbi::util::randomWord(8, 64);
       dbi::TId id = segment.insert(dbi::Record(data));
       records.insert(std::make_pair(id, dbi::Record(data)));
    }

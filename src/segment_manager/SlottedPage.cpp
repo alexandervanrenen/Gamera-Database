@@ -256,7 +256,7 @@ Slot* SlottedPage::prepareSlotForInsert(uint16_t length)
    // Otherwise: We have to insert it into the free space: ensure there is enough
    if(dataBegin - sizeof(Slot) * slotCount < length + sizeof(Slot))
       defragment();
-   assert(dataBegin - sizeof(Slot) * slotCount >= length + sizeof(Slot));
+   assert(dataBegin - sizeof(Slot) * slotCount >= length);
 
    // Now we know that the new record will fit into the free space: find a slot
    Slot* slot;

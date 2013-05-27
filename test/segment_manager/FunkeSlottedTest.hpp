@@ -12,7 +12,7 @@
 #include "common/Config.hpp"
 
 // todo: adapt to your implementation
-uint64_t extractPage(dbi::TId tid)
+inline uint64_t extractPage(dbi::TId tid)
 {
    return tid >> 16;
 }
@@ -49,7 +49,7 @@ class Random64 {
 /**
  * Test case for non-growing segments
  */
-int run(const std::string& dbFile, uint32_t pages)
+inline int run(const std::string& dbFile, uint32_t pages)
 {
    // Bookkeeping
    std::unordered_map<dbi::TId, unsigned> values; // TID -> testData entry

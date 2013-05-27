@@ -73,7 +73,7 @@ void SPSegment::remove(TId tId)
 
 TId SPSegment::insertForeigner(TId originalTId, const Record& record) {
    /// Find page and insert foreign record
-   PageId pid = aquirePage(record.size());
+   PageId pid = aquirePage(record.size() + sizeof(TId));
    auto& frame = bufferManager.fixPage(pid, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    RecordId rid = sp.insertForeigner(record, originalTId);

@@ -9,17 +9,18 @@
 #include <iostream>
 
 using namespace std;
+using namespace dbi;
 
 static const uint32_t kTestScale = 1;
 
 TEST(SlottedPage, Simple)
 {
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
     // Insert
-    slottedPage->insert(dbi::Record("windmill"));
-    dbi::RecordId fsi = slottedPage->insert(dbi::Record("windmill"));
+    slottedPage->insert(Record("windmill"));
+    RecordId fsi = slottedPage->insert(Record("windmill"));
     slottedPage->remove(fsi);
 
     free(slottedPage);
@@ -27,18 +28,18 @@ TEST(SlottedPage, Simple)
 
 TEST(SlottedPage, SlotReuseAfterDelete)
 {
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
     // Checks if a slot is reused
-    dbi::RecordId dataRecordId1 = slottedPage->insert(dbi::Record("Hello World!"));
+    RecordId dataRecordId1 = slottedPage->insert(Record("Hello World!"));
     slottedPage->remove(dataRecordId1);
-    dbi::RecordId dataRecordId2 = slottedPage->insert(dbi::Record("Hello World!"));
+    RecordId dataRecordId2 = slottedPage->insert(Record("Hello World!"));
     ASSERT_EQ(dataRecordId1, dataRecordId2);
 
     // Even with smaller vales ?
     slottedPage->remove(dataRecordId2);
-    dbi::RecordId dataRecordId = slottedPage->insert(dbi::Record("Hello World"));
+    RecordId dataRecordId = slottedPage->insert(Record("Hello World"));
     ASSERT_EQ(dataRecordId, dataRecordId2);
 
     free(slottedPage);
@@ -50,21 +51,21 @@ TEST(SlottedPage, DefragmentationBasic)
     std::string fragmentationData2 = "World!";
     std::string staticData = "block";
     std::string newData = "Hello World!";
-    dbi::Record fragmentationRecord1(fragmentationData1);
-    dbi::Record fragmentationRecord2(fragmentationData2);
-    dbi::Record staticRecord(staticData);
-    dbi::Record newDataRecord(newData);
+    Record fragmentationRecord1(fragmentationData1);
+    Record fragmentationRecord2(fragmentationData2);
+    Record staticRecord(staticData);
+    Record newDataRecord(newData);
 
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
-    dbi::RecordId fragmentationRecordId1 = slottedPage->insert(fragmentationRecord1);    
-    dbi::RecordId staticRecordId = slottedPage->insert(staticRecord);  
-    dbi::RecordId fragmentationRecordId2 = slottedPage->insert(fragmentationRecord2);
+    RecordId fragmentationRecordId1 = slottedPage->insert(fragmentationRecord1);    
+    RecordId staticRecordId = slottedPage->insert(staticRecord);  
+    RecordId fragmentationRecordId2 = slottedPage->insert(fragmentationRecord2);
 
     // Fill page with ... CRAP!
     while(slottedPage->canHoldRecord(staticRecord))
-        slottedPage->insert(dbi::Record(staticData));
+        slottedPage->insert(Record(staticData));
 
     // Remove the two values
     ASSERT_TRUE(!slottedPage->canHoldRecord(newDataRecord));
@@ -76,13 +77,13 @@ TEST(SlottedPage, DefragmentationBasic)
     slottedPage->defragment();
 
     // No side effects on sample record
-    ASSERT_EQ(slottedPage->isReference(staticRecordId), dbi::kInvalidTupleID);
-    ASSERT_EQ(slottedPage->lookup(staticRecordId), dbi::Record(staticData));
+    ASSERT_EQ(slottedPage->isReference(staticRecordId), kInvalidTupleID);
+    ASSERT_EQ(slottedPage->lookup(staticRecordId), Record(staticData));
 
     // Add now record
     ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
-    dbi::RecordId newDataRecordId = slottedPage->insert(newDataRecord);
-    ASSERT_EQ(slottedPage->isReference(newDataRecordId), dbi::kInvalidTupleID);
+    RecordId newDataRecordId = slottedPage->insert(newDataRecord);
+    ASSERT_EQ(slottedPage->isReference(newDataRecordId), kInvalidTupleID);
     ASSERT_EQ(slottedPage->lookup(newDataRecordId), newDataRecord);
 
     free(slottedPage);
@@ -90,25 +91,25 @@ TEST(SlottedPage, DefragmentationBasic)
 
 TEST(SlottedPage, ForeignRecords)
 {
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
     // Make foreign record and check
     uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
-    dbi::RecordId rid = slottedPage->insertForeigner(dbi::Record("fear not this night"), 8129);
-    ASSERT_EQ(slottedPage->lookup(rid), dbi::Record("fear not this night"));
-    ASSERT_EQ(slottedPage->isReference(rid), dbi::kInvalidTupleID);
+    RecordId rid = slottedPage->insertForeigner(Record("fear not this night"), 8129);
+    ASSERT_EQ(slottedPage->lookup(rid), Record("fear not this night"));
+    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
     ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
-    ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
+    ASSERT_EQ(Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
     // Update the foreign record
-    slottedPage->updateForeigner(rid, 8129, dbi::Record("but i am afraid of the dark"));
-    ASSERT_EQ(slottedPage->lookup(rid), dbi::Record("but i am afraid of the dark"));
-    ASSERT_EQ(slottedPage->isReference(rid), dbi::kInvalidTupleID);
+    slottedPage->updateForeigner(rid, 8129, Record("but i am afraid of the dark"));
+    ASSERT_EQ(slottedPage->lookup(rid), Record("but i am afraid of the dark"));
+    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
     ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
-    ASSERT_EQ(dbi::Record("but i am afraid of the dark"), slottedPage->getAllRecords(0)[0].second);
+    ASSERT_EQ(Record("but i am afraid of the dark"), slottedPage->getAllRecords(0)[0].second);
 
     // Remove foreign record
     slottedPage->remove(rid);
@@ -120,11 +121,11 @@ TEST(SlottedPage, ForeignRecords)
 
 TEST(SlottedPage, ReferenceRecords)
 {
-    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
-    dbi::TId tid = 8129;
-    dbi::RecordId rid = slottedPage->insert(dbi::Record("most awesome paper ever: a system for visualizing human behavior based on car metaphors"));
+    TId tid = 8129;
+    RecordId rid = slottedPage->insert(Record("most awesome paper ever: a system for visualizing human behavior based on car metaphors"));
 
     // Make reference and check
     slottedPage->updateToReference(rid, tid);
@@ -145,16 +146,16 @@ TEST(SlottedPage, Randomized)
     const uint32_t iterations = 10000;
 
     for(uint32_t j=0; j<kTestScale; j++) {
-        std::unordered_map<dbi::RecordId, std::string> reference;
-        dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+        std::unordered_map<RecordId, std::string> reference;
+        SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
         slottedPage->initialize();
 
         // Add some initial data
-        for(uint32_t i=0; i<dbi::kPageSize/3/32; i++) {
-            std::string data = dbi::util::randomWord(random()%64 + 1);
+        for(uint32_t i=0; i<kPageSize/3/32; i++) {
+            std::string data = util::randomWord(8, 64);
             if(slottedPage->getBytesFreeForRecord() < data.size())
                 continue;
-            dbi::RecordId id = slottedPage->insert(dbi::Record(data));
+            RecordId id = slottedPage->insert(Record(data));
             // std::cout << "insert " << id << " -> " << data << std::endl;
             ASSERT_TRUE(reference.count(id) == 0);
             reference.insert(make_pair(id, data));
@@ -162,14 +163,14 @@ TEST(SlottedPage, Randomized)
 
         // Work on it
         for(uint32_t i=0; i<iterations; i++) {
-            int32_t operation = random() % 100;
+            int32_t operation = util::ranny() % 100;
 
             // Do insert
             if(operation <= 40) {
-                std::string data = dbi::util::randomWord(random()%64 + 1);
+                std::string data = util::randomWord(8, 64);
                 if(slottedPage->getBytesFreeForRecord() < data.size())
                     continue;
-                dbi::RecordId id = slottedPage->insert(dbi::Record(data));
+                RecordId id = slottedPage->insert(Record(data));
                 // std::cout << "insert " << id << " -> " << data << std::endl;
                 ASSERT_TRUE(reference.count(id) == 0);
                 reference.insert(make_pair(id, data));
@@ -179,10 +180,10 @@ TEST(SlottedPage, Randomized)
             else if(operation <= 80) {
                 if(reference.empty())
                     continue;
-                dbi::RecordId id = reference.begin()->first;
+                RecordId id = reference.begin()->first;
                 // std::cout << "remove " << id << std::endl;
-                dbi::Record record = slottedPage->lookup(id);
-                ASSERT_EQ(slottedPage->isReference(id), dbi::kInvalidTupleID);
+                Record record = slottedPage->lookup(id);
+                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleID);
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 slottedPage->remove(id);
                 reference.erase(reference.begin());
@@ -192,13 +193,13 @@ TEST(SlottedPage, Randomized)
             else if(operation <= 98) {
                 if(reference.empty())
                     continue;
-                dbi::RecordId id = reference.begin()->first;
-                dbi::Record record = slottedPage->lookup(id);
-                ASSERT_EQ(slottedPage->isReference(id), dbi::kInvalidTupleID);
+                RecordId id = reference.begin()->first;
+                Record record = slottedPage->lookup(id);
+                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleID);
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
-                std::string data = dbi::util::randomWord(random()%64 + 1);
-                if(slottedPage->canUpdateRecord(id, dbi::Record(data))) {
-                    slottedPage->update(id, dbi::Record(data));
+                std::string data = util::randomWord(8, 64);
+                if(slottedPage->canUpdateRecord(id, Record(data))) {
+                    slottedPage->update(id, Record(data));
                     reference.erase(reference.begin());
                     reference.insert(make_pair(id, data));
                 }
@@ -210,8 +211,8 @@ TEST(SlottedPage, Randomized)
                 auto records = slottedPage->getAllRecords(0); // page id does not matter
                 ASSERT_EQ(records.size(), reference.size());
                 for(auto& iter : records) {
-                    ASSERT_TRUE(reference.count(dbi::toRecordId(iter.first)) > 0);
-                    ASSERT_EQ(string(iter.second.data(), iter.second.size()), reference.find(dbi::toRecordId(iter.first))->second);
+                    ASSERT_TRUE(reference.count(toRecordId(iter.first)) > 0);
+                    ASSERT_EQ(string(iter.second.data(), iter.second.size()), reference.find(toRecordId(iter.first))->second);
                 }
                 continue;
             }

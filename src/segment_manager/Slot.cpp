@@ -55,14 +55,14 @@ void Slot::setOffset(uint16_t offsetInput)
 {
    assert(offsetInput != 0);
    assert(offsetInput == (~kTopBitOne&offsetInput));
-   offset = offsetInput;
+   offset = offsetInput | (offset&kTopBitOne);
 }
 
 void Slot::setLength(uint16_t lengthInput)
 {
    assert(lengthInput != 0);
    assert(lengthInput == (~kTopBitOne&lengthInput));
-   length = lengthInput;
+   length = lengthInput | (length&kTopBitOne);
 }
 
 bool Slot::isRedirectedFromOtherPage() const

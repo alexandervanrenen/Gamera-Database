@@ -47,10 +47,10 @@ TEST(SlottedPage, SlotReuseAfterDelete)
 
 TEST(SlottedPage, DefragmentationBasic)
 {
-    std::string fragmentationData1 = "Hello!";
-    std::string fragmentationData2 = "World!";
-    std::string staticData = "block";
-    std::string newData = "Hello World!";
+    std::string fragmentationData1 = "Hello  !";
+    std::string fragmentationData2 = "World  !";
+    std::string staticData = "the blob";
+    std::string newData = "hello my world !";
     Record fragmentationRecord1(fragmentationData1);
     Record fragmentationRecord2(fragmentationData2);
     Record staticRecord(staticData);

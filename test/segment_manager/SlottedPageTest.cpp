@@ -93,6 +93,7 @@ TEST(SlottedPage, ForeignRecords)
     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
     slottedPage->initialize();
 
+    uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
     dbi::RecordId rid = slottedPage->insertForeigner(dbi::Record("fear not this night"), 8129);
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->lookup(rid).second);
     ASSERT_EQ(dbi::kInvalidTupleID, slottedPage->lookup(rid).first);
@@ -101,6 +102,7 @@ TEST(SlottedPage, ForeignRecords)
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
     slottedPage->remove(rid);
+    ASSERT_EQ(slottedPage->getBytesFreeForRecord(), freeBytes);
     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
     free(slottedPage);
@@ -117,7 +119,7 @@ TEST(SlottedPage, ReferenceRecords)
     ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
     ASSERT_EQ(tid, slottedPage->lookup(rid).first);
     slottedPage->remove(rid);
-    ASSERT_EQ(slottedPage->countAllRecords(), 0);
+    ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
     free(slottedPage);
 }

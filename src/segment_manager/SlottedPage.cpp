@@ -107,14 +107,23 @@ void SlottedPage::updateToReference(RecordId, TId)
   throw;
 }
 
-RecordId SlottedPage::insertForeigner(const Record&, TId)
+RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
 {
-  throw;
+  Slot* slot = aquireSlot(record.size() + sizeof(tid));
+  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
+  memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
+  memcpy(data.data()+slot->getOffset()+sizeof(TId), record.data(), record.size());
+  return slot - slotBegin();
 }
 
 bool SlottedPage::canHoldRecord(const Record& record) const
 {
   return getBytesFreeForRecord() >= record.size();
+}
+
+bool SlottedPage::canHoldForeignRecord(const Record& record) const
+{
+  return getBytesFreeForRecord() >= record.size() + sizeof(TId);
 }
 
 bool SlottedPage::canUpdateRecord(RecordId rid, const Record& newRecord) const
@@ -137,7 +146,7 @@ vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
       result.emplace_back(make_pair(toTID(thisPageId, slot-slotBegin()), Record(data.data() + slot->getOffset(), slot->getLength())));
     // Strip TID from foreign records
     if(slot->isRedirectedFromOtherPage())
-      result.emplace_back(make_pair(*reinterpret_cast<const TId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset(), slot->getLength())));
+      result.emplace_back(make_pair(*reinterpret_cast<const TId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset()+sizeof(TId), slot->getLength()-sizeof(TId))));
     // Skip references
   }
   return result;

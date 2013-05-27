@@ -36,10 +36,9 @@ public:
    /// Store a record from another page here
    RecordId insertForeigner(const Record& record, TId originalPosition);
 
-   /// Check if record can be placed on this page
+   /// Check if the record can be placed on this page
    bool canHoldRecord(const Record& rid) const;
-
-   /// Check if record can be updated on this page
+   bool canHoldForeignRecord(const Record& rid) const;
    bool canUpdateRecord(RecordId rid, const Record& newRecord) const;
 
    /// Get all Records actually on this pages (will ignore reference records and use foreign records)

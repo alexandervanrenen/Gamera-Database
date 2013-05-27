@@ -101,7 +101,7 @@ TEST(SlottedPage, ForeignRecords)
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
     slottedPage->remove(rid);
-    ASSERT_EQ(slottedPage->countAllRecords(), 0);
+    ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
     free(slottedPage);
 }

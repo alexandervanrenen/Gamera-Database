@@ -40,27 +40,33 @@ RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
    return slot - slotBegin();
 }
 
-pair<TId, Record> SlottedPage::lookup(RecordId id) const
+Record SlottedPage::lookup(RecordId rid) const
 {
-   const Slot* result = slotBegin() + id;
-   assert(id < slotCount);
+   const Slot* result = slotBegin() + rid;
+   assert(rid < slotCount);
    assert(result->getOffset() != 0);
    assert(result->getLength() > 0);
 
-   // Record was originally on another page => the first 8 byte of the TID
+   // Record was originally on another page => ignore the first 8 byte (they keep original TID)
    if(result->isRedirectedFromOtherPage()) {
       assert(result->getLength() > sizeof(TId));
-      return make_pair(kInvalidTupleID, Record(data.data()+result->getOffset()+sizeof(TId), result->getLength()-sizeof(TId)));
-   }
-
-   // Actual record is on another page => the record contains the id
-   if(result->isRedirectedToOtherPage()) {
-      assert(result->getLength() == sizeof(TId));
-      return make_pair(*reinterpret_cast<const TId*>(data.data()+result->getOffset()), Record(data.data()+result->getOffset(), result->getLength()));
+      return Record(data.data()+result->getOffset()+sizeof(TId), result->getLength()-sizeof(TId));
    }
 
    // Normal record
-   return make_pair(kInvalidTupleID, Record(data.data()+result->getOffset(), result->getLength()));
+   if(result->isNormal())
+      return Record(data.data()+result->getOffset(), result->getLength());
+
+    throw;
+}
+
+TId SlottedPage::isReference(RecordId rid) const
+{
+   assert(rid < slotCount);
+   const Slot* result = slotBegin() + rid;
+   if(result->isRedirectedToOtherPage())
+      return *reinterpret_cast<const TId*>(data.data()+result->getOffset());
+      return kInvalidTupleID;
 }
 
 void SlottedPage::update(RecordId recordId, const Record& newRecord)
@@ -250,12 +256,12 @@ Slot* SlottedPage::prepareSlotForInsert(uint16_t length)
    // Otherwise: We have to insert it into the free space: ensure there is enough
    if(dataBegin - sizeof(Slot) * slotCount < length + sizeof(Slot))
       defragment();
-   assert(dataBegin - sizeof(Slot) * slotCount >= length);
+   assert(dataBegin - sizeof(Slot) * slotCount >= length + sizeof(Slot));
 
    // Now we know that the new record will fit into the free space: find a slot
    Slot* slot;
-   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++)
-      if(slot->getOffset() == 0)
+   for(slot = slotBegin() + firstFreeSlot; slot != slotEnd(); slot++) // Try to use an empty one
+      if(slot->isEmpty())
          break;
 
    // The slot variable points to the slot to be used

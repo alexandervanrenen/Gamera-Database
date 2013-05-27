@@ -22,10 +22,11 @@ public:
    /// Store a record from another page here
    RecordId insertForeigner(const Record& record, TId originalPosition);
 
-   /// Lookup a record -- TId is only valid if the record is a reference (hence one can differ between real records and references)
-   /// I think one does not need to know if the record is foreign, as one would never lookup such a value directly.
-   /// The TID which is added to each foreign record is stripped away.
-   std::pair<TId, Record> lookup(RecordId id) const;
+   /// Lookup a record -- The TID which is added to each foreign record is stripped away.
+   Record lookup(RecordId id) const;
+
+   /// Determines whether the record is really on this page -- kInvailTupleId if so otherwise the referenced page
+   TId isReference(RecordId rid) const;
 
    /// Update record -- assumes canUpdateRecord
    void update(RecordId rid, const Record& newRecord);

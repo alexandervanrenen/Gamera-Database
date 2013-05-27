@@ -76,14 +76,14 @@ TEST(SlottedPage, DefragmentationBasic)
     slottedPage->defragment();
 
     // No side effects on sample record
-    ASSERT_EQ(slottedPage->lookup(staticRecordId).first, dbi::kInvalidTupleID);
-    ASSERT_EQ(slottedPage->lookup(staticRecordId).second.data(), staticData);
+    ASSERT_EQ(slottedPage->isReference(staticRecordId), dbi::kInvalidTupleID);
+    ASSERT_EQ(slottedPage->lookup(staticRecordId), dbi::Record(staticData));
 
     // Add now record
     ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
     dbi::RecordId newDataRecordId = slottedPage->insert(newDataRecord);
-    ASSERT_EQ(slottedPage->lookup(newDataRecordId).first, dbi::kInvalidTupleID);
-    ASSERT_EQ(slottedPage->lookup(newDataRecordId).second, newDataRecord);
+    ASSERT_EQ(slottedPage->isReference(newDataRecordId), dbi::kInvalidTupleID);
+    ASSERT_EQ(slottedPage->lookup(newDataRecordId), newDataRecord);
 
     free(slottedPage);
 }
@@ -96,16 +96,16 @@ TEST(SlottedPage, ForeignRecords)
     // Make foreign record and check
     uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
     dbi::RecordId rid = slottedPage->insertForeigner(dbi::Record("fear not this night"), 8129);
-    ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->lookup(rid).second);
-    ASSERT_EQ(dbi::kInvalidTupleID, slottedPage->lookup(rid).first);
+    ASSERT_EQ(slottedPage->lookup(rid), dbi::Record("fear not this night"));
+    ASSERT_EQ(slottedPage->isReference(rid), dbi::kInvalidTupleID);
     ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
     // Update the foreign record
     slottedPage->updateForeigner(rid, 8129, dbi::Record("but i am afraid of the dark"));
-    ASSERT_EQ(dbi::Record("but i am afraid of the dark"), slottedPage->lookup(rid).second);
-    ASSERT_EQ(dbi::kInvalidTupleID, slottedPage->lookup(rid).first);
+    ASSERT_EQ(slottedPage->lookup(rid), dbi::Record("but i am afraid of the dark"));
+    ASSERT_EQ(slottedPage->isReference(rid), dbi::kInvalidTupleID);
     ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
     ASSERT_EQ(dbi::Record("but i am afraid of the dark"), slottedPage->getAllRecords(0)[0].second);
@@ -128,8 +128,7 @@ TEST(SlottedPage, ReferenceRecords)
 
     // Make reference and check
     slottedPage->updateToReference(rid, tid);
-    ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
-    ASSERT_EQ(tid, slottedPage->lookup(rid).first);
+    ASSERT_EQ(tid, slottedPage->isReference(rid));
     ASSERT_EQ(slottedPage->getAllRecords(0).size(), 0u);
     ASSERT_EQ(slottedPage->countAllRecords(), 1u);
 
@@ -182,9 +181,9 @@ TEST(SlottedPage, Randomized)
                     continue;
                 dbi::RecordId id = reference.begin()->first;
                 // std::cout << "remove " << id << std::endl;
-                pair<dbi::TId, dbi::Record> record = slottedPage->lookup(id);
-                ASSERT_EQ(record.first, dbi::kInvalidTupleID);
-                ASSERT_EQ(std::string(record.second.data(), record.second.size()), reference.begin()->second);
+                dbi::Record record = slottedPage->lookup(id);
+                ASSERT_EQ(slottedPage->isReference(id), dbi::kInvalidTupleID);
+                ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 slottedPage->remove(id);
                 reference.erase(reference.begin());
             }
@@ -194,9 +193,9 @@ TEST(SlottedPage, Randomized)
                 if(reference.empty())
                     continue;
                 dbi::RecordId id = reference.begin()->first;
-                pair<dbi::TId, dbi::Record> record = slottedPage->lookup(id);
-                ASSERT_EQ(record.first, dbi::kInvalidTupleID);
-                ASSERT_EQ(std::string(record.second.data(), record.second.size()), reference.begin()->second);
+                dbi::Record record = slottedPage->lookup(id);
+                ASSERT_EQ(slottedPage->isReference(id), dbi::kInvalidTupleID);
+                ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 std::string data = dbi::util::randomWord(random()%64 + 1);
                 if(slottedPage->canUpdateRecord(id, dbi::Record(data))) {
                     slottedPage->update(id, dbi::Record(data));

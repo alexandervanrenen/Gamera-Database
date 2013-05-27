@@ -30,6 +30,16 @@ RecordId SlottedPage::insert(const Record& record)
    return slot - slotBegin();
 }
 
+RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
+{
+   assert(canHoldForeignRecord(record));
+   Slot* slot = prepareSlotForInsert(record.size() + sizeof(tid));
+   *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
+   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
+   memcpy(data.data()+slot->getOffset()+sizeof(TId), record.data(), record.size());
+   return slot - slotBegin();
+}
+
 pair<TId, Record> SlottedPage::lookup(RecordId id) const
 {
    const Slot* result = slotBegin() + id;
@@ -39,8 +49,8 @@ pair<TId, Record> SlottedPage::lookup(RecordId id) const
 
    // Record was originally on another page => the first 8 byte of the TID
    if(result->isRedirectedFromOtherPage()) {
-     assert(result->getLength() > sizeof(TId));
-     return make_pair(kInvalidTupleID, Record(data.data()+result->getOffset()+sizeof(TId), result->getLength()-sizeof(TId)));
+      assert(result->getLength() > sizeof(TId));
+      return make_pair(kInvalidTupleID, Record(data.data()+result->getOffset()+sizeof(TId), result->getLength()-sizeof(TId)));
    }
 
    // Actual record is on another page => the record contains the id
@@ -51,6 +61,22 @@ pair<TId, Record> SlottedPage::lookup(RecordId id) const
 
    // Normal record
    return make_pair(kInvalidTupleID, Record(data.data()+result->getOffset(), result->getLength()));
+}
+
+void SlottedPage::update(RecordId recordId, const Record& newRecord)
+{
+   assert(canUpdateRecord(recordId, newRecord));
+   Slot* slot = prepareSlotForUpdate(recordId, newRecord.size());
+   *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kNormal);
+   memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
+}
+
+void SlottedPage::updateToReference(RecordId rid, TId tid)
+{
+   assert(canUpdateRecord(rid, Record(reinterpret_cast<char*>(&tid), sizeof(TId))));
+   Slot* slot = prepareSlotForUpdate(rid, sizeof(TId));
+   *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedToOtherPage);
+   memcpy(data.data() + slot->getOffset(), reinterpret_cast<char*>(&tid), sizeof(TId));
 }
 
 void SlottedPage::remove(RecordId rId)
@@ -71,147 +97,118 @@ void SlottedPage::remove(RecordId rId)
    assert(dataBegin >= sizeof(Slot) * slotCount);
 }
 
-void SlottedPage::update(RecordId recordId, const Record& newRecord)
-{
-  assert(canUpdateRecord(recordId, newRecord));
-  Slot* slot = prepareSlotForUpdate(recordId, newRecord.size());
-  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kNormal);
-  memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
-}
-
-void SlottedPage::updateToReference(RecordId rid, TId tid)
-{
-  assert(canUpdateRecord(rid, Record(reinterpret_cast<char*>(&tid), sizeof(TId))));
-  Slot* slot = prepareSlotForUpdate(rid, sizeof(TId));
-  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedToOtherPage);
-  memcpy(data.data() + slot->getOffset(), reinterpret_cast<char*>(&tid), sizeof(TId));
-}
-
-RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
-{
-  assert(canHoldForeignRecord(record));
-  Slot* slot = prepareSlotForInsert(record.size() + sizeof(tid));
-  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
-  memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
-  memcpy(data.data()+slot->getOffset()+sizeof(TId), record.data(), record.size());
-  return slot - slotBegin();
-}
-
 bool SlottedPage::canHoldRecord(const Record& record) const
 {
-  return getBytesFreeForRecord() >= record.size();
+   return getBytesFreeForRecord() >= record.size();
 }
 
 bool SlottedPage::canHoldForeignRecord(const Record& record) const
 {
-  return getBytesFreeForRecord() >= record.size() + sizeof(TId);
+   return getBytesFreeForRecord() >= record.size() + sizeof(TId);
 }
 
 bool SlottedPage::canUpdateRecord(RecordId rid, const Record& newRecord) const
 {
-  const Slot* result = slotBegin() + rid;
-  assert(toRecordId(rid) < slotCount);
-  assert(result->getOffset() != 0);
-  assert(result->getLength() > 0);
-  return freeBytes + result->getLength() >= newRecord.size();
+   const Slot* result = slotBegin() + rid;
+   assert(toRecordId(rid) < slotCount);
+   assert(result->getOffset() != 0);
+   assert(result->getLength() > 0);
+   return freeBytes + result->getLength() >= newRecord.size();
 }
 
 vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
 {
-  // Find all slots with data
-  vector<pair<TId, Record>> result;
-  result.reserve(slotCount);
-  for(auto slot = slotBegin(); slot != slotEnd(); slot++) {
-    // Normal record
-    if(slot->isNormal())
-      result.emplace_back(make_pair(toTID(thisPageId, slot-slotBegin()), Record(data.data() + slot->getOffset(), slot->getLength())));
-    // Strip TID from foreign records
-    if(slot->isRedirectedFromOtherPage())
-      result.emplace_back(make_pair(*reinterpret_cast<const TId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset()+sizeof(TId), slot->getLength()-sizeof(TId))));
-    // Skip references
-  }
-  return result;
+   // Find all slots with data
+   vector<pair<TId, Record>> result;
+   result.reserve(slotCount);
+   for(auto slot = slotBegin(); slot != slotEnd(); slot++) {
+      // Normal record
+      if(slot->isNormal())
+         result.emplace_back(make_pair(toTID(thisPageId, slot-slotBegin()), Record(data.data() + slot->getOffset(), slot->getLength())));
+      // Strip TID from foreign records
+      if(slot->isRedirectedFromOtherPage())
+         result.emplace_back(make_pair(*reinterpret_cast<const TId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset()+sizeof(TId), slot->getLength()-sizeof(TId))));
+      // Skip references
+   }
+   return result;
 }
 
 uint16_t SlottedPage::getBytesFreeForRecord() const
 {
-  // Update first free slot
-  for(;firstFreeSlot!=slotCount; firstFreeSlot++)
-    if((slotBegin()+firstFreeSlot)->getOffset() == 0 || (slotBegin()+firstFreeSlot)->isMemoryUnused())
-      break;
+   // Update first free slot
+   for(;firstFreeSlot!=slotCount; firstFreeSlot++)
+     if((slotBegin()+firstFreeSlot)->getOffset() == 0 || (slotBegin()+firstFreeSlot)->isMemoryUnused())
+        break;
 
-  if(firstFreeSlot != slotCount)
-    return freeBytes; else
-    return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
+   if(firstFreeSlot != slotCount)
+      return freeBytes; else
+      return freeBytes > sizeof(Slot) ? freeBytes - sizeof(Slot) : 0;
 }
 
 uint16_t SlottedPage::maximumRecordSize()
 {
-  return kPageSize - 16 - 4;
+   return kPageSize - 16 - 4;
 }
 
 uint32_t SlottedPage::countAllRecords() const
 {
-  uint32_t result = 0;
-  for(auto slot = slotBegin(); slot != slotEnd(); slot++)
-    if(!slot->isEmpty() && !slot->isMemoryUnused())
-      result++;
-  return result;
+   uint32_t result = 0;
+      for(auto slot = slotBegin(); slot != slotEnd(); slot++)
+         if(!slot->isEmpty() && !slot->isMemoryUnused())
+            result++;
+   return result;
 }
 
 /// Defragments the page. Any slot with a record length <= 0 (deleted/ not used) is set to its initial state during the process. NOT THREADSAFE!
 void SlottedPage::defragment()
 {
-    uint32_t count = countAllRecords();
-    vector<uint16_t> slotIndices(slotCount);
-    std::iota(slotIndices.begin(), slotIndices.end(), 0);
-    // Sort indices so that slot with greatest offset is first entry
-    std::sort(slotIndices.begin(), slotIndices.end(), [this](uint16_t x, uint16_t y){ return (slotBegin() + x)->getOffset() > (slotBegin() + y)->getOffset(); });
+   uint32_t count = countAllRecords();
+   vector<uint16_t> slotIndices(slotCount);
+   std::iota(slotIndices.begin(), slotIndices.end(), 0);
+   // Sort indices so that slot with greatest offset is first entry
+   std::sort(slotIndices.begin(), slotIndices.end(), [this](uint16_t x, uint16_t y){ return (slotBegin() + x)->getOffset() > (slotBegin() + y)->getOffset(); });
 
-    // Start at max index of data
-    dataBegin = data.size();
-    for(uint16_t slotIndex : slotIndices) {
-        Slot* currentSlot = slotBegin() + slotIndex;
-        if(currentSlot->isMemoryUnused() || currentSlot->getOffset() == 0) {
-            // Deleted/ not used records can be ignored; Only reset its slot
-            *currentSlot = Slot(0, 0, Slot::Type::kNormal);
-            firstFreeSlot = min(firstFreeSlot, slotIndex);
-        } else {
-            assert(currentSlot->getOffset() > 0);
-            assert(currentSlot->getLength() > 0);
+   // Start at max index of data
+   dataBegin = data.size();
+   for(uint16_t slotIndex : slotIndices) {
+     Slot* currentSlot = slotBegin() + slotIndex;
+      if(currentSlot->isMemoryUnused() || currentSlot->isEmpty()) {
+         // Deleted/ not used records can be ignored; Only reset its slot
+         *currentSlot = Slot(0, 0, Slot::Type::kNormal);
+         firstFreeSlot = min(firstFreeSlot, slotIndex);
+      } else {
+         // Move the entry 
+         uint16_t newOffset = dataBegin - currentSlot->getLength();
+         std::memmove(data.data() + newOffset, data.data() + currentSlot->getOffset(), currentSlot->getLength());
+         currentSlot->setOffset(newOffset);
 
-            // Move the entry 
-            uint16_t newOffset = dataBegin - currentSlot->getLength();
-            std::memmove(data.data() + newOffset, data.data() + currentSlot->getOffset(), currentSlot->getLength());
-            currentSlot->setOffset(newOffset);
-
-            // Advance (towards beginning) in index by length of currently processed record
-            dataBegin -= currentSlot->getLength();
-            assert(dataBegin >= sizeof(Slot) * slotCount);
-        }
-    }
-    assert(isValid());
-    assert(countAllRecords() == count);
+         // Advance (towards beginning) in index by length of currently processed record
+         dataBegin -= currentSlot->getLength();
+         assert(dataBegin >= sizeof(Slot) * slotCount);
+      }
+   }
+   assert(isValid());
+   assert(countAllRecords() == count);
 }
 
 void SlottedPage::dump() const
 {
-  for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)
-    cout << "slot: (" << slot->getOffset() << ", " << slot->getLength() << ") " << slot->isNormal() << " " << slot->isMemoryUnused() << " " << slot->isRedirectedFromOtherPage() << " " << slot->isRedirectedToOtherPage() << " " << slot->isEmpty() << endl;
-  cout << "LSN: " << LSN << "  ";
-  cout << "slotCount: " << slotCount << "  ";
-  cout << "firstFreeSlot: " << firstFreeSlot << "  ";
-  cout << "dataBegin: " << dataBegin << "  ";
-  cout << "freeBytes: " << freeBytes << "  " << endl;
+   for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)
+      cout << "slot: (" << slot->getOffset() << ", " << slot->getLength() << ") " << slot->isNormal() << " " << slot->isMemoryUnused() << " " << slot->isRedirectedFromOtherPage() << " " << slot->isRedirectedToOtherPage() << " " << slot->isEmpty() << endl;
+   cout << "LSN: " << LSN << "  ";
+   cout << "slotCount: " << slotCount << "  ";
+   cout << "firstFreeSlot: " << firstFreeSlot << "  ";
+   cout << "dataBegin: " << dataBegin << "  ";
+   cout << "freeBytes: " << freeBytes << "  " << endl;
 }
 
 bool SlottedPage::isValid() const
 {
-  uint32_t usedBytes = 0;
-  for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)
-    if(slot->isNormal() || slot->isRedirectedFromOtherPage() || slot->isRedirectedToOtherPage())
-      usedBytes += slot->getLength();
-  return usedBytes + slotCount*sizeof(Slot) + freeBytes + 16 == kPageSize;
+   uint32_t usedBytes = 0;
+   for(const Slot* slot=slotBegin(); slot!=slotEnd(); slot++)
+      if(slot->isNormal() || slot->isRedirectedFromOtherPage() || slot->isRedirectedToOtherPage())
+         usedBytes += slot->getLength();
+   return usedBytes + slotCount*sizeof(Slot) + freeBytes + 16 == kPageSize;
 }
 
 Slot* SlottedPage::prepareSlotForInsert(uint16_t length)
@@ -287,22 +284,22 @@ Slot* SlottedPage::prepareSlotForUpdate(RecordId rid, uint16_t length)
 
 const Slot* SlottedPage::slotBegin() const
 {
-  return reinterpret_cast<const Slot*>(data.data());
+   return reinterpret_cast<const Slot*>(data.data());
 }
 
 const Slot* SlottedPage::slotEnd() const
 {
-  return reinterpret_cast<const Slot*>(data.data()) + slotCount;
+   return reinterpret_cast<const Slot*>(data.data()) + slotCount;
 }
 
 Slot* SlottedPage::slotBegin()
 {
-  return reinterpret_cast<Slot*>(data.data());
+   return reinterpret_cast<Slot*>(data.data());
 }
 
 Slot* SlottedPage::slotEnd()
 {
-  return reinterpret_cast<Slot*>(data.data()) + slotCount;
+   return reinterpret_cast<Slot*>(data.data()) + slotCount;
 }
 
 }

@@ -19,13 +19,13 @@ public:
    /// Add a record -- assumes canHoldRecord true
    RecordId insert(const Record& record);
 
+   /// Store a record from another page here
+   RecordId insertForeigner(const Record& record, TId originalPosition);
+
    /// Lookup a record -- TId is only valid if the record is a reference (hence one can differ between real records and references)
    /// I think one does not need to know if the record is foreign, as one would never lookup such a value directly.
    /// The TID which is added to each foreign record is stripped away.
    std::pair<TId, Record> lookup(RecordId id) const;
-
-   /// Remove the given rid
-   void remove(RecordId rid);
 
    /// Update record -- assumes canUpdateRecord
    void update(RecordId rid, const Record& newRecord);
@@ -33,8 +33,8 @@ public:
    /// Use this if record could not be updated in-page
    void updateToReference(RecordId rid, TId newLocation);
 
-   /// Store a record from another page here
-   RecordId insertForeigner(const Record& record, TId originalPosition);
+   /// Remove the given rid
+   void remove(RecordId rid);
 
    /// Check if the record can be placed on this page
    bool canHoldRecord(const Record& rid) const;

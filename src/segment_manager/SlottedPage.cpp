@@ -79,9 +79,12 @@ void SlottedPage::update(RecordId recordId, const Record& newRecord)
   memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
 }
 
-void SlottedPage::updateToReference(RecordId, TId)
+void SlottedPage::updateToReference(RecordId rid, TId tid)
 {
-  throw;
+  assert(canUpdateRecord(rid, Record(reinterpret_cast<char*>(&tid), sizeof(TId))));
+  Slot* slot = prepareSlotForUpdate(rid, sizeof(TId));
+  *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedToOtherPage);
+  memcpy(data.data() + slot->getOffset(), reinterpret_cast<char*>(&tid), sizeof(TId));
 }
 
 RecordId SlottedPage::insertForeigner(const Record& record, TId tid)

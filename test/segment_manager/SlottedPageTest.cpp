@@ -93,6 +93,7 @@ TEST(SlottedPage, ForeignRecords)
     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
     slottedPage->initialize();
 
+    // Make foreign record and check
     uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
     dbi::RecordId rid = slottedPage->insertForeigner(dbi::Record("fear not this night"), 8129);
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->lookup(rid).second);
@@ -101,6 +102,7 @@ TEST(SlottedPage, ForeignRecords)
     ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
     ASSERT_EQ(dbi::Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
 
+    // Remove foreign record
     slottedPage->remove(rid);
     ASSERT_EQ(slottedPage->getBytesFreeForRecord(), freeBytes);
     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
@@ -108,21 +110,28 @@ TEST(SlottedPage, ForeignRecords)
     free(slottedPage);
 }
 
-// TEST(SlottedPage, ReferenceRecords)
-// {
-//     dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
-//     slottedPage->initialize();
+TEST(SlottedPage, ReferenceRecords)
+{
+    dbi::SlottedPage* slottedPage = static_cast<dbi::SlottedPage*>(malloc(dbi::kPageSize));
+    slottedPage->initialize();
 
-//     dbi::TId tid = 8129;
-//     dbi::RecordId rid = slottedPage->insert(dbi::Record("6=3!"));
-//     slottedPage->updateToReference(rid, tid);
-//     ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
-//     ASSERT_EQ(tid, slottedPage->lookup(rid).first);
-//     slottedPage->remove(rid);
-//     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
+    dbi::TId tid = 8129;
+    dbi::RecordId rid = slottedPage->insert(dbi::Record("most awesome paper ever: a system for visualizing human behavior based on car metaphors"));
 
-//     free(slottedPage);
-// }
+    // Make reference and check
+    slottedPage->updateToReference(rid, tid);
+    ASSERT_EQ(dbi::Record(reinterpret_cast<char*>(&tid), sizeof(dbi::TId)), slottedPage->lookup(rid).second);
+    ASSERT_EQ(tid, slottedPage->lookup(rid).first);
+    ASSERT_EQ(slottedPage->getAllRecords(0).size(), 0u);
+    ASSERT_EQ(slottedPage->countAllRecords(), 1u);
+
+    // Remove reference
+    slottedPage->remove(rid);
+    ASSERT_EQ(slottedPage->getAllRecords(0).size(), 0u);
+    ASSERT_EQ(slottedPage->countAllRecords(), 0u);
+
+    free(slottedPage);
+}
 
 TEST(SlottedPage, Randomized)
 {

@@ -68,7 +68,7 @@ private:
    {
       assert(pageID != kInvalidPageID);
       pageID++;
-      if(pageID >= (*extents)[extent].end()) {
+      if(pageID == (*extents)[extent].end()) {
          extent++;
          if(extent >= extents->size())
             pageID = kInvalidPageID;

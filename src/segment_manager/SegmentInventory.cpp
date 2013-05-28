@@ -31,7 +31,7 @@ const Extent SegmentInventory::assignExtentToSegment(const SegmentId sid, const 
    // Find free extent -- using first-fit
    for(uint64_t i = 0; i < freePages.get().size(); i++)
       if(numPages <= freePages.get()[i].numPages()) {
-         Extent freeExtent = Extent{freePages.get()[i].begin(), freePages.get()[i].begin() + numPages};
+         Extent freeExtent = Extent{freePages.get()[i].begin(), PageId(freePages.get()[i].begin().toInteger() + numPages)};
          freePages.remove(freeExtent);
          auto& segment = segmentMap[sid];
          segment.second.add(freeExtent);

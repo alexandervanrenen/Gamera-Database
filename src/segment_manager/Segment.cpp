@@ -29,14 +29,14 @@ PageIDIterator Segment::endPageID()
    return PageIDIterator(extents.get(), kInvalidPageID);
 }
 
-BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const
+BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const // TODO: who is using that .. and why .. ?
 {
    assert(extents.get().size() != 0);
 
    // Find extent for the requested offset
    for(auto& iter : extents.get())
       if(iter.numPages() > offset)
-         return bufferManager.fixPage(iter.begin() + offset, exclusive);
+         return bufferManager.fixPage(PageId(iter.begin().toInteger() + offset), exclusive);
       else
          offset -= iter.numPages();
 

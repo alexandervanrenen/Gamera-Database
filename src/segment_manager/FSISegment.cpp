@@ -19,14 +19,14 @@ void FSISegment::initializeExtent(const Extent&)
 uint32_t FSISegment::getFreeBytes(PageId id) const
 {
    // Get data
-   uint32_t extent = id / 2 / kPageSize; // which extent to look on
+   uint32_t extent = id.toInteger() / 2 / kPageSize; // which extent to look on
    BufferFrame& bufferFrame = fixPage(extent, false);
    char* data = bufferFrame.getData();
 
    // Read nibble
-   uint32_t offset = id / 2 % kPageSize; // offset on page
+   uint32_t offset = id.toInteger() / 2 % kPageSize; // offset on page
    uint32_t result = data[offset];
-   if(id % 2 == 0) {
+   if(id.toInteger() % 2 == 0) {
       result &= 0x0F;
    } else {
       result &= 0xF0;
@@ -40,14 +40,14 @@ uint32_t FSISegment::getFreeBytes(PageId id) const
 void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
 {
    // Get data
-   uint32_t extent = id / 2 / kPageSize; // which extent to look on
+   uint32_t extent = id.toInteger() / 2 / kPageSize; // which extent to look on
    BufferFrame& bufferFrame = fixPage(extent, true);
    char* data = bufferFrame.getData();
 
    // Change nibble
-   uint32_t offset = id / 2 % kPageSize; // offset on page
+   uint32_t offset = id.toInteger() / 2 % kPageSize; // offset on page
    uint8_t val = freeBytes * 16 / kPageSize; // encode free bytes
-   if(id % 2 == 0) {
+   if(id.toInteger() % 2 == 0) {
       data[offset] &= 0xF0;
       data[offset] |= val;
    } else {

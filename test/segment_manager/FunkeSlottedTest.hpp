@@ -11,12 +11,6 @@
 #include "segment_manager/Record.hpp"
 #include "common/Config.hpp"
 
-// todo: adapt to your implementation
-inline uint64_t extractPage(dbi::TupleId tid)
-{
-   return tid >> 16;
-}
-
 const unsigned initialSize = 100; // in (slotted) pages
 const unsigned totalSize = initialSize + 50; // in (slotted) pages
 const unsigned maxInserts = 1000ul * 1000ul;
@@ -84,7 +78,7 @@ inline int run(const std::string& dbFile, uint32_t pages)
       dbi::TupleId tid = sp.insert(dbi::Record(s.c_str(), s.size()));
       assert(values.find(tid)==values.end()); // TIDs should not be overwritten
       values[tid]=r;
-      unsigned pageId = extractPage(tid); // extract the pageId from the TID
+      unsigned pageId = tid.toPageId().toInteger(); // extract the pageId from the TID
       assert(pageId < initialSize+2); // pageId should be within [0, initialSize)
       usage[pageId]+=s.size();
    }
@@ -96,7 +90,7 @@ inline int run(const std::string& dbFile, uint32_t pages)
 
       // Select victim
       dbi::TupleId tid = values.begin()->first;
-      unsigned pageId = extractPage(tid);
+      unsigned pageId = tid.toPageId().toInteger();
       const std::string& value = testData[(values.begin()->second)%testData.size()];
       unsigned len = value.size();
 

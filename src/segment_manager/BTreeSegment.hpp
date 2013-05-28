@@ -8,7 +8,7 @@
 
 namespace dbi {
 
-const PageId metadataPage = 0;
+constexpr PageId metadataPage = PageId(0);
 
 class BufferManager;
 class SegmentManager;

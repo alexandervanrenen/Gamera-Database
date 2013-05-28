@@ -33,7 +33,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 
    // Insert in map
    for(uint32_t i = 0; i < memoryPagesCount; i++)
-      bufferFrameDir.insert(10000000 + i).pageId = 10000000 + i;
+      bufferFrameDir.insert(PageId(10000000 + i)).pageId = PageId(10000000 + i); // TODO: WTF !?
 
    // Add to swap out strategy
    swapOutAlgorithm->initialize(bufferFrameDir);
@@ -47,12 +47,12 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
       return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
 
    // Otherwise: Load page from disc -- ensure that this page is not loaded several times
-   loadGuards[pageId % loadGuards.size()].lock();
+   loadGuards[pageId.toInteger() % loadGuards.size()].lock();
 
    // Ensure that the page has not been loaded by another thread while we waited
    bufferFrame = bufferFrameDir.find(pageId);
    if(bufferFrame != nullptr) {
-      loadGuards[pageId % loadGuards.size()].unlock();
+      loadGuards[pageId.toInteger() % loadGuards.size()].unlock();
       return tryLockBufferFrame(*bufferFrame, pageId, exclusive);
    }
 
@@ -70,7 +70,7 @@ BufferFrame& BufferManager::fixPage(PageId pageId, bool exclusive)
    bufferFrame->pageId = pageId;
    if(!exclusive)
       bufferFrame->accessGuard.downgrade();
-   loadGuards[pageId % loadGuards.size()].unlock();
+   loadGuards[pageId.toInteger() % loadGuards.size()].unlock();
    return *bufferFrame;
 }
 
@@ -118,14 +118,14 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
    assert(!frame.isDirty);
    stats->count("loads", 1);
-   if(pread(fileFD, frame.data.data(), kPageSize, pageId * kPageSize) != kPageSize)
+   if(pread(fileFD, frame.data.data(), kPageSize, pageId.toInteger() * kPageSize) != kPageSize)
       assert(false);
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)
 {
    if(frame.isDirty)
-      if(pwrite(fileFD, frame.data.data(), kPageSize, frame.pageId * kPageSize) != kPageSize)
+      if(pwrite(fileFD, frame.data.data(), kPageSize, frame.pageId.toInteger() * kPageSize) != kPageSize)
          assert(false);
    frame.isDirty = false;
 }

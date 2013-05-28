@@ -5,8 +5,8 @@
 namespace dbi {
 
 struct BTreeMetadata {
-   PageId rootPage = 0;
-   PageId nextFreePage = 1;
+   PageId rootPage = PageId(0);
+   PageId nextFreePage = PageId(1);
    uint64_t numberOfPages = 0;
 };
 

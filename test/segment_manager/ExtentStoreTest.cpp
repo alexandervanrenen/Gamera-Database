@@ -15,29 +15,29 @@ TEST(SegmentManager, ExtentStore)
    ExtentStore extentStore;
 
    // Add
-   extentStore.add(Extent(5, 10));
-   ASSERT_ANY_THROW(extentStore.add(Extent(5, 6)));
-   ASSERT_ANY_THROW(extentStore.add(Extent(7, 8)));
-   ASSERT_ANY_THROW(extentStore.add(Extent(9, 10)));
+   extentStore.add(Extent(PageId(5), PageId(10)));
+   ASSERT_ANY_THROW(extentStore.add(Extent(PageId(5), PageId(6))));
+   ASSERT_ANY_THROW(extentStore.add(Extent(PageId(7), PageId(8))));
+   ASSERT_ANY_THROW(extentStore.add(Extent(PageId(9), PageId(10))));
    ASSERT_EQ(extentStore.numPages(), 5ull);
-   extentStore.add(Extent(15, 20));
+   extentStore.add(Extent(PageId(15), PageId(20)));
    ASSERT_EQ(extentStore.numPages(), 10ull);
-   extentStore.add(Extent(11, 15));
+   extentStore.add(Extent(PageId(11), PageId(15)));
    ASSERT_EQ(extentStore.numPages(), 14ull);
-   extentStore.add(Extent(10, 11));
+   extentStore.add(Extent(PageId(10), PageId(11)));
    ASSERT_EQ(extentStore.numPages(), 15ull);
    ASSERT_EQ(extentStore.get().size(), 1ull);
-   ASSERT_EQ(extentStore.get()[0], Extent(5,20));
+   ASSERT_EQ(extentStore.get()[0], Extent(PageId(5), PageId(20)));
 
    // Remove
-   ASSERT_ANY_THROW(extentStore.remove(Extent(4, 5)));
-   ASSERT_ANY_THROW(extentStore.remove(Extent(20, 21)));
-   ASSERT_ANY_THROW(extentStore.remove(Extent(1, 2)));
-   extentStore.remove(Extent(5,6));
-   extentStore.remove(Extent(19,20));
-   extentStore.remove(Extent(9,11));
-   extentStore.remove(Extent(6,9));
+   ASSERT_ANY_THROW(extentStore.remove(Extent(PageId(4), PageId(5))));
+   ASSERT_ANY_THROW(extentStore.remove(Extent(PageId(20), PageId(21))));
+   ASSERT_ANY_THROW(extentStore.remove(Extent(PageId(1), PageId(2))));
+   extentStore.remove(Extent(PageId(5),PageId(6)));
+   extentStore.remove(Extent(PageId(19),PageId(20)));
+   extentStore.remove(Extent(PageId(9),PageId(11)));
+   extentStore.remove(Extent(PageId(6),PageId(9)));
    ASSERT_EQ(extentStore.numPages(), 8ull);
    ASSERT_EQ(extentStore.get().size(), 1ull);
-   ASSERT_EQ(extentStore.get()[1], Extent(11,19));
+   ASSERT_EQ(extentStore.get()[1], Extent(PageId(11),PageId(19)));
 }

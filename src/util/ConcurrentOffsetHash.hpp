@@ -3,9 +3,11 @@
 #include "util/Math.hpp"
 #include "util/SpinLock.hpp"
 #include <cassert>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <functional>
 
 namespace dbi {
 
@@ -33,7 +35,7 @@ public:
    Value& insert(const Key& key)
    {
       // Get hash
-      SizeType hashVal = key & mask;
+      SizeType hashVal = std::hash<Key>()(key) & mask;
       SizeType entryOffset = nextOffset++;
       assert(entryOffset < entries.size());
 
@@ -48,7 +50,7 @@ public:
    Value* fuzzyFind(Key key)
    {
       // Get hash
-      SizeType hashVal = key & mask;
+      SizeType hashVal = std::hash<Key>()(key) & mask;
       uint32_t pos = offsets[hashVal];
 
       // Try to find key == key
@@ -64,7 +66,7 @@ public:
    Value* find(Key key)
    {
       // Get hash
-      SizeType hashVal = key & mask;
+      SizeType hashVal = std::hash<Key>()(key) & mask;
       locks[hashVal].lock();
       uint32_t pos = offsets[hashVal];
 
@@ -85,8 +87,8 @@ public:
    void updateKey(Key current, Key next)
    {
       // Get hash and lock
-      SizeType currentHashVal = current & mask;
-      SizeType nextHashVal = next & mask;
+      SizeType currentHashVal = std::hash<Key>()(current) & mask;
+      SizeType nextHashVal = std::hash<Key>()(next) & mask;
 
       // Find current (*currentPos will contain elements offset)
       locks[currentHashVal].lock();

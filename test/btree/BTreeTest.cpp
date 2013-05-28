@@ -183,7 +183,7 @@ TEST(BTreeTest, SimpleTest) {
 
 
 
-void threadTest(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads, uint64_t threadid) {
+void threadTestInsert(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads, uint64_t threadid) {
     dbi::TID tid;
     // Insert values into tree
     for (uint64_t i=threadid; i <= n; i+=numthreads) {
@@ -191,12 +191,19 @@ void threadTest(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads, uin
         ASSERT_TRUE(tree->lookup(i, tid));
         ASSERT_EQ(i, tid);
     }
+}
+
+void threadTestLookup(dbi::BTree<uint64_t>* tree, uint64_t n, bool* finished) {
+    dbi::TID tid;
+    srand(n);
     // Check values are all inserted
-    for (uint64_t i=0; i <= n; i++) {
-        ASSERT_TRUE(tree->lookup(i, tid));
-        ASSERT_EQ(i, tid);
+    while (!*finished) {
+        tree->lookup(rand()%n, tid);
     }
+}
     
+void threadTestErase(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads, uint64_t threadid) {
+    dbi::TID tid;
     // Delete values
     for (uint64_t i=(threadid+1)%numthreads; i <= n; i+=numthreads) {
         ASSERT_TRUE(tree->erase(i));
@@ -218,17 +225,39 @@ TEST(BTreeTest, ThreadTest) {
     dbi::SegmentManager segmentManager(bufferManager, true);
     dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::BT, 10);
     dbi::BTreeSegment& segment = segmentManager.getBTreeSegment(id);
-
     dbi::BTree<uint64_t> tree(segment);
     
+    bool finished = false; 
+    std::thread lookupThread(threadTestLookup, &tree, n, &finished);
     std::array<std::thread, numthreads> threads;
+    
+    // Start threads to insert values
     for (uint64_t i=0; i < numthreads; i++) {
-        threads[i] = std::thread(threadTest, &tree, n, numthreads, i);
+        threads[i] = std::thread(threadTestInsert, &tree, n, numthreads, i);
     }
     for (uint64_t i=0; i < numthreads; i++) {
         threads[i].join();
     }
+    
+    dbi::TID tid;
+    // Check that all values have been inserted
+    for (uint64_t i=0; i <= n; i++) {
+        ASSERT_TRUE(tree.lookup(i, tid));
+        ASSERT_EQ(i, tid);
+    }
+    
+    // Start threads to delete keys
+    for (uint64_t i=0; i < numthreads; i++) {
+        threads[i] = std::thread(threadTestErase, &tree, n, numthreads, i);
+    }
+    for (uint64_t i=0; i < numthreads; i++) {
+        threads[i].join();
+    }
+    
+    // Make sure tree is empty
     ASSERT_EQ(tree.size(), (uint64_t)0);
-
+    // Stop lookupthread
+    finished = true;
+    lookupThread.join();
 }
 

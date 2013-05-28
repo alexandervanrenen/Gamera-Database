@@ -1,7 +1,7 @@
 #include "ReadWriteSpinLock.hpp"
 #include <cassert>
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
 
 using namespace std;
 

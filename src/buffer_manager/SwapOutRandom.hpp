@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/ConcurrentOffsetHash.hpp"
+#include "util/Utility.hpp"
 
 namespace dbi {
 
@@ -15,7 +16,7 @@ public:
    BufferFrame& findPageToSwapOut(util::ConcurrentOffsetHash<PageId, BufferFrame>& bufferFrameDir)
    {
       while(true) {
-         BufferFrame& result = bufferFrameDir.data()[random() % bufferFrameDir.data().size()].value;
+         BufferFrame& result = bufferFrameDir.data()[util::ranny() % bufferFrameDir.data().size()].value;
          if(result.accessGuard.tryLockForWriting())
             return result;
       }

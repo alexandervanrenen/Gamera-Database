@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-#include "common/Config.hpp"
-#include "Segment.hpp"
 #include "BTreeMetadata.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "common/Config.hpp"
+#include "Segment.hpp"
+#include <vector>
 
 namespace dbi {
 
@@ -16,13 +16,13 @@ class SegmentManager;
 class BTreeSegment : public Segment {
 public:
     /// Constructor
-    BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const std::vector<Extent>& extents);
+    BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const ExtentStore& extents);
     virtual ~BTreeSegment() {
         bufferManager.unfixPage(*metadataFrame, true);
     }
 
-    /// Add new extent to the segment (these pages need to be initialized for proper use)
-    virtual void assignExtent(const Extent& extent);
+    /// Called by segment manager after a extent has been added to this object
+    virtual void initializeExtent(const Extent& extent);
 
     BufferFrame& getPage(PageId id, bool exclusive=kShared);
 

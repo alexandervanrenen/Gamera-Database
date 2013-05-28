@@ -1,18 +1,28 @@
 #pragma once
 
 #include "common/Config.hpp"
+#include <cassert>
+#include <sstream>
 
 namespace dbi {
 
+/// A page range. Stores at most 2^32 pages
+/// Assuming 16 KB pages one extent can hold about 64 TB
 struct Extent {
-   uint64_t numPages() const
-   {
-      return end - begin;
-   }
+   Extent(PageId begin, PageId end) : beginPage(begin), pageCount(end-begin) {assert(static_cast<uint32_t>(end-begin) == end-begin);}
 
+   uint32_t numPages() const {return pageCount;}
+
+   PageId begin() const {return beginPage;}
+   PageId end() const {return beginPage+pageCount;}
+
+   bool operator==(const Extent& other) const {return beginPage==other.beginPage && pageCount==other.pageCount;}
+   friend std::ostream& operator<<(std::ostream& out, const Extent& e) {return out << e.begin() << " " << e.end();} // TODO: to c++
+
+private:
    // Pages belonging to this extent: [begin, end)
-   PageId begin;
-   PageId end;
+   PageId beginPage;
+   uint32_t pageCount;
 };
 
 }

@@ -1,8 +1,8 @@
 #ifndef __FileNameProvider
 #define __FileNameProvider
 
-#include <string>
 #include <array>
+#include <string>
 
 class FileNameProvider {
 public:

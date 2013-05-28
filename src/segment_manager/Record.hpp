@@ -1,8 +1,10 @@
 #pragma once
 
-#include <string>
+#include "common/Config.hpp"
 #include <cstring>
+#include <string>
 #include <vector>
+#include <cassert>
 
 namespace dbi {
 
@@ -11,16 +13,19 @@ public:
    explicit Record(const char* const dataIn, unsigned length)
    : memory(length)
    {
+      assert(kMinimumRecordSize<=length && length<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn, length);
    }
    explicit Record(const std::string& dataIn)
    : memory(dataIn.size())
    {
+      assert(kMinimumRecordSize<=dataIn.size() && dataIn.size()<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn.data(), dataIn.size());
    }
    explicit Record(const std::vector<char>& dataIn)
    : memory(dataIn.size())
    {
+      assert(kMinimumRecordSize<=dataIn.size() && dataIn.size()<=kMaximumRecordSize);
       memcpy(memory.data(), dataIn.data(), dataIn.size());
    }
    Record(Record&& other)
@@ -56,10 +61,10 @@ public:
       return memory.size();
    }
 
-private:
-   std::vector<char> memory;
    Record& operator=(Record& rhs) = delete;
    Record(const Record& other) = delete;
+private:
+   std::vector<char> memory;
 };
 
 }

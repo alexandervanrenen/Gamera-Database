@@ -12,7 +12,7 @@
 #include "common/Config.hpp"
 
 // todo: adapt to your implementation
-uint64_t extractPage(dbi::TId tid)
+inline uint64_t extractPage(dbi::TupleId tid)
 {
    return tid >> 16;
 }
@@ -49,10 +49,10 @@ class Random64 {
 /**
  * Test case for non-growing segments
  */
-int run(const std::string& dbFile, uint32_t pages)
+inline int run(const std::string& dbFile, uint32_t pages)
 {
    // Bookkeeping
-   std::unordered_map<dbi::TId, unsigned> values; // TID -> testData entry
+   std::unordered_map<dbi::TupleId, unsigned> values; // TID -> testData entry
    std::unordered_map<unsigned, unsigned> usage; // pageID -> bytes used within this page
 
    // Setting everything up
@@ -81,7 +81,7 @@ int run(const std::string& dbFile, uint32_t pages)
          break;
 
       // Insert record
-      dbi::TId tid = sp.insert(dbi::Record(s.c_str(), s.size()));
+      dbi::TupleId tid = sp.insert(dbi::Record(s.c_str(), s.size()));
       assert(values.find(tid)==values.end()); // TIDs should not be overwritten
       values[tid]=r;
       unsigned pageId = extractPage(tid); // extract the pageId from the TID
@@ -95,7 +95,7 @@ int run(const std::string& dbFile, uint32_t pages)
       bool del = rnd.next()%10 == 0;
 
       // Select victim
-      dbi::TId tid = values.begin()->first;
+      dbi::TupleId tid = values.begin()->first;
       unsigned pageId = extractPage(tid);
       const std::string& value = testData[(values.begin()->second)%testData.size()];
       unsigned len = value.size();
@@ -106,7 +106,7 @@ int run(const std::string& dbFile, uint32_t pages)
       assert(memcmp(rec.data(), value.c_str(), len)==0);
 
       if (del) { // do delete
-         assert(sp.remove(tid));
+         sp.remove(tid);
          values.erase(tid);
          usage[pageId]-=len;
       }
@@ -115,7 +115,7 @@ int run(const std::string& dbFile, uint32_t pages)
    // Update some values ('usage' counter invalid from here on)
    for (unsigned i=0; i<maxUpdates; ++i) {
       // Select victim
-      dbi::TId tid = values.begin()->first;
+      dbi::TupleId tid = values.begin()->first;
 
       // Select new string/record
       uint64_t r = rnd.next()%testData.size();
@@ -128,7 +128,7 @@ int run(const std::string& dbFile, uint32_t pages)
 
    // Lookups
    for (auto p : values) {
-      dbi::TId tid = p.first;
+      dbi::TupleId tid = p.first;
       const std::string& value = testData[p.second];
       unsigned len = value.size();
       const dbi::Record& rec = sp.lookup(tid);

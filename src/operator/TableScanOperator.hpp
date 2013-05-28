@@ -2,10 +2,10 @@
 
 #include "common/Config.hpp"
 #include "Operator.hpp"
-#include "segment_manager/PageIDIterator.hpp"
 #include "OperatorState.hpp"
-#include <cstdint>
+#include "segment_manager/PageIDIterator.hpp"
 #include <array>
+#include <cstdint>
 #include <memory>
 
 namespace dbi {
@@ -22,7 +22,7 @@ public:
 
    bool next();
 
-   const Record& getOutput();
+   const std::pair<TupleId, Record>& getOutput();
 
    void close();
 
@@ -31,7 +31,7 @@ public:
 private:
    SPSegment& segment;
    PageIDIterator nextPage;
-   std::vector<Record> recordsInCurrentPage;
+   std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
    uint32_t positionInCurrentPage;
    OperatorState state;
 };

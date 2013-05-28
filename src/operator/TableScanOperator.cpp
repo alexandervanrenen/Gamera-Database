@@ -1,6 +1,6 @@
-#include "TableScanOperator.hpp"
-#include "segment_manager/SPSegment.hpp"
 #include "segment_manager/Record.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include "TableScanOperator.hpp"
 #include <iostream>
 
 using namespace std;
@@ -51,7 +51,7 @@ bool TableScanOperator::next()
    return positionInCurrentPage < recordsInCurrentPage.size();
 }
 
-const Record& TableScanOperator::getOutput()
+const pair<TupleId, Record>& TableScanOperator::getOutput()
 {
    assert(positionInCurrentPage < recordsInCurrentPage.size());
    return recordsInCurrentPage[positionInCurrentPage];

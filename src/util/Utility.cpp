@@ -1,11 +1,22 @@
 #include "Utility.hpp"
 #include <vector>
+#include <fcntl.h>
+#include <cassert>
+#include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
 namespace util {
+
+uint64_t ranny()
+{
+   static uint64_t state = 88172645463325252ull;
+   state ^= (state << 13);
+   state ^= (state >> 7);
+   return (state ^= (state << 17));
+}
 
 template<class T>
 bool createTestFileImpl(const string& fileName, uint64_t count, function<T(int)> factory)
@@ -64,24 +75,21 @@ bool foreachInFile(const string& fileName, function<void(uint64_t)> callback)
 
 bool createFile(const string& fileName, const uint64_t bytes)
 {
-   ofstream out(fileName);
-   if(!out.is_open() || !out.good())
+   if(system(("touch " + fileName).c_str()) == -1)
       return false;
-   vector<char> data(bytes);
-   out.write(data.data(), bytes);
-   out.flush();
-   if(!out.good()) {
-      remove(fileName.c_str());
+   int fileFD = open(fileName.c_str(), O_RDWR);
+   if(fcntl(fileFD, F_GETFD) == -1)
       return false;
-   }
-   return true;
+   return posix_fallocate(fileFD, 0, bytes) == 0;
 }
 
-string randomWord(uint32_t length)
+string randomWord(uint32_t min, uint32_t max)
 {
+   assert(max > min);
+   uint32_t length = ranny()%(max-min) + min;
    string word(length, '_');
    for(uint32_t i = 0; i < length; i++)
-      word[i] = 'a' + (rand() % 26);
+      word[i] = 'a' + (ranny() % 26);
    return word;
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Segment.hpp"
 #include "common/Config.hpp"
+#include "Segment.hpp"
 
 namespace dbi {
 
@@ -10,13 +10,13 @@ class BufferManager;
 class FSISegment : public Segment {
 public:
    /// Constructor
-   FSISegment(SegmentId id, BufferManager& bufferManager, const std::vector<Extent>& extents);
+   FSISegment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents);
    virtual ~FSISegment()
    {
    }
 
-   // Add new extent to the segment (these pages need to be initialized for proper use)
-   virtual void assignExtent(const Extent& extent);
+   /// Called by segment manager after a extent has been added to this object
+   virtual void initializeExtent(const Extent& extent);
 
    /// Returns number of minimum free bytes
    uint32_t getFreeBytes(PageId id) const;

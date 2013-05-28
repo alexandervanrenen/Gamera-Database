@@ -1,38 +1,42 @@
-#include "Segment.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "Segment.hpp"
+#include "ExtentStore.hpp"
 #include <cassert>
 
 using namespace std;
 
 namespace dbi {
 
-Segment::Segment(SegmentId id, BufferManager& bufferManager, const vector<Extent>& extents)
+Segment::Segment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents)
 : id(id)
 , extents(extents)
-, numPages(std::accumulate(extents.begin(), extents.end(), (uint64_t)0, [](uint64_t count, const Extent& extent) {return count+extent.numPages();}))
 , bufferManager(bufferManager)
 {
 }
 
-void Segment::assignExtent(const Extent& extent)
+uint64_t Segment::getNumPages() const
 {
-   numPages += extent.numPages();
-   for(auto& iter : extents)
-      if(extent.end == iter.begin || extent.begin == iter.end) {
-         iter = Extent {std::min(extent.begin, iter.begin), std::max(extent.end, iter.end)};
-         return;
-      }
-   extents.emplace_back(extent);
+   return extents.numPages();
+}
+
+PageIDIterator Segment::beginPageID()
+{
+   return PageIDIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageID : extents.get()[0].begin());
+}
+
+PageIDIterator Segment::endPageID()
+{
+   return PageIDIterator(extents.get(), kInvalidPageID);
 }
 
 BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const
 {
-   assert(extents.size() != 0);
+   assert(extents.get().size() != 0);
 
    // Find extent for the requested offset
-   for(auto& iter : extents)
+   for(auto& iter : extents.get())
       if(iter.numPages() > offset)
-         return bufferManager.fixPage(iter.begin + offset, exclusive);
+         return bufferManager.fixPage(iter.begin() + offset, exclusive);
       else
          offset -= iter.numPages();
 

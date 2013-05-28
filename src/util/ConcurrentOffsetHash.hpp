@@ -2,10 +2,10 @@
 
 #include "util/Math.hpp"
 #include "util/SpinLock.hpp"
-#include <vector>
-#include <iostream>
 #include <cassert>
+#include <iostream>
 #include <limits>
+#include <vector>
 
 namespace dbi {
 

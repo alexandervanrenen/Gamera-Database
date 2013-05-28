@@ -1,5 +1,8 @@
 #pragma once
 
+#include "common/Config.hpp"
+#include <utility>
+
 namespace dbi {
 
 class Record;
@@ -11,7 +14,7 @@ public:
 
    virtual bool next() = 0;
 
-   virtual const Record& getOutput() = 0;
+   virtual const std::pair<TupleId, Record>& getOutput() = 0;
 
    virtual void close() = 0;
 

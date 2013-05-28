@@ -3,9 +3,9 @@
 #include "common/Config.hpp"
 #include "util/ReadWriteSpinLock.hpp"
 #include <array>
-#include <list>
-#include <cstdint>
 #include <condition_variable>
+#include <cstdint>
+#include <list>
 
 namespace dbi {
 
@@ -13,7 +13,7 @@ namespace dbi {
 class BufferFrame {
 public:
    /// Access page memory, is mapped to disc by the buffer manager
-   char* getData();
+   char* getData(); // TODO: rename
 
 private:
    std::array<char, kPageSize> data;

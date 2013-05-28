@@ -1,15 +1,16 @@
 #pragma once
 
+#include "Persister.hpp"
 #include "Extent.hpp"
+#include "ExtentStore.hpp"
 #include <unordered_map>
-#include <vector>
 
 namespace dbi {
 
-class SISegment {
+class SegmentInventory {
 public:
    /// Constructor
-   SISegment(uint64_t numPages);
+   SegmentInventory(BufferManager& bufferManager, bool isInitialSetup);
 
    /// Create an empty segment
    SegmentId createSegment();
@@ -18,18 +19,22 @@ public:
    const Extent assignExtentToSegment(const SegmentId id, const uint32_t numPages);
 
    /// Access all extents of a given segment
-   const std::vector<Extent> getExtentsOfSegment(const SegmentId id);
+   const ExtentStore& getExtentsOfSegment(const SegmentId id);
 
    /// Remove a segment and add its extents to free list
    void dropSegment(const SegmentId id);
 
 private:
-   /// Maps a segment id to all its extents
-   std::unordered_map<SegmentId, std::vector<Extent>> segmentMap;
-   /// Stores free pages
-   std::vector<Extent> freePages;
    /// Keep track of min segment id
    SegmentId nextSegmentId;
+
+   /// Maps a segment id to all its extents
+   std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>> segmentMap;
+   /// Helps storing the segment mapping on disc
+   Persister persister;
+
+   /// Stores free pages
+   ExtentStore freePages;
 };
 
 }

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Extent.hpp"
 #include "common/Config.hpp"
-#include <vector>
+#include "Extent.hpp"
 #include <cassert>
+#include <vector>
 
 namespace dbi {
 
@@ -59,7 +59,7 @@ private:
    PageId pageID;
    const std::vector<Extent>* extents;
 
-   PageIDIterator(std::vector<Extent>& extents, PageId pageID)
+   PageIDIterator(const std::vector<Extent>& extents, PageId pageID)
    : extent(0), pageID(pageID), extents(&extents)
    {
    }
@@ -68,12 +68,12 @@ private:
    {
       assert(pageID != kInvalidPageID);
       pageID++;
-      if(pageID >= (*extents)[extent].end) {
+      if(pageID >= (*extents)[extent].end()) {
          extent++;
          if(extent >= extents->size())
             pageID = kInvalidPageID;
          else
-            pageID = (*extents)[extent].begin;
+            pageID = (*extents)[extent].begin();
       }
    }
 

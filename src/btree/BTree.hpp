@@ -1,23 +1,23 @@
 #ifndef BTREE_HPP
 #define BTREE_HPP
 
-#include <stdlib.h>
-#include <cstdint>
-#include <array>
-#include <functional>
 #include <algorithm>
-#include <iostream>
-#include <fstream>
+#include <array>
 #include <cassert>
-#include <unordered_map>
+#include <cstdint>
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <list>
 #include <mutex>
+#include <stdlib.h>
+#include <unordered_map>
 
-#include "segment_manager/BTreeSegment.hpp"
-#include "btree/BTreeBase.hpp"
-#include "btree/BTNode.hpp"
-#include "btree/BTLeafNode.hpp"
 #include "btree/BTInnerNode.hpp"
+#include "btree/BTLeafNode.hpp"
+#include "btree/BTNode.hpp"
+#include "btree/BTreeBase.hpp"
+#include "segment_manager/BTreeSegment.hpp"
 
 namespace dbi {
 

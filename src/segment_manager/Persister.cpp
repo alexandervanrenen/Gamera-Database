@@ -7,6 +7,10 @@ using namespace std;
 
 namespace dbi {
 
+namespace {
+   constexpr RecordId kLinkRecordId = RecordId(0);
+}
+
 Persister::Persister(BufferManager& bufferManager, ExtentStore& freePages)
 : bufferManager(bufferManager)
 , freePages(freePages)
@@ -19,7 +23,7 @@ void Persister::create()
    auto& frame = bufferManager.fixPage(kMetaPageId, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    sp.initialize();
-   if(sp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != 0) {
+   if(sp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != kLinkRecordId) {
       assert(false&&"assuming record id zero for first insert");
       throw;
    }
@@ -52,7 +56,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStor
 
       // Parse all records
       for(auto& iter : records) {
-         if(toRecordId(iter.first) == 0) {
+         if(iter.first.toRecordId() == kLinkRecordId) {
             // Update page id
             nextPageId = *reinterpret_cast<const PageId*>(iter.second.data());
          } else {
@@ -64,7 +68,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStor
                freePages.remove(extent);
 
             // Add to segment -> extent mapping
-            segmentMap.insert(make_pair(mapping.first , make_pair(toTID(currentPageId, iter.first), move(mapping.second))));
+            segmentMap.insert(make_pair(mapping.first , make_pair(iter.first, move(mapping.second))));
          }
       }
 
@@ -89,27 +93,27 @@ TupleId Persister::insert(SegmentId sid, const ExtentStore& extents)
          RecordId rid = sp.insert(record);
          page.freeBytes = sp.getBytesFreeForRecord();
          bufferManager.unfixPage(frame, kDirty);
-         return toTID(page.pid, rid);
+         return TupleId(page.pid, rid);
       }
    }
 
    // Otherwise structure is full => find new page
    assert(freePages.numPages() != 0);
-   Extent singlePage(freePages.get()[0].begin(), freePages.get()[0].begin()+1);
+   Extent singlePage(freePages.get()[0].begin(), PageId(freePages.get()[0].begin().toInteger()+1));
    freePages.remove(singlePage);
    PageReference newPage{0, singlePage.begin()};
 
    // Add new page to linked list
    auto& lastElementInList = bufferManager.fixPage(pages.back().pid, kExclusive);
    auto& lastSp = reinterpret_cast<SlottedPage&>(*lastElementInList.getData());
-   lastSp.update(0, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))); // Needs to work, because record has the same size
+   lastSp.update(kLinkRecordId, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))); // Needs to work, because record has the same size
    bufferManager.unfixPage(lastElementInList, kDirty);
 
    // Setup new page
    auto& newFrame = bufferManager.fixPage(newPage.pid, kExclusive);
    auto& newSp = reinterpret_cast<SlottedPage&>(*newFrame.getData());
    newSp.initialize();
-   if(newSp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != 0)
+   if(newSp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != kLinkRecordId)
       throw; // Assuming record id zero for first insert
 
    // Insert record into new page
@@ -120,7 +124,7 @@ TupleId Persister::insert(SegmentId sid, const ExtentStore& extents)
    // Remember the new page
    pages.push_back(newPage);
 
-   return toTID(newPage.pid, rid);
+   return TupleId(newPage.pid, rid);
 }
 
 TupleId Persister::update(TupleId tid, SegmentId sid, const ExtentStore& extents)
@@ -132,12 +136,12 @@ TupleId Persister::update(TupleId tid, SegmentId sid, const ExtentStore& extents
 void Persister::remove(TupleId tid)
 {
    /// Find the corresponding page and remove .. no magic here either
-   auto pid = toPageId(tid);
+   auto pid = tid.toPageId();
    for(auto& page : pages) {
       if(page.pid == pid) {
          auto& frame = bufferManager.fixPage(page.pid, kExclusive);
          auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-         sp.remove(toRecordId(tid));
+         sp.remove(tid.toRecordId());
          page.freeBytes = sp.getBytesFreeForRecord();
          bufferManager.unfixPage(frame, kDirty);
          return;

@@ -12,5 +12,4 @@ using namespace dbi;
 TEST(Config, BasicCheck)
 {
    ASSERT_TRUE(kPageSize == (1<<12) || kPageSize == (1<<13) || kPageSize == (1<<14) || kPageSize == (1<<15));
-   ASSERT_TRUE(kMetaPageId < kFirstFreePageId);
 }

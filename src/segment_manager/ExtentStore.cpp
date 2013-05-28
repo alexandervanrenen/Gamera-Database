@@ -32,14 +32,14 @@ void ExtentStore::add(const Extent& extent)
 
    // The new extent is not allowed to be inside an already existing extent
    for(auto iter : extents)
-      if( (iter.begin() <= extent.begin() && extent.begin() < iter.end())
-       || (iter.begin() < extent.end() && extent.end() <= iter.end()))
+      if( (iter.begin().toInteger() <= extent.begin().toInteger() && extent.begin().toInteger() < iter.end().toInteger())
+       || (iter.begin().toInteger() < extent.end().toInteger() && extent.end().toInteger() <= iter.end().toInteger()))
          throw util::StupidUserException("extent store: overlapping extents");
 
    // Add extent
    pageCount += extent.numPages();
    extents.emplace_back(extent);
-   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs){return lhs.begin() < rhs.begin();});
+   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs){return lhs.begin().toInteger() < rhs.begin().toInteger();});
 
    // Merge
    for(uint32_t i=0; i<extents.size()-1; i++) {
@@ -58,7 +58,7 @@ void ExtentStore::remove(const Extent& extent)
 
    // The has to be completely inside an already existing one (iterators are not stable)
    for(uint32_t i=0; i<extents.size(); i++)
-      if(extents[i].begin() <= extent.begin() && extent.end() <= extents[i].end()) {
+      if(extents[i].begin().toInteger() <= extent.begin().toInteger() && extent.end().toInteger() <= extents[i].end().toInteger()) {
          pageCount -= extent.numPages();
          // Is there a range before the removed extent ?
          if(extents[i].end() != extent.end())

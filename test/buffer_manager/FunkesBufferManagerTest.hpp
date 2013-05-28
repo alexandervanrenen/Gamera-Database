@@ -33,7 +33,7 @@ static void* scan(void * /*arg*/)
    while(!stop) {
       unsigned start = random() % (pagesOnDisk - 10);
       for(unsigned page = start; page < start + 10; page++) {
-         dbi::BufferFrame& bf = bm->fixPage(page, false);
+         dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(page), false);
          unsigned newcount = reinterpret_cast<unsigned*>(bf.getData())[0];
          assert(counters[page] <= newcount);
          counters[page] = newcount;
@@ -52,7 +52,7 @@ static void* readWrite(void *arg)
    uintptr_t count = 0;
    for(unsigned i = 0; i < 1000 / threadCount; i++) {
       bool isWrite = rand_r(&threadSeed[threadNum]) % 128 < 10;
-      dbi::BufferFrame& bf = bm->fixPage(randomPage(threadNum), isWrite);
+      dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(randomPage(threadNum)), isWrite);
 
       if(isWrite) {
          count++;
@@ -87,7 +87,7 @@ int main_funke(int argc, char** argv)
 
    // set all counters to 0
    for(unsigned i = 0; i < pagesOnDisk; i++) {
-      dbi::BufferFrame& bf = bm->fixPage(i, true);
+      dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(i), true);
       reinterpret_cast<unsigned*>(bf.getData())[0] = 0;
       bm->unfixPage(bf, true);
    }
@@ -119,7 +119,7 @@ int main_funke(int argc, char** argv)
    // check counter
    unsigned totalCountOnDisk = 0;
    for(unsigned i = 0; i < pagesOnDisk; i++) {
-      dbi::BufferFrame& bf = bm->fixPage(i, false);
+      dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(i), false);
       totalCountOnDisk += reinterpret_cast<unsigned*>(bf.getData())[0];
       bm->unfixPage(bf, false);
    }

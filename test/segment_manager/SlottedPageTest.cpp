@@ -96,20 +96,20 @@ TEST(SlottedPage, ForeignRecords)
 
     // Make foreign record and check
     uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
-    RecordId rid = slottedPage->insertForeigner(Record("fear not this night"), 8129);
+    RecordId rid = slottedPage->insertForeigner(Record("fear not this night"), TupleId(8129));
     ASSERT_EQ(slottedPage->lookup(rid), Record("fear not this night"));
     ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
-    ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
-    ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
-    ASSERT_EQ(Record("fear not this night"), slottedPage->getAllRecords(0)[0].second);
+    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageID).size());
+    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageID)[0].first);
+    ASSERT_EQ(Record("fear not this night"), slottedPage->getAllRecords(kInvalidPageID)[0].second);
 
     // Update the foreign record
-    slottedPage->updateForeigner(rid, 8129, Record("but i am afraid of the dark"));
+    slottedPage->updateForeigner(rid, TupleId(8129), Record("but i am afraid of the dark"));
     ASSERT_EQ(slottedPage->lookup(rid), Record("but i am afraid of the dark"));
     ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
-    ASSERT_EQ(1u, slottedPage->getAllRecords(0).size());
-    ASSERT_EQ(8129ull, slottedPage->getAllRecords(0)[0].first);
-    ASSERT_EQ(Record("but i am afraid of the dark"), slottedPage->getAllRecords(0)[0].second);
+    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageID).size());
+    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageID)[0].first);
+    ASSERT_EQ(Record("but i am afraid of the dark"), slottedPage->getAllRecords(kInvalidPageID)[0].second);
 
     // Remove foreign record
     slottedPage->remove(rid);
@@ -124,18 +124,18 @@ TEST(SlottedPage, ReferenceRecords)
     SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
-    TupleId tid = 8129;
+    TupleId tid = TupleId(8129);
     RecordId rid = slottedPage->insert(Record("most awesome paper ever: a system for visualizing human behavior based on car metaphors"));
 
     // Make reference and check
     slottedPage->updateToReference(rid, tid);
     ASSERT_EQ(tid, slottedPage->isReference(rid));
-    ASSERT_EQ(slottedPage->getAllRecords(0).size(), 0u);
+    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageID).size(), 0u);
     ASSERT_EQ(slottedPage->countAllRecords(), 1u);
 
     // Remove reference
     slottedPage->remove(rid);
-    ASSERT_EQ(slottedPage->getAllRecords(0).size(), 0u);
+    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageID).size(), 0u);
     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
     free(slottedPage);
@@ -208,11 +208,11 @@ TEST(SlottedPage, Randomized)
             // Do consistency check
             else if(operation<=99 || i==iterations-1 || i==0) {
                 ASSERT_TRUE(slottedPage->isValid());
-                auto records = slottedPage->getAllRecords(0); // page id does not matter
+                auto records = slottedPage->getAllRecords(kInvalidPageID); // page id does not matter
                 ASSERT_EQ(records.size(), reference.size());
                 for(auto& iter : records) {
-                    ASSERT_TRUE(reference.count(toRecordId(iter.first)) > 0);
-                    ASSERT_EQ(string(iter.second.data(), iter.second.size()), reference.find(toRecordId(iter.first))->second);
+                    ASSERT_TRUE(reference.count(iter.first.toRecordId()) > 0);
+                    ASSERT_EQ(string(iter.second.data(), iter.second.size()), reference.find(iter.first.toRecordId())->second);
                 }
                 continue;
             }

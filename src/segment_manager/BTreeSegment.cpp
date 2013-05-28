@@ -20,9 +20,9 @@ BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& buff
 void BTreeSegment::initializeExtent(const Extent& extent) {
     //std::cout << "Assigning extent with begin: " << extent.begin << ", end: " << extent.end << std::endl;
     if (getNumPages() == 0) { // first extent -> initialize metadata
-        metadataFrame = &Segment::fixPage(metadataPage, kExclusive);
+        metadataFrame = &Segment::fixPage(metadataPage.toInteger(), kExclusive);
         metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
-        metadata->nextFreePage = 1;
+        metadata->nextFreePage = PageId(1);
         metadata->numberOfPages = extent.numPages();
         metadata->numberOfPages--; // minus metadatapage
         pair<BufferFrame&, PageId> p = newPage();
@@ -35,8 +35,8 @@ void BTreeSegment::initializeExtent(const Extent& extent) {
 
 
 BufferFrame& BTreeSegment::getPage(PageId id, bool exclusive) {
-    assert(id < metadata->nextFreePage);
-    return Segment::fixPage(id, exclusive);
+    assert(id.toInteger() < metadata->nextFreePage.toInteger());
+    return Segment::fixPage(id.toInteger(), exclusive);
 }
 
 void BTreeSegment::releasePage(BufferFrame& frame, bool isDirty) {
@@ -45,12 +45,12 @@ void BTreeSegment::releasePage(BufferFrame& frame, bool isDirty) {
 
 
 pair<BufferFrame&, PageId> BTreeSegment::newPage() {
-    if (metadata->numberOfPages <= metadata->nextFreePage) {
+    if (metadata->numberOfPages <= metadata->nextFreePage.toInteger()) {
         segmentManager.growSegment(*this);
-        assert(metadata->nextFreePage < metadata->numberOfPages);
+        assert(metadata->nextFreePage.toInteger() < metadata->numberOfPages);
     }
     PageId newid = metadata->nextFreePage++;
-    return {Segment::fixPage(newid, kExclusive), newid};
+    return {Segment::fixPage(newid.toInteger(), kExclusive), newid};
 }
 
 PageId BTreeSegment::getRootPage() {

@@ -13,8 +13,8 @@ TEST(BufferManager, Simple)
    ASSERT_TRUE(dbi::util::createFile(fileName, dbi::kPageSize * 1024));
 
    dbi::BufferManager bm("swap_file", 10);
-   dbi::BufferFrame& bf0 = bm.fixPage(0, dbi::kExclusive);
-   dbi::BufferFrame& bf1 = bm.fixPage(1, dbi::kShared);
+   dbi::BufferFrame& bf0 = bm.fixPage(dbi::PageId(0), dbi::kExclusive);
+   dbi::BufferFrame& bf1 = bm.fixPage(dbi::PageId(1), dbi::kShared);
    bm.unfixPage(bf0, true);
    bm.unfixPage(bf1, false);
 

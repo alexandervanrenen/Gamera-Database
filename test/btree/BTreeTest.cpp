@@ -15,7 +15,10 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/BTreeSegment.hpp"
 
+typedef dbi::TID TID;
+
 const int CHARSIZE = 20;
+
 
 /* Comparator functor for uint64_t*/
 struct MyCustomUInt64Cmp {
@@ -94,7 +97,7 @@ void test(uint64_t n) {
     TID tid;
     for (uint64_t i=0; i<n; ++i) {
         //std::cout << i << std::endl;
-        ASSERT_TRUE(bTree.insert(getKey<T>(i),static_cast<TID>(i*i)));
+        ASSERT_TRUE(bTree.insert(getKey<T>(i),TID(i*i)));
         ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
     }
     ASSERT_EQ(bTree.size(), n);
@@ -102,7 +105,7 @@ void test(uint64_t n) {
     for (uint64_t i=0; i<n; ++i) {
         TID tid;
         ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-        ASSERT_EQ(tid, i*i);
+        ASSERT_EQ(tid, TID(i*i));
     }
    
     // Delete some values
@@ -116,7 +119,7 @@ void test(uint64_t n) {
             ASSERT_FALSE(bTree.lookup(getKey<T>(i),tid));
         } else {
             ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-            ASSERT_EQ(tid, i*i);
+            ASSERT_EQ(tid, TID(i*i));
         }
     }
     // Delete everything
@@ -147,7 +150,6 @@ TEST(BTreeTest, FunkeTestCompoundKey) {
 }
 
 TEST(BTreeTest, SimpleTest) {
-    typedef dbi::TID TID;
     const std::string fileName = "swap_file";
     const uint32_t pages = 100;
 
@@ -164,7 +166,7 @@ TEST(BTreeTest, SimpleTest) {
     EXPECT_FALSE(tree.lookup((uint64_t)2, tid));
     
     for (uint64_t i=1; i <= tree.getLeafNodeSize()+2; i++) {
-        EXPECT_TRUE(tree.insert(i, i));
+        EXPECT_TRUE(tree.insert(i, TID(i)));
         EXPECT_TRUE(tree.lookup(i, tid));
     }
 
@@ -187,9 +189,9 @@ void threadTestInsert(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthread
     dbi::TID tid;
     // Insert values into tree
     for (uint64_t i=threadid; i <= n; i+=numthreads) {
-        ASSERT_TRUE(tree->insert(i, i));
+        ASSERT_TRUE(tree->insert(i, TID(i)));
         ASSERT_TRUE(tree->lookup(i, tid));
-        ASSERT_EQ(i, tid);
+        ASSERT_EQ(TID(i), tid);
     }
 }
 
@@ -243,7 +245,7 @@ TEST(BTreeTest, ThreadTest) {
     // Check that all values have been inserted
     for (uint64_t i=0; i <= n; i++) {
         ASSERT_TRUE(tree.lookup(i, tid));
-        ASSERT_EQ(i, tid);
+        ASSERT_EQ(TID(i), tid);
     }
     
     // Start threads to delete keys

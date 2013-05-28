@@ -34,20 +34,22 @@ private:
     static_assert(sizeof(LeafNode) <= PAGESIZE, "LeafNode is bigger than a page");
 
     C c{}; 
+    template <typename V = TID>
     struct KeyCompare {
         C c{};
-        bool operator()(const Key& a, const std::pair<Key, PageId>& b) const {
+        bool operator()(const Key& a, const std::pair<Key, V>& b) const {
             return c(a, b.first);
         }
-        bool operator()(const std::pair<Key, PageId>& a, const Key& b) const {
+        bool operator()(const std::pair<Key, V>& a, const Key& b) const {
             return c(a.first, b);
         }
     };
+    template <typename V = PageId>
     struct KeyEqual {
         C c{};
         Key k;
         KeyEqual(Key k) {this->k = k;}
-        bool operator()(std::pair<Key, PageId>& a) const {
+        bool operator()(std::pair<Key, V>& a) const {
             return !c(a.first, k) && !c(k, a.first);
         }
     };
@@ -57,7 +59,7 @@ private:
     std::mutex guard;
 
     std::pair<BufferFrame*, Node*> getNode(PageId id, bool exclusive=kExclusive) {
-        assert(id != 0);
+        assert(id != kMetaPageId);
         BufferFrame& frame = bsm.getPage(id, exclusive);
         Node* node = reinterpret_cast<Node*>(frame.getData());
         if (node->nodeType == Node::typeInner) {
@@ -146,7 +148,7 @@ public:
     
     template <uint64_t N, typename V = TID>
     void insertLeafValue(std::array<std::pair<Key, V>, N>& values, uint64_t& nextindex, Key k, V tid) {
-        auto it = std::upper_bound(values.begin(), values.begin()+nextindex, k, KeyCompare());
+        auto it = std::upper_bound(values.begin(), values.begin()+nextindex, k, KeyCompare<V>());
         if (it == values.end()) { // insert value at the end
             values[nextindex++] = {k, tid};
         } else { // shift all elements after insert position to make room
@@ -207,12 +209,12 @@ public:
                 if (parentframe != nullptr) releaseNode(parentframe, true);
                 PageId childId;
                 // Find correct child
-                it = std::upper_bound(innernode->values.begin(), innernode->values.begin()+innernode->nextindex, k, KeyCompare());
+                it = std::upper_bound(innernode->values.begin(), innernode->values.begin()+innernode->nextindex, k, KeyCompare<PageId>());
                 if (it != innernode->values.begin()+innernode->nextindex) { // Not last pointer
-                    assert((*it).second != 0);
+                    assert((*it).second != kMetaPageId);
                     childId = (*it).second;
                 } else { // last pointer
-                    assert(innernode->rightpointer != 0);
+                    assert(innernode->rightpointer != kMetaPageId);
                     childId = innernode->rightpointer;
                 }
                 std::pair<BufferFrame*, Node*> p = getNode(childId, true);
@@ -224,7 +226,7 @@ public:
                 LeafNode* leaf = castLeaf(node);
                 assert(leaf != nullptr);
                 std::pair<Key, PageId> res = insertInLeaf(leaf, k, tid);
-                if (res.second != (PageId)0) { // overflow in leaf
+                if (res.second != kMetaPageId) { // overflow in leaf
                     //std::cout << "Overflow in leaf node\n";
                     if (parentnode == nullptr) { // Leaf is root node
                         std::pair<BufferFrame*, InnerNode*> proot = newInnerNode();
@@ -284,7 +286,7 @@ public:
         assert(leaf != nullptr);
         if (leaf->nextindex < leaf->values.size()) { // node is not full
             insertLeafValue<LeafNode::numkeys>(leaf->values, leaf->nextindex, k, tid);
-            return {k, 0};
+            return {k, kMetaPageId};
         }
         // Node is full -> split
         //std::cout << "Overflow in leaf node " << leaf->pageId << std::endl;
@@ -292,7 +294,7 @@ public:
         LeafNode* leaf2 = p.second;
         uint64_t leaf1size = (LeafNode::numkeys)/ 2;
         uint64_t leaf2size = (LeafNode::numkeys)-leaf1size;
-        auto it = std::upper_bound(leaf->values.begin(), leaf->values.begin()+leaf->nextindex, k, KeyCompare()); // find insert position
+        auto it = std::upper_bound(leaf->values.begin(), leaf->values.begin()+leaf->nextindex, k, KeyCompare<TID>()); // find insert position
         auto itmiddle = leaf->values.begin()+leaf1size; // first element to be moved to new leaf
         
         if (it < itmiddle) {
@@ -323,13 +325,13 @@ public:
         
         InnerNode* castnode = castInner(rootnode);
         while (castnode != nullptr) {
-            auto it = std::upper_bound(castnode->values.begin(), castnode->values.begin()+castnode->nextindex, k, KeyCompare());
+            auto it = std::upper_bound(castnode->values.begin(), castnode->values.begin()+castnode->nextindex, k, KeyCompare<PageId>());
             PageId childId;
             if (it != castnode->values.begin()+castnode->nextindex) {
-                assert((*it).second != 0);
+                assert((*it).second != kMetaPageId);
                 childId = (*it).second;
             } else {
-                assert(castnode->rightpointer != 0);
+                assert(castnode->rightpointer != kMetaPageId);
                 childId = castnode->rightpointer;
             }
             std::pair<BufferFrame*, Node*> p = getNode(childId);
@@ -348,7 +350,7 @@ public:
     bool lookup(Key k, TID& tid) {
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
-        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual(k));
+        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(k));
         if (it != leafnode->values.begin()+leafnode->nextindex) {
             tid = (*it).second;
             releaseNode(p.first, false);
@@ -363,7 +365,7 @@ public:
     bool erase(Key k) {
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
-        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual(k));
+        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(k));
         if (it != leafnode->values.begin()+leafnode->nextindex) {
             std::move(it+1, leafnode->values.begin()+leafnode->nextindex, it);
             leafnode->nextindex--;
@@ -398,7 +400,7 @@ public:
         assert(leafnode != nullptr);
      
         uint64_t count = leafnode->nextindex;
-        while (leafnode->nextpage != (PageId)0) {
+        while (leafnode->nextpage != kMetaPageId) {
             PageId next = leafnode->nextpage;
             std::pair<BufferFrame*, Node*> p = getNode(next);
             releaseNode(nodeframe, false);
@@ -435,7 +437,7 @@ public:
             if (it == node->values.begin()+node->nextindex) {
                 PageId id = node->nextpage;
                 tree->releaseNode(frame, false);
-                if (id != 0) {
+                if (id != kMetaPageId) {
                     std::pair<BufferFrame*, Node*> p = tree->getNode(id);
                     node = tree->castLeaf(p.second);
                     frame = p.first;
@@ -498,7 +500,7 @@ public:
     Iterator lookupRange(Key first, Key last) { 
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(first);
         LeafNode* leafnode = p.second;
-        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual(first));
+        auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(first));
         if (it != leafnode->values.begin()+leafnode->nextindex)
             return *new Iterator{this, p.first, leafnode, it, last};
         else
@@ -510,7 +512,7 @@ public:
     }
     
     void visualizeNode(std::ofstream& out, PageId id) {
-        assert(id != 0);
+        assert(id != kMetaPageId);
         std::pair<BufferFrame*, Node*> p;
         if (id == rootnode->pageId)
             p = {rootframe, rootnode};

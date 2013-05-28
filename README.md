@@ -63,3 +63,30 @@ Einige Probleme in der Implementierung:
 
 * Valgrind scheint mit dem SpinLock im BufferManager nicht klar zu kommen, dieser kann über die using Anweisung: "using LockType = util::SpinLock;" im BufferManager Header File geändert werden. (Einfach auf eine std::mutex setzen, falls du es valgrinden möchtest).
 * Kein guter Test für die Verdrängungs Algorithmen, da es schwer ist das Verhalten einer Datenbank zu simulieren.
+
+Segment Manager
+===============
+
+The segment manager creates Segments upon pages. One Segment is the SPSegment, which serves as a primary means for storing data in out database system. Some general information:
+
+* The SegmentIventory stores the mapping from SegmentId to its Extents for every Segment in a persistent way. (physical)
+* The SegmentManger uses the SegmentInventory to create Segment objects from this mapping. (logical)
+* There is exactly one FreeSpaceInventory which keeps track of the free bytes of each page in the system.
+
+Segment Inventory
+-----------------
+
+* Uses a Persister object to store the SegmentId to Extents mapping on disc. The Persister maintains a linked list of Pages containing the mapping data. Whenever a new Segment is created a new entry is inserted. A update will trigger an update on the page and a drop segment will remove the mapping entry. This approach allows for constant time updates.
+* When restarting the database the Persister crawls through the linked list of meta pages and restores the SegmentId to Extent mapping. Knowing which segments are used we can easily construct the free pages. Our global free space inventory is treated as a normal segment and therefore loaded afterwards.
+
+Slotted Pages
+-------------
+
+* Uses slots to keep track of used records. A slot consists of a 16 bit offset and 16 bit length. The most significant bit in both values is used to encode the type of record: Normal Record, Redirected to another page record (called reference), Redirected from another page record (called foreigner) and a unused memory slot.
+
+Features
+--------
+
+* Slotted Pages allow for slot reuse and defragmentation.
+* SPSegment guarantees that an update is always possible by allowing for overflow records with a maximum chain length of one.
+* Extensive testing.

@@ -3,11 +3,10 @@
 #include "TupleId.hpp"
 #include "PageId.hpp"
 #include "RecordId.hpp"
+#include "SegmentId.hpp"
 #include <cstdint>
 
 namespace dbi {
-
-using SegmentId = uint64_t;
 
 /// The size of a page, has to be a power of two and between 4KB and 32KB
 static const uint32_t kPageSize = 1 << 14;
@@ -17,7 +16,7 @@ static constexpr PageId kInvalidPageID = PageId(-1);
 static constexpr RecordId kInvalidRecordID = RecordId(-1);
 
 /// Use same id for free space inventory
-static const SegmentId kFreeSpaceInventoryId = 0;
+static const SegmentId kFreeSpaceInventoryId = SegmentId(0);
 
 /// The first page in a linked list like structure of pages used to store the SI.
 static const PageId kMetaPageId = PageId(0);

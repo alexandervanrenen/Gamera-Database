@@ -29,12 +29,12 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       freeSpaceInventory->initializeExtent(extent);
    } else {
       // Load free space inventory
-      SegmentId fsiID = 1;
+      SegmentId fsiID = kFreeSpaceInventoryId;
       auto& extents = segmentInventory->getExtentsOfSegment(fsiID);
       freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, extents);
    }
 
-   assert(freeSpaceInventory->getId() == 1); // for now bitches =) .. move this to meta segment later
+   assert(freeSpaceInventory->getId() == kFreeSpaceInventoryId); // for now bitches =) .. move this to meta segment later
 }
 
 SegmentManager::~SegmentManager()

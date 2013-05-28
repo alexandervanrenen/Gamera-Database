@@ -17,11 +17,11 @@ class Persister {
 public:
    Persister(BufferManager& bufferManager, ExtentStore& freePages);
    void create();
-   void load(std::unordered_map<SegmentId, std::pair<TId, ExtentStore>>& segmentMap);
+   void load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap);
 
-   TId insert(SegmentId sid, const ExtentStore& extents);
-   TId update(TId tid, SegmentId sid, const ExtentStore& extents);
-   void remove(TId tid);
+   TupleId insert(SegmentId sid, const ExtentStore& extents);
+   TupleId update(TupleId tid, SegmentId sid, const ExtentStore& extents);
+   void remove(TupleId tid);
 
 private:
    BufferManager& bufferManager;

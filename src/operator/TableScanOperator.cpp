@@ -51,7 +51,7 @@ bool TableScanOperator::next()
    return positionInCurrentPage < recordsInCurrentPage.size();
 }
 
-const pair<TId, Record>& TableScanOperator::getOutput()
+const pair<TupleId, Record>& TableScanOperator::getOutput()
 {
    assert(positionInCurrentPage < recordsInCurrentPage.size());
    return recordsInCurrentPage[positionInCurrentPage];

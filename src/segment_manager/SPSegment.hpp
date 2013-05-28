@@ -19,11 +19,11 @@ public:
    virtual void initializeExtent(const Extent& extent);
 
    /// Operations on records
-   TId insert(const Record& record);
-   Record lookup(TId id);
-   void remove(TId tId);
-   void update(TId tId, const Record& record);
-   std::vector<std::pair<TId, Record>> getAllRecordsOfPage(PageId pageId);
+   TupleId insert(const Record& record);
+   Record lookup(TupleId id);
+   void remove(TupleId tId);
+   void update(TupleId tId, const Record& record);
+   std::vector<std::pair<TupleId, Record>> getAllRecordsOfPage(PageId pageId);
 
 private:
    SegmentManager& segmentManager;
@@ -31,7 +31,7 @@ private:
    /// Looks for a page in this segment large enough to hold length (grows if not found)
    PageId aquirePage(uint16_t length);
    /// Insert record on a new page
-   TId insertForeigner(TId originalTId, const Record& record);
+   TupleId insertForeigner(TupleId originalTupleId, const Record& record);
 };
 
 }

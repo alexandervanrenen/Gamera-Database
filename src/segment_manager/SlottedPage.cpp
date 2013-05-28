@@ -30,13 +30,13 @@ RecordId SlottedPage::insert(const Record& record)
    return slot - slotBegin();
 }
 
-RecordId SlottedPage::insertForeigner(const Record& record, TId tid)
+RecordId SlottedPage::insertForeigner(const Record& record, TupleId tid)
 {
    assert(canHoldForeignRecord(record));
    Slot* slot = prepareSlotForInsert(record.size() + sizeof(tid));
    *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
-   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
-   memcpy(data.data()+slot->getOffset()+sizeof(TId), record.data(), record.size());
+   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TupleId));
+   memcpy(data.data()+slot->getOffset()+sizeof(TupleId), record.data(), record.size());
    return slot - slotBegin();
 }
 
@@ -49,8 +49,8 @@ Record SlottedPage::lookup(RecordId rid) const
 
    // Record was originally on another page => ignore the first 8 byte (they keep original TID)
    if(result->isRedirectedFromOtherPage()) {
-      assert(result->getLength() > sizeof(TId));
-      return Record(data.data()+result->getOffset()+sizeof(TId), result->getLength()-sizeof(TId));
+      assert(result->getLength() > sizeof(TupleId));
+      return Record(data.data()+result->getOffset()+sizeof(TupleId), result->getLength()-sizeof(TupleId));
    }
 
    // Normal record
@@ -60,12 +60,12 @@ Record SlottedPage::lookup(RecordId rid) const
     throw;
 }
 
-TId SlottedPage::isReference(RecordId rid) const
+TupleId SlottedPage::isReference(RecordId rid) const
 {
    assert(rid < slotCount);
    const Slot* result = slotBegin() + rid;
    if(result->isRedirectedToOtherPage())
-      return *reinterpret_cast<const TId*>(data.data()+result->getOffset());
+      return *reinterpret_cast<const TupleId*>(data.data()+result->getOffset());
       return kInvalidTupleID;
 }
 
@@ -77,22 +77,22 @@ void SlottedPage::update(RecordId recordId, const Record& newRecord)
    memcpy(data.data() + slot->getOffset(), newRecord.data(), newRecord.size());
 }
 
-void SlottedPage::updateForeigner(RecordId rid, TId tid, const Record& newRecord)
+void SlottedPage::updateForeigner(RecordId rid, TupleId tid, const Record& newRecord)
 {
    assert(canUpdateForeignRecord(rid, newRecord));
-   assert(*reinterpret_cast<TId*>(data.data()+(slotBegin()+rid)->getOffset()) == tid);
-   Slot* slot = prepareSlotForUpdate(rid, newRecord.size() + sizeof(TId));
+   assert(*reinterpret_cast<TupleId*>(data.data()+(slotBegin()+rid)->getOffset()) == tid);
+   Slot* slot = prepareSlotForUpdate(rid, newRecord.size() + sizeof(TupleId));
    *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedFromOtherPage);
-   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TId));
-   memcpy(data.data()+slot->getOffset()+sizeof(TId), newRecord.data(), newRecord.size());
+   memcpy(data.data()+slot->getOffset(), &tid, sizeof(TupleId));
+   memcpy(data.data()+slot->getOffset()+sizeof(TupleId), newRecord.data(), newRecord.size());
 }
 
-void SlottedPage::updateToReference(RecordId rid, TId tid)
+void SlottedPage::updateToReference(RecordId rid, TupleId tid)
 {
-   assert(canUpdateRecord(rid, Record(reinterpret_cast<char*>(&tid), sizeof(TId))));
-   Slot* slot = prepareSlotForUpdate(rid, sizeof(TId));
+   assert(canUpdateRecord(rid, Record(reinterpret_cast<char*>(&tid), sizeof(TupleId))));
+   Slot* slot = prepareSlotForUpdate(rid, sizeof(TupleId));
    *slot = Slot(slot->getOffset(), slot->getLength(), Slot::Type::kRedirectedToOtherPage);
-   memcpy(data.data() + slot->getOffset(), reinterpret_cast<char*>(&tid), sizeof(TId));
+   memcpy(data.data() + slot->getOffset(), reinterpret_cast<char*>(&tid), sizeof(TupleId));
 }
 
 void SlottedPage::remove(RecordId rId)
@@ -120,7 +120,7 @@ bool SlottedPage::canHoldRecord(const Record& record) const
 
 bool SlottedPage::canHoldForeignRecord(const Record& record) const
 {
-   return getBytesFreeForRecord() >= record.size() + sizeof(TId);
+   return getBytesFreeForRecord() >= record.size() + sizeof(TupleId);
 }
 
 bool SlottedPage::canUpdateRecord(RecordId rid, const Record& newRecord) const
@@ -138,13 +138,13 @@ bool SlottedPage::canUpdateForeignRecord(RecordId rid, const Record& newRecord) 
    assert(rid < slotCount);
    assert(result->getOffset() != 0);
    assert(result->getLength() > 0);
-   return freeBytes + result->getLength() >= newRecord.size() + sizeof(TId);
+   return freeBytes + result->getLength() >= newRecord.size() + sizeof(TupleId);
 }
 
-vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
+vector<pair<TupleId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
 {
    // Find all slots with data
-   vector<pair<TId, Record>> result;
+   vector<pair<TupleId, Record>> result;
    result.reserve(slotCount);
    for(auto slot = slotBegin(); slot != slotEnd(); slot++) {
       // Normal record
@@ -152,7 +152,7 @@ vector<pair<TId, Record>> SlottedPage::getAllRecords(PageId thisPageId) const
          result.emplace_back(make_pair(toTID(thisPageId, slot-slotBegin()), Record(data.data() + slot->getOffset(), slot->getLength())));
       // Strip TID from foreign records
       if(slot->isRedirectedFromOtherPage())
-         result.emplace_back(make_pair(*reinterpret_cast<const TId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset()+sizeof(TId), slot->getLength()-sizeof(TId))));
+         result.emplace_back(make_pair(*reinterpret_cast<const TupleId*>(data.data()+slot->getOffset()), Record(data.data()+slot->getOffset()+sizeof(TupleId), slot->getLength()-sizeof(TupleId))));
       // Skip references
    }
    return result;

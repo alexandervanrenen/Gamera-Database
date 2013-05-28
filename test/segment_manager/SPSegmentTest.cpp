@@ -30,7 +30,7 @@ TEST(SPSegment, SPSegmentSimple)
    // Insert and look up
    string data = "the clown is down";
    Record record(data);
-   TId tid = segment.insert(record);
+   TupleId tid = segment.insert(record);
    ASSERT_EQ(record, segment.lookup(tid));
 
    // Update existing page with value not longer than existing
@@ -71,8 +71,8 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Trigger local update: p1:[1=small, 2=big] p2:[] p3:[]
-   TId tid1 = segment.insert(smallRecord);
-   TId tid2 = segment.insert(smallRecord);
+   TupleId tid1 = segment.insert(smallRecord);
+   TupleId tid2 = segment.insert(smallRecord);
    segment.update(tid2, bigRecord2);
 
    // Trigger a non page local update: p1:[2=big] p2:[1=big] p3:[]
@@ -86,8 +86,8 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    ASSERT_EQ(bigRecord2, segment.lookup(tid2));
 
    // Trigger update on reference value with overflow: p1:[2=big, 3=medium] p2:[1=big] p3:[4=big]
-   TId tid3 = segment.insert(memdiumRecord);
-   TId tid4 = segment.insert(smallRecord);
+   TupleId tid3 = segment.insert(memdiumRecord);
+   TupleId tid4 = segment.insert(smallRecord);
    segment.update(tid4, memdiumRecord);
    segment.update(tid4, bigRecord3);
    ASSERT_EQ(bigRecord3, segment.lookup(tid4));
@@ -127,12 +127,12 @@ TEST(SPSegment, Randomized)
       auto segmentManager = util::make_unique<SegmentManager>(bufferManager, true);
       SegmentId id = segmentManager->createSegment(SegmentType::SP, 10);
       SPSegment* segment = &segmentManager->getSPSegment(id);
-      unordered_map<TId, string> reference;
+      unordered_map<TupleId, string> reference;
 
       // Add some initial data
       for(uint32_t i=0; i<kPageSize/3/32; i++) {
          string data = util::randomWord(8, kMaxWordSize);
-         TId id = segment->insert(Record(data));
+         TupleId id = segment->insert(Record(data));
          ASSERT_TRUE(reference.count(id) == 0);
          reference.insert(make_pair(id, data));
          // cout << "initial insert " << id << " -> " << data << endl;
@@ -145,7 +145,7 @@ TEST(SPSegment, Randomized)
          // Do insert
          if(operation <= 40) {
             string data = util::randomWord(8, kMaxWordSize);
-            TId id = segment->insert(Record(data));
+            TupleId id = segment->insert(Record(data));
             ASSERT_TRUE(reference.count(id) == 0);
             reference.insert(make_pair(id, data));
             // cout << "insert " << id << " -> " << data << endl;
@@ -157,7 +157,7 @@ TEST(SPSegment, Randomized)
                continue;
             auto iter = reference.begin();
             advance(iter, random()%reference.size());
-            TId id = iter->first;
+            TupleId id = iter->first;
             Record record = segment->lookup(id);
             ASSERT_EQ(string(record.data(), record.size()), iter->second);
             segment->remove(id);
@@ -171,7 +171,7 @@ TEST(SPSegment, Randomized)
                continue;
             auto iter = reference.begin();
             advance(iter, random()%reference.size());
-            TId id = iter->first;
+            TupleId id = iter->first;
             ASSERT_EQ(string(segment->lookup(id).data(), segment->lookup(id).size()), iter->second);
             string data = util::randomWord(kMaxWordSize, 4*kMaxWordSize);
             segment->update(id, Record(data));
@@ -193,7 +193,7 @@ TEST(SPSegment, Randomized)
             dbi::TableScanOperator scanner(*segment);
             scanner.open();
             while(scanner.next()) {
-               const std::pair<dbi::TId, dbi::Record>& record = scanner.getOutput();
+               const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getOutput();
                ASSERT_TRUE(reference.count(record.first) > 0);
                ASSERT_EQ(string(record.second.data(), record.second.size()), reference.find(record.first)->second);
             }

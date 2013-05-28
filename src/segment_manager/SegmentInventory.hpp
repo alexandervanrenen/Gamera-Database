@@ -29,7 +29,7 @@ private:
    SegmentId nextSegmentId;
 
    /// Maps a segment id to all its extents
-   std::unordered_map<SegmentId, std::pair<TId, ExtentStore>> segmentMap;
+   std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>> segmentMap;
    /// Helps storing the segment mapping on disc
    Persister persister;
 

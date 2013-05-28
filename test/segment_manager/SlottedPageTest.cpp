@@ -124,7 +124,7 @@ TEST(SlottedPage, ReferenceRecords)
     SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
     slottedPage->initialize();
 
-    TId tid = 8129;
+    TupleId tid = 8129;
     RecordId rid = slottedPage->insert(Record("most awesome paper ever: a system for visualizing human behavior based on car metaphors"));
 
     // Make reference and check

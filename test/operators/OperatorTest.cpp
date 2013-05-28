@@ -45,10 +45,10 @@ TEST(Operator, TableScan)
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Insert some values
-   std::unordered_map<dbi::TId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
+   std::unordered_map<dbi::TupleId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
    for(uint32_t i = 0; i < 100; i++) {
       std::string data = dbi::util::randomWord(8, 64);
-      dbi::TId id = segment.insert(dbi::Record(data));
+      dbi::TupleId id = segment.insert(dbi::Record(data));
       records.insert(std::make_pair(id, dbi::Record(data)));
    }
 
@@ -56,7 +56,7 @@ TEST(Operator, TableScan)
    dbi::TableScanOperator scanner(segment);
    scanner.open();
    while(scanner.next()) {
-      const std::pair<dbi::TId, dbi::Record>& record = scanner.getOutput();
+      const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getOutput();
       ASSERT_TRUE(records.count(record.first) > 0);
       ASSERT_TRUE(record.second == records.find(record.first)->second);
       records.erase(record.first);
@@ -70,7 +70,7 @@ TEST(Operator, TableScan)
    // TableScanOperator scanner(segment);
    // scanner.open();
    // while(scanner.next()) {
-   //    const pair<TId, Record>& record = scanner.getOutput();
+   //    const pair<TupleId, Record>& record = scanner.getOutput();
    //    ASSERT_TRUE(record.first == tid1 || record.first == tid2);
    //    if(record.first == tid1)
    //       ASSERT_TRUE(record.second == bigRecord3); else

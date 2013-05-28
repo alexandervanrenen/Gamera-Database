@@ -32,7 +32,7 @@ void SPSegment::initializeExtent(const Extent& extent)
    }
 }
 
-TId SPSegment::insert(const Record& record)
+TupleId SPSegment::insert(const Record& record)
 {
    PageId pid = aquirePage(record.size());
    auto& frame = bufferManager.fixPage(pid, kExclusive);
@@ -43,13 +43,13 @@ TId SPSegment::insert(const Record& record)
    return toTID(pid, rid);
 }
 
-Record SPSegment::lookup(TId id)
+Record SPSegment::lookup(TupleId id)
 {
    assert(any_of(beginPageID(), endPageID(), [id](const PageId& pid) {return pid==toPageId(id);}));
 
    auto& frame = bufferManager.fixPage(toPageId(id), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   TId remoteId = sp.isReference(toRecordId(id));
+   TupleId remoteId = sp.isReference(toRecordId(id));
    if(remoteId == kInvalidTupleID) {
       Record result = sp.lookup(toRecordId(id));
       bufferManager.unfixPage(frame, kClean);
@@ -59,34 +59,34 @@ Record SPSegment::lookup(TId id)
    return lookup(remoteId);
 }
 
-void SPSegment::remove(TId tId)
+void SPSegment::remove(TupleId tId)
 {
    assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid) {return pid==toPageId(tId);}));
    auto& frame = bufferManager.fixPage(toPageId(tId), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   TId remoteTId = sp.isReference(toRecordId(tId));
+   TupleId remoteTupleId = sp.isReference(toRecordId(tId));
    sp.remove(toRecordId(tId));
    bufferManager.unfixPage(frame, kDirty);
-   if(remoteTId != kInvalidTupleID)
-      remove(remoteTId);
+   if(remoteTupleId != kInvalidTupleID)
+      remove(remoteTupleId);
 }
 
-TId SPSegment::insertForeigner(TId originalTId, const Record& record) {
+TupleId SPSegment::insertForeigner(TupleId originalTupleId, const Record& record) {
    /// Find page and insert foreign record
-   PageId pid = aquirePage(record.size() + sizeof(TId));
+   PageId pid = aquirePage(record.size() + sizeof(TupleId));
    auto& frame = bufferManager.fixPage(pid, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   RecordId rid = sp.insertForeigner(record, originalTId);
+   RecordId rid = sp.insertForeigner(record, originalTupleId);
    segmentManager.getFSISegment().setFreeBytes(pid, sp.getBytesFreeForRecord());
    bufferManager.unfixPage(frame, kDirty);
    return toTID(pid, rid);
 }
 
-void SPSegment::update(TId tid, const Record& record)
+void SPSegment::update(TupleId tid, const Record& record)
 {
    auto& frame = bufferManager.fixPage(toPageId(tid), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
-   TId remoteId = sp.isReference(toRecordId(tid));
+   TupleId remoteId = sp.isReference(toRecordId(tid));
 
    // Case 1 - Record is on a single
    if(remoteId == kInvalidTupleID) {
@@ -98,7 +98,7 @@ void SPSegment::update(TId tid, const Record& record)
          return;
       }
       // Store on some other page and add reference on original page
-      TId remoteId = insertForeigner(tid, record);
+      TupleId remoteId = insertForeigner(tid, record);
       sp.updateToReference(toRecordId(tid), remoteId);
       segmentManager.getFSISegment().setFreeBytes(toPageId(tid), sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
@@ -131,7 +131,7 @@ void SPSegment::update(TId tid, const Record& record)
          bufferManager.unfixPage(frame2, kDirty);
 
          // Store on some other page and add reference on original page
-         TId remoteId = insertForeigner(tid, record);
+         TupleId remoteId = insertForeigner(tid, record);
          sp.updateToReference(toRecordId(tid), remoteId);
          bufferManager.unfixPage(frame, kDirty);
          return;
@@ -140,7 +140,7 @@ void SPSegment::update(TId tid, const Record& record)
    throw;
 }
 
-vector<pair<TId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
+vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
 {
    auto& frame = bufferManager.fixPage(pageId, kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());

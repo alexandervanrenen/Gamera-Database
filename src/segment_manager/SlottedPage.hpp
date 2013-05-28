@@ -20,22 +20,22 @@ public:
    RecordId insert(const Record& record);
 
    /// Store a record from another page here
-   RecordId insertForeigner(const Record& record, TId originalPosition);
+   RecordId insertForeigner(const Record& record, TupleId originalPosition);
 
    /// Lookup a record -- The TID which is added to each foreign record is stripped away.
    Record lookup(RecordId id) const;
 
    /// Determines whether the record is really on this page -- kInvailTupleId if so otherwise the referenced page
-   TId isReference(RecordId rid) const;
+   TupleId isReference(RecordId rid) const;
 
    /// Update record -- assumes canUpdateRecord
    void update(RecordId rid, const Record& newRecord);
 
    /// Update record -- assumes canUpdateForeignRecord
-   void updateForeigner(RecordId rid, TId remoteTId, const Record& newRecord); // TODO: remove rid
+   void updateForeigner(RecordId rid, TupleId remoteTupleId, const Record& newRecord); // TODO: remove rid
 
    /// Use this if record could not be updated in-page
-   void updateToReference(RecordId rid, TId newLocation);
+   void updateToReference(RecordId rid, TupleId newLocation);
 
    /// Remove the given rid
    void remove(RecordId rid);
@@ -47,7 +47,7 @@ public:
    bool canUpdateForeignRecord(RecordId rid, const Record& newRecord) const;
 
    /// Get all Records actually on this pages (will ignore reference records and use foreign records)
-   std::vector<std::pair<TId, Record>> getAllRecords(PageId thisPageId) const;
+   std::vector<std::pair<TupleId, Record>> getAllRecords(PageId thisPageId) const;
 
    /// Gets the number of bytes of this slotted page which have not been used yet.
    /// This value is directly returned only if there is a slot which can be reused for a respective insert.

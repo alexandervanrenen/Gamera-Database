@@ -19,7 +19,7 @@ SegmentInventory::SegmentInventory(BufferManager& bufferManager, bool isInitialS
 SegmentId SegmentInventory::createSegment()
 {
    SegmentId sid = ++nextSegmentId;
-   TId tid = persister.insert(sid, ExtentStore());
+   TupleId tid = persister.insert(sid, ExtentStore());
    segmentMap.insert(make_pair(sid, make_pair(tid, ExtentStore())));
    return sid;
 }

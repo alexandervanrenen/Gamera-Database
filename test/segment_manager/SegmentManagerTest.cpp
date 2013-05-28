@@ -51,7 +51,7 @@ TEST(SegmentManager, PersistentSISingle)
 
    ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
    SegmentId sid1;
-   TId tid;
+   TupleId tid;
 
    // Create
    {

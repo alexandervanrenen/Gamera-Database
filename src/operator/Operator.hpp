@@ -14,7 +14,7 @@ public:
 
    virtual bool next() = 0;
 
-   virtual const std::pair<TId, Record>& getOutput() = 0;
+   virtual const std::pair<TupleId, Record>& getOutput() = 0;
 
    virtual void close() = 0;
 

@@ -33,7 +33,7 @@ void Persister::create()
    freePages.add(Extent {kFirstFreePageId, PageId(bufferManager.getNumDiscPages())});
 }
 
-void Persister::load(std::unordered_map<SegmentId, std::pair<TId, ExtentStore>>& segmentMap)
+void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap)
 {
    freePages.add(Extent {kFirstFreePageId, PageId(bufferManager.getNumDiscPages())});
    PageId currentPageId = kMetaPageId;
@@ -72,7 +72,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TId, ExtentStore>>&
    } while(nextPageId != kMetaPageId);
 }
 
-TId Persister::insert(SegmentId sid, const ExtentStore& extents)
+TupleId Persister::insert(SegmentId sid, const ExtentStore& extents)
 {
    /// Find a nice spot and do the insert .. no magic here
    Record record = marshall(sid, extents);
@@ -123,13 +123,13 @@ TId Persister::insert(SegmentId sid, const ExtentStore& extents)
    return toTID(newPage.pid, rid);
 }
 
-TId Persister::update(TId tid, SegmentId sid, const ExtentStore& extents)
+TupleId Persister::update(TupleId tid, SegmentId sid, const ExtentStore& extents)
 {
    remove(tid); // TODO optimize
    return insert(sid, extents);
 }
 
-void Persister::remove(TId tid)
+void Persister::remove(TupleId tid)
 {
    /// Find the corresponding page and remove .. no magic here either
    auto pid = toPageId(tid);

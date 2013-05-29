@@ -6,6 +6,7 @@
 -include test/btree/LocalMakefile
 -include test/util/LocalMakefile
 -include test/config/LocalMakefile
+-include test/ext_hash_table/LocalMakefile
 
-test_files += $(test_util_files) $(test_external_sort_files) $(test_buffer_manager_files) $(test_operators_files) $(test_segment_manager_files) $(test_btree_files) $(test_config_files)
+test_files += $(test_util_files) $(test_external_sort_files) $(test_buffer_manager_files) $(test_operators_files) $(test_segment_manager_files) $(test_btree_files) $(test_config_files) $(test_ext_hash_table_files)
 

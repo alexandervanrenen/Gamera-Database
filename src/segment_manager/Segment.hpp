@@ -26,9 +26,9 @@ public:
    uint64_t numPages() const;
 
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
-   PageIDIterator beginPageID();
-   PageIDIterator findPageID(PageId pid); // TODO const
-   PageIDIterator endPageID();
+   PageIDIterator beginPageID() const;
+   PageIDIterator findPageID(PageId pid) const;
+   PageIDIterator endPageID() const;
 
    /// Get extents for this segment (extent is added by the segment inventory)
    virtual const Extent grow() = 0;

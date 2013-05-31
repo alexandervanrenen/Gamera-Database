@@ -23,7 +23,7 @@ public:
 
    constexpr uint64_t toInteger() const {return tid;}
 
-   friend std::ostream& operator<< (std::ostream& out, TupleId& tid) {return out << tid;}
+   friend std::ostream& operator<< (std::ostream& out, TupleId& tid) {return out << tid.tid;}
 
 private:
    uint64_t tid;

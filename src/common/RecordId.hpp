@@ -14,7 +14,7 @@ public:
    constexpr bool operator== (const RecordId& other) const {return rid == other.rid;}
    constexpr bool operator!= (const RecordId& other) const {return rid != other.rid;}
 
-   friend std::ostream& operator<< (std::ostream& out, RecordId& rid) {return out << rid;}
+   friend std::ostream& operator<< (std::ostream& out, RecordId& rid) {return out << rid.rid;}
 
    constexpr uint16_t toInteger() const {return rid;}
 

@@ -19,7 +19,7 @@ public:
    const PageId operator++() {return PageId(pid++);}
    const PageId& operator++(int) {pid++; return *this;}
 
-   friend std::ostream& operator<< (std::ostream& out, const PageId& pid) {return out << pid;}
+   friend std::ostream& operator<< (std::ostream& out, const PageId& pid) {return out << pid.pid;}
 
    constexpr uint64_t toInteger() const {return pid;}
 

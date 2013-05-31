@@ -19,7 +19,7 @@ public:
    const SegmentId operator++() {return SegmentId(sid++);}
    const SegmentId& operator++(int) {sid++; return *this;}
 
-   friend std::ostream& operator<< (std::ostream& out, const SegmentId& sid) {return out << sid;}
+   friend std::ostream& operator<< (std::ostream& out, const SegmentId& sid) {return out << sid.sid;}
 
    constexpr uint64_t toInteger() const {return sid;}
 

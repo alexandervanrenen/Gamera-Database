@@ -23,7 +23,7 @@ uint64_t Segment::numPages() const
 
 PageIdIterator Segment::beginPageID() const
 {
-   return PageIdIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageID : extents.get()[0].begin());
+   return PageIdIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageId : extents.get()[0].begin());
 }
 
 PageIdIterator Segment::findPageID(PageId pid) const
@@ -33,7 +33,7 @@ PageIdIterator Segment::findPageID(PageId pid) const
 
 PageIdIterator Segment::endPageID() const
 {
-   return PageIdIterator(extents.get(), kInvalidPageID);
+   return PageIdIterator(extents.get(), kInvalidPageId);
 }
 
 const Extent Segment::grow()

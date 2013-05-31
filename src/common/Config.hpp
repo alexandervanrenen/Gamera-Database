@@ -11,9 +11,9 @@ namespace dbi {
 /// The size of a page, has to be a power of two and between 4KB and 32KB
 static const uint32_t kPageSize = 1 << 14;
 
-static constexpr TupleId kInvalidTupleID = TupleId(-1);
-static constexpr PageId kInvalidPageID = PageId(-1);
-static constexpr RecordId kInvalidRecordID = RecordId(-1);
+static constexpr TupleId kInvalidTupleId = TupleId(-1);
+static constexpr PageId kInvalidPageId = PageId(-1);
+static constexpr RecordId kInvalidRecordId = RecordId(-1);
 
 /// Use same id for free space inventory
 static const SegmentId kFreeSpaceInventoryId = SegmentId(0);

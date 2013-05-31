@@ -18,7 +18,7 @@ public:
 private:
    std::array<char, kPageSize> pageContent;
    bool isDirty = false;
-   PageId pageId = kInvalidPageID;
+   PageId pageId = kInvalidPageId;
    using BufferFrameLockType = util::ReadWriteSpinLock;
    BufferFrameLockType accessGuard;
 

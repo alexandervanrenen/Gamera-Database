@@ -77,13 +77,13 @@ TEST(SlottedPage, DefragmentationBasic)
     slottedPage->defragment();
 
     // No side effects on sample record
-    ASSERT_EQ(slottedPage->isReference(staticRecordId), kInvalidTupleID);
+    ASSERT_EQ(slottedPage->isReference(staticRecordId), kInvalidTupleId);
     ASSERT_EQ(slottedPage->lookup(staticRecordId), Record(staticData));
 
     // Add now record
     ASSERT_TRUE(slottedPage->getBytesFreeForRecord() >= newData.length());
     RecordId newDataRecordId = slottedPage->insert(newDataRecord);
-    ASSERT_EQ(slottedPage->isReference(newDataRecordId), kInvalidTupleID);
+    ASSERT_EQ(slottedPage->isReference(newDataRecordId), kInvalidTupleId);
     ASSERT_EQ(slottedPage->lookup(newDataRecordId), newDataRecord);
 
     free(slottedPage);
@@ -98,18 +98,18 @@ TEST(SlottedPage, ForeignRecords)
     uint16_t freeBytes = slottedPage->getBytesFreeForRecord();
     RecordId rid = slottedPage->insertForeigner(Record("fear not this night"), TupleId(8129));
     ASSERT_EQ(slottedPage->lookup(rid), Record("fear not this night"));
-    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
-    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageID).size());
-    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageID)[0].first);
-    ASSERT_EQ(Record("fear not this night"), slottedPage->getAllRecords(kInvalidPageID)[0].second);
+    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleId);
+    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageId).size());
+    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageId)[0].first);
+    ASSERT_EQ(Record("fear not this night"), slottedPage->getAllRecords(kInvalidPageId)[0].second);
 
     // Update the foreign record
     slottedPage->updateForeigner(rid, TupleId(8129), Record("but i am afraid of the dark"));
     ASSERT_EQ(slottedPage->lookup(rid), Record("but i am afraid of the dark"));
-    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleID);
-    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageID).size());
-    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageID)[0].first);
-    ASSERT_EQ(Record("but i am afraid of the dark"), slottedPage->getAllRecords(kInvalidPageID)[0].second);
+    ASSERT_EQ(slottedPage->isReference(rid), kInvalidTupleId);
+    ASSERT_EQ(1u, slottedPage->getAllRecords(kInvalidPageId).size());
+    ASSERT_EQ(TupleId(8129), slottedPage->getAllRecords(kInvalidPageId)[0].first);
+    ASSERT_EQ(Record("but i am afraid of the dark"), slottedPage->getAllRecords(kInvalidPageId)[0].second);
 
     // Remove foreign record
     slottedPage->remove(rid);
@@ -130,12 +130,12 @@ TEST(SlottedPage, ReferenceRecords)
     // Make reference and check
     slottedPage->updateToReference(rid, tid);
     ASSERT_EQ(tid, slottedPage->isReference(rid));
-    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageID).size(), 0u);
+    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageId).size(), 0u);
     ASSERT_EQ(slottedPage->countAllRecords(), 1u);
 
     // Remove reference
     slottedPage->remove(rid);
-    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageID).size(), 0u);
+    ASSERT_EQ(slottedPage->getAllRecords(kInvalidPageId).size(), 0u);
     ASSERT_EQ(slottedPage->countAllRecords(), 0u);
 
     free(slottedPage);
@@ -183,7 +183,7 @@ TEST(SlottedPage, Randomized)
                 RecordId id = reference.begin()->first;
                 // std::cout << "remove " << id << std::endl;
                 Record record = slottedPage->lookup(id);
-                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleID);
+                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleId);
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 slottedPage->remove(id);
                 reference.erase(reference.begin());
@@ -195,7 +195,7 @@ TEST(SlottedPage, Randomized)
                     continue;
                 RecordId id = reference.begin()->first;
                 Record record = slottedPage->lookup(id);
-                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleID);
+                ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleId);
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
                 std::string data = util::randomWord(8, 64);
                 if(slottedPage->canUpdateRecord(id, Record(data))) {
@@ -208,7 +208,7 @@ TEST(SlottedPage, Randomized)
             // Do consistency check
             else if(operation<=99 || i==iterations-1 || i==0) {
                 ASSERT_TRUE(slottedPage->isValid());
-                auto records = slottedPage->getAllRecords(kInvalidPageID); // page id does not matter
+                auto records = slottedPage->getAllRecords(kInvalidPageId); // page id does not matter
                 ASSERT_EQ(records.size(), reference.size());
                 for(auto& iter : records) {
                     ASSERT_TRUE(reference.count(iter.first.toRecordId()) > 0);

@@ -40,7 +40,7 @@ Record SPSegment::lookup(TupleId tid)
    auto& frame = fixGlobalPage(tid.toPageId(), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteId = sp.isReference(tid.toRecordId());
-   if(remoteId == kInvalidTupleID) {
+   if(remoteId == kInvalidTupleId) {
       Record result = sp.lookup(tid.toRecordId());
       unfixPage(frame, kClean);
       return result;
@@ -57,7 +57,7 @@ void SPSegment::remove(TupleId tId)
    TupleId remoteTupleId = sp.isReference(tId.toRecordId());
    sp.remove(tId.toRecordId());
    unfixPage(frame, kDirty);
-   if(remoteTupleId != kInvalidTupleID)
+   if(remoteTupleId != kInvalidTupleId)
       remove(remoteTupleId);
 }
 
@@ -79,7 +79,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    TupleId remoteId = sp.isReference(tid.toRecordId());
 
    // Case 1 - Record is on a single
-   if(remoteId == kInvalidTupleID) {
+   if(remoteId == kInvalidTupleId) {
       // Do simple in page update
       if(sp.canUpdateRecord(tid.toRecordId(), record)) {
          sp.update(tid.toRecordId(), record);

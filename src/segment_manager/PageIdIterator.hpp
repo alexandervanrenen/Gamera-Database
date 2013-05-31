@@ -77,7 +77,7 @@ private:
    const std::vector<Extent>* extents;
 
    PageIdIterator(const std::vector<Extent>& extents, PageId target)
-   : extent(0), pageID(kInvalidPageID), extents(&extents)
+   : extent(0), pageID(kInvalidPageId), extents(&extents)
    {
       for(;extent<extents.size(); extent++)
          if(extents[extent].begin().toInteger() <= target.toInteger() && target.toInteger() < extents[extent].end().toInteger()) {
@@ -88,12 +88,12 @@ private:
 
    void inc()
    {
-      assert(pageID != kInvalidPageID);
+      assert(pageID != kInvalidPageId);
       pageID++;
       if(pageID == (*extents)[extent].end()) {
          extent++;
          if(extent >= extents->size())
-            pageID = kInvalidPageID;
+            pageID = kInvalidPageId;
          else
             pageID = (*extents)[extent].begin();
       }
@@ -101,13 +101,13 @@ private:
 
    void inc(uint64_t count)
    {
-      assert(pageID != kInvalidPageID);
-      while(count!=0 && pageID!=kInvalidPageID) {
+      assert(pageID != kInvalidPageId);
+      while(count!=0 && pageID!=kInvalidPageId) {
          // Next extent
          if(pageID == (*extents)[extent].end()) {
             extent++;
             if(extent >= extents->size())
-               pageID = kInvalidPageID;
+               pageID = kInvalidPageId;
             else
                pageID = (*extents)[extent].begin();
          }

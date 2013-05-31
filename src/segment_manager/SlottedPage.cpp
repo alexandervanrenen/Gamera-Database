@@ -66,7 +66,7 @@ TupleId SlottedPage::isReference(RecordId rid) const
    const Slot* result = slotBegin() + rid.toInteger();
    if(result->isRedirectedToOtherPage())
       return *reinterpret_cast<const TupleId*>(data.data()+result->getOffset());
-      return kInvalidTupleID;
+      return kInvalidTupleId;
 }
 
 void SlottedPage::update(RecordId recordId, const Record& newRecord)

@@ -3,6 +3,7 @@
 #include "segment_manager/SlottedPage.hpp"
 #include "common/Config.hpp"
 #include "util/Utility.hpp"
+#include "util/Random.hpp"
 #include <cstdlib>
 #include <unordered_map>
 #include <algorithm>
@@ -144,6 +145,7 @@ TEST(SlottedPage, ReferenceRecords)
 TEST(SlottedPage, Randomized)
 {
     const uint32_t iterations = 10000;
+    util::Random ranny;
 
     for(uint32_t j=0; j<kTestScale; j++) {
         std::unordered_map<RecordId, std::string> reference;
@@ -152,7 +154,7 @@ TEST(SlottedPage, Randomized)
 
         // Add some initial data
         for(uint32_t i=0; i<kPageSize/3/32; i++) {
-            std::string data = util::randomWord(8, 64);
+            std::string data = util::randomWord(ranny, 8, 64);
             if(slottedPage->getBytesFreeForRecord() < data.size())
                 continue;
             RecordId id = slottedPage->insert(Record(data));
@@ -163,11 +165,11 @@ TEST(SlottedPage, Randomized)
 
         // Work on it
         for(uint32_t i=0; i<iterations; i++) {
-            int32_t operation = util::ranny() % 100;
+            int32_t operation = ranny.rand() % 100;
 
             // Do insert
             if(operation <= 40) {
-                std::string data = util::randomWord(8, 64);
+                std::string data = util::randomWord(ranny, 8, 64);
                 if(slottedPage->getBytesFreeForRecord() < data.size())
                     continue;
                 RecordId id = slottedPage->insert(Record(data));
@@ -197,7 +199,7 @@ TEST(SlottedPage, Randomized)
                 Record record = slottedPage->lookup(id);
                 ASSERT_EQ(slottedPage->isReference(id), kInvalidTupleId);
                 ASSERT_EQ(std::string(record.data(), record.size()), reference.begin()->second);
-                std::string data = util::randomWord(8, 64);
+                std::string data = util::randomWord(ranny, 8, 64);
                 if(slottedPage->canUpdateRecord(id, Record(data))) {
                     slottedPage->update(id, Record(data));
                     reference.erase(reference.begin());

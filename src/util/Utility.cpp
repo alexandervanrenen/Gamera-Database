@@ -1,4 +1,5 @@
 #include "Utility.hpp"
+#include "Random.hpp"
 #include <vector>
 #include <fcntl.h>
 #include <unistd.h>
@@ -103,13 +104,13 @@ uint64_t getFileLength(const string& fileName)
    return st.st_size;
 }
 
-string randomWord(uint32_t min, uint32_t max)
+string randomWord(util::Random& ranny, uint32_t min, uint32_t max)
 {
    assert(max > min);
-   uint32_t length = ranny()%(max-min) + min;
+   uint32_t length = ranny.rand()%(max-min) + min;
    string word(length, '_');
    for(uint32_t i = 0; i < length; i++)
-      word[i] = 'a' + (ranny() % 26);
+      word[i] = 'a' + (ranny.rand() % 26);
    return word;
 }
 

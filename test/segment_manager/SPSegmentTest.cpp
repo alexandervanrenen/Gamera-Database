@@ -7,6 +7,8 @@
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
 #include "operator/TableScanOperator.hpp"
+#include "util/Random.hpp"
+#include "segment_manager/SlottedPage.hpp"
 #include <array>
 #include <fstream>
 #include <string>
@@ -118,6 +120,7 @@ TEST(SPSegment, Randomized)
    const string kFileName = "swap_file";
    const uint32_t kPages = 1000;
    const uint32_t kMaxWordSize = 512;
+   util::Random ranny;
    ASSERT_TRUE(util::createFile(kFileName, kPages * kPageSize));
 
    for(uint32_t j=0; j<kTestScale; j++) {
@@ -127,10 +130,13 @@ TEST(SPSegment, Randomized)
       SegmentId id = segmentManager->createSegment(SegmentType::SP, 10);
       SPSegment* segment = &segmentManager->getSPSegment(id);
       unordered_map<TupleId, string> reference;
+      uint32_t insertedSize = 0;
+      uint32_t removedSize = 0;
 
       // Add some initial data
       for(uint32_t i=0; i<kPageSize/3/32; i++) {
-         string data = util::randomWord(8, kMaxWordSize);
+         string data = util::randomWord(ranny, 8, kMaxWordSize);
+         insertedSize += data.size();
          TupleId id = segment->insert(Record(data));
          ASSERT_TRUE(reference.count(id) == 0);
          reference.insert(make_pair(id, data));
@@ -139,11 +145,12 @@ TEST(SPSegment, Randomized)
 
      // Work on it
      for(uint32_t i=0; i<kIterations; i++) {
-         int32_t operation = random() % 100;
+         int32_t operation = ranny.rand() % 100;
 
          // Do insert
          if(operation <= 40) {
-            string data = util::randomWord(8, kMaxWordSize);
+            string data = util::randomWord(ranny, kMaxWordSize, 4*kMaxWordSize);
+            insertedSize += data.size();
             TupleId id = segment->insert(Record(data));
             ASSERT_TRUE(reference.count(id) == 0);
             reference.insert(make_pair(id, data));
@@ -155,9 +162,10 @@ TEST(SPSegment, Randomized)
             if(reference.empty())
                continue;
             auto iter = reference.begin();
-            advance(iter, random()%reference.size());
+            advance(iter, ranny.rand()%reference.size());
             TupleId id = iter->first;
             Record record = segment->lookup(id);
+            removedSize += record.size();
             ASSERT_EQ(string(record.data(), record.size()), iter->second);
             segment->remove(id);
             reference.erase(iter);
@@ -169,10 +177,10 @@ TEST(SPSegment, Randomized)
             if(reference.empty())
                continue;
             auto iter = reference.begin();
-            advance(iter, random()%reference.size());
+            advance(iter, ranny.rand()%reference.size());
             TupleId id = iter->first;
             ASSERT_EQ(string(segment->lookup(id).data(), segment->lookup(id).size()), iter->second);
-            string data = util::randomWord(kMaxWordSize, 4*kMaxWordSize);
+            string data = util::randomWord(ranny, 8, kMaxWordSize);
             segment->update(id, Record(data));
             ASSERT_EQ(string(segment->lookup(id).data(), segment->lookup(id).size()), data);
             reference.erase(iter);
@@ -199,6 +207,18 @@ TEST(SPSegment, Randomized)
             scanner.close();
          }
       }
+
+      uint64_t sum = 0;
+      for(auto iter=segment->beginPageID(); iter!=segment->endPageID(); iter++) {
+         auto& bf = bufferManager.fixPage(*iter, kShared);
+         auto& sp = reinterpret_cast<SlottedPage&>(*bf.data());
+         sum += sp.getBytesFreeForRecord();
+         bufferManager.unfixPage(bf, kClean);
+      }
+      // cout << "pages: " << segment->numPages() << endl;
+      // cout << "sum " << sum << endl;
+      // cout << "insert " << insertedSize << endl;
+      // cout << "remove " << removedSize << endl;
    }
    remove(kFileName.c_str());
 }

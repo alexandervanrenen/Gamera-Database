@@ -4,4 +4,6 @@ src_util_files := src/util/Utility.o               \
                   src/util/ConcurrentOffsetHash.o  \
                   src/util/LoserTree.o             \
                   src/util/SpinLock.o              \
+                  src/util/ByteEncoding.o          \
+                  src/util/Random.o                \
                   src/util/ReadWriteSpinLock.o

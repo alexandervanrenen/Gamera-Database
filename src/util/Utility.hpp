@@ -13,9 +13,6 @@ namespace dbi {
 
 namespace util {
 
-/// Returns a random value
-uint64_t ranny();
-
 /// Create a file with count entries created by the given factory function
 bool createTestFile(const std::string& fileName, uint64_t count, std::function<uint64_t(uint64_t)> factory);
 
@@ -35,8 +32,10 @@ std::unique_ptr<T> make_unique(Arg&& ...args)
    return std::unique_ptr<T>(new T(std::forward<Arg>(args)...));
 }
 
+class Random;
+
 /// Create random word
-std::string randomWord(uint32_t min, uint32_t max);
+std::string randomWord(util::Random& ranny, uint32_t min, uint32_t max);
 
 }
 

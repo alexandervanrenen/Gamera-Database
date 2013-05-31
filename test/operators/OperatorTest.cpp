@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
 #include "operator/TableScanOperator.hpp"
+#include "util/Random.hpp"
 #include <array>
 #include <fstream>
 #include <string>
@@ -36,6 +37,7 @@ TEST(Operator, TableScan)
 {
    const std::string fileName = "swap_file";
    const uint32_t pages = 100;
+   dbi::util::Random ranny;
 
    // Create
    ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
@@ -47,7 +49,7 @@ TEST(Operator, TableScan)
    // Insert some values
    std::unordered_map<dbi::TupleId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
    for(uint32_t i = 0; i < 100; i++) {
-      std::string data = dbi::util::randomWord(8, 64);
+      std::string data = dbi::util::randomWord(ranny, 8, 64);
       dbi::TupleId id = segment.insert(dbi::Record(data));
       records.insert(std::make_pair(id, dbi::Record(data)));
    }

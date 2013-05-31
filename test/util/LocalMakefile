@@ -1,4 +1,5 @@
 test_util_files := test/util/ConcurrentOffsetHashTest.o      \
                               test/util/LoserTreeTest.o      \
                               test/util/ReadWriteLockTest.o  \
+                              test/util/ByteEncodingTest.o   \
                               test/util/UtilityTest.o

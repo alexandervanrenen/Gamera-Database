@@ -1,6 +1,7 @@
 #include "buffer_manager/BufferFrame.hpp"
 #include "FSISegment.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "util/ByteEncoding.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -39,7 +40,7 @@ uint32_t FSISegment::getFreeBytes(PageId id) const
    }
 
    unfixPage(bufferFrame, false);
-   return result * kPageSize / 16;
+   return util::decodeBytes(result);
 }
 
 void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
@@ -51,7 +52,7 @@ void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
 
    // Change nibble
    uint32_t offset = id.toInteger() / 2 % kPageSize; // offset on page
-   uint8_t val = freeBytes * 16 / kPageSize; // encode free bytes
+   uint8_t val = util::encodeBytes(freeBytes); // encode free bytes
    if(id.toInteger() % 2 == 0) {
       data[offset] &= 0xF0;
       data[offset] |= val;

@@ -37,7 +37,7 @@ void Persister::create()
    freePages.add(Extent {kFirstFreePageId, PageId(bufferManager.getNumDiscPages())});
 }
 
-void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap)
+void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap, SegmentId& nextFreeId)
 {
    freePages.add(Extent {kFirstFreePageId, PageId(bufferManager.getNumDiscPages())});
    PageId currentPageId = kMetaPageId;
@@ -66,6 +66,9 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStor
             // Remove from free pages
             for(auto& extent : mapping.second.get())
                freePages.remove(extent);
+
+            // Keep track of used ids
+            nextFreeId = SegmentId(min(mapping.first.toInteger(), nextFreeId.toInteger()));
 
             // Add to segment -> extent mapping
             segmentMap.insert(make_pair(mapping.first , make_pair(iter.first, move(mapping.second))));

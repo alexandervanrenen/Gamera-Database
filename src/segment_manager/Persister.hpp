@@ -17,7 +17,7 @@ class Persister {
 public:
    Persister(BufferManager& bufferManager, ExtentStore& freePages);
    void create();
-   void load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap);
+   void load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap, SegmentId& nextFreeId);
 
    TupleId insert(SegmentId sid, const ExtentStore& extents);
    TupleId update(TupleId tid, SegmentId sid, const ExtentStore& extents);

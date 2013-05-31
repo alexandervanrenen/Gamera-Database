@@ -13,7 +13,7 @@ SegmentInventory::SegmentInventory(BufferManager& bufferManager, bool isInitialS
 {
    if(isInitialSetup)
       persister.create(); else
-      persister.load(segmentMap);
+      persister.load(segmentMap, nextSegmentId);
 }
 
 SegmentId SegmentInventory::createSegment()

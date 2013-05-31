@@ -2,7 +2,7 @@
 
 #include "common/Config.hpp"
 #include <cassert>
-#include <sstream>
+#include <ios>
 
 namespace dbi {
 
@@ -17,7 +17,7 @@ struct Extent {
    PageId end() const {return PageId(beginPage.toInteger()+pageCount);}
 
    bool operator==(const Extent& other) const {return beginPage==other.beginPage && pageCount==other.pageCount;}
-   friend std::ostream& operator<<(std::ostream& out, const Extent& e) {return out << e.begin() << " " << e.end();} // TODO: to c++
+   friend std::ostream& operator<<(std::ostream& out, const Extent& e);
 
 private:
    // Pages belonging to this extent: [begin, end)

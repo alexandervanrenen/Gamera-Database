@@ -29,17 +29,17 @@ TEST(SegmentManager, Simple)
    SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Grow
-   ASSERT_EQ(segment.getNumPages(), 10ul);
+   ASSERT_EQ(segment.numPages(), 10ul);
    segmentManager.growSegment(segment, 20ul);
 
    segmentManager.growSegment(segment, 10ul);
-   ASSERT_EQ(segment.getNumPages(), 40ul);
+   ASSERT_EQ(segment.numPages(), 40ul);
 
    // Drop
    segmentManager.dropSegment(segment);
    SegmentId id_b = segmentManager.createSegment(SegmentType::SP, 98);
    SPSegment& segment_b = segmentManager.getSPSegment(id_b);
-   ASSERT_EQ(segment_b.getNumPages(), 98ul);
+   ASSERT_EQ(segment_b.numPages(), 98ul);
 
    remove(fileName.c_str());
 }
@@ -102,9 +102,9 @@ TEST(SegmentManager, PersistentSIList)
          segmentManager.growSegment(segment3, 1);
       }
 
-      ASSERT_EQ(segment1.getNumPages(), kPageSize/16 - 11);
-      ASSERT_EQ(segment2.getNumPages(), kPageSize/16 - 11);
-      ASSERT_EQ(segment3.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment1.numPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment2.numPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment3.numPages(), kPageSize/16 - 11);
    }
 
    // Restart
@@ -115,9 +115,9 @@ TEST(SegmentManager, PersistentSIList)
       SPSegment& segment2 = segmentManager.getSPSegment(sid2);
       SPSegment& segment3 = segmentManager.getSPSegment(sid3);
 
-      ASSERT_EQ(segment1.getNumPages(), kPageSize/16 - 11);
-      ASSERT_EQ(segment2.getNumPages(), kPageSize/16 - 11);
-      ASSERT_EQ(segment3.getNumPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment1.numPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment2.numPages(), kPageSize/16 - 11);
+      ASSERT_EQ(segment3.numPages(), kPageSize/16 - 11);
    }
 
    remove(fileName.c_str());

@@ -45,8 +45,6 @@ TEST(SPSegment, SPSegmentSimple)
    segment.update(tid, longerUpdatedRecord);
    ASSERT_EQ(longerUpdatedRecord, segment.lookup(tid));
 
-   // TODO: update with value which must be placed on another page
-
    // Remove created page
    segment.remove(tid);
 

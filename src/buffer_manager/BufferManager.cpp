@@ -99,7 +99,6 @@ BufferFrame& BufferManager::tryLockBufferFrame(BufferFrame& bufferFrame, const P
 
 void BufferManager::unfixPage(BufferFrame& frame, bool isDirty)
 {
-   //TODO: update LRU queue stuff or second chance bits
    swapOutAlgorithm->onUnfixPage(frame);
    frame.isDirty |= isDirty;
    frame.accessGuard.unlock();

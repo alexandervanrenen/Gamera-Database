@@ -17,9 +17,7 @@ class BTreeSegment : public Segment {
 public:
     /// Constructor
     BTreeSegment(SegmentId id, SegmentInventory& si, BufferManager& bm);
-    virtual ~BTreeSegment() {
-        bufferManager.unfixPage(*metadataFrame, true);
-    }
+    virtual ~BTreeSegment();
 
     BufferFrame& getPage(PageId id, bool exclusive=kShared);
 

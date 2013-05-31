@@ -16,7 +16,7 @@ Segment::Segment(SegmentId id, SegmentInventory& segmentInventory, BufferManager
 {
 }
 
-uint64_t Segment::getNumPages() const
+uint64_t Segment::numPages() const
 {
    return extents.numPages();
 }
@@ -46,7 +46,7 @@ const Extent Segment::grow(uint64_t numPages)
    return segmentInventory.growSegment(id, numPages);
 }
 
-BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const // TODO: who is using that .. and why .. ?
+BufferFrame& Segment::fixInternalPage(uint64_t offset, bool exclusive) const
 {
    assert(extents.get().size() != 0);
 
@@ -59,6 +59,11 @@ BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const // TODO: wh
 
    assert(false && "offset not in segment");
    throw;
+}
+
+BufferFrame& Segment::fixGlobalPage(PageId pid, bool exclusive) const
+{
+   bufferManager.fixPage(pid, exclusive);
 }
 
 void Segment::unfixPage(BufferFrame& bufferFrame, bool dirty) const

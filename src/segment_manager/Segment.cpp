@@ -26,6 +26,11 @@ PageIDIterator Segment::beginPageID()
    return PageIDIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageID : extents.get()[0].begin());
 }
 
+PageIDIterator Segment::findPageID(PageId pid)
+{
+   return PageIDIterator(extents.get(), pid);
+}
+
 PageIDIterator Segment::endPageID()
 {
    return PageIDIterator(extents.get(), kInvalidPageID);

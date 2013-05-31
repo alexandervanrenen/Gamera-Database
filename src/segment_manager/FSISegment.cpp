@@ -68,7 +68,7 @@ const Extent FSISegment::grow()
    throw;
 }
 
-const Extent FSISegment::grow(uint64_t numPages)
+const Extent FSISegment::grow(uint64_t)
 {
    assert("growing segment inventory"&&false);
    throw;

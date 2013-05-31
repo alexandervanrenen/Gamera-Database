@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Segment.hpp"
+#include <array>
 #include <vector>
 
 namespace dbi {
@@ -36,6 +37,13 @@ private:
 
    /// Initialize all extents to a slotted page
    void initializeExtent(Extent extent);
+
+   /// Called every time the FSI is updated in order to remember last insert position
+   uint32_t toLogScale(uint16_t bytes) const;
+   void updateFreeBytes(PageId pid, uint16_t freeBytes);
+
+   /// Store first free page for each size magnitude (8, 16, 32, 64, 128, 256, 512, 1024, 2048, bigger)
+   std::array<PageIDIterator, 10> fristFreePages;
 };
 
 }

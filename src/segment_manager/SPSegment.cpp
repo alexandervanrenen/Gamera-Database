@@ -14,6 +14,7 @@ namespace dbi {
 SPSegment::SPSegment(SegmentId id, FSISegment& fsi, SegmentInventory& si, BufferManager& bm)
 : Segment(id, si, bm)
 , freeSpaceInventory(fsi)
+, fristFreePages({{beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID()}})
 {
 }
 
@@ -27,7 +28,7 @@ TupleId SPSegment::insert(const Record& record)
    auto& frame = bufferManager.fixPage(pid, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    RecordId rid = sp.insert(record);
-   freeSpaceInventory.setFreeBytes(pid, sp.getBytesFreeForRecord());
+   updateFreeBytes(pid, sp.getBytesFreeForRecord());
    bufferManager.unfixPage(frame, kDirty);
    return TupleId(pid, rid);
 }
@@ -66,7 +67,7 @@ TupleId SPSegment::insertForeigner(TupleId originalTupleId, const Record& record
    auto& frame = bufferManager.fixPage(pid, kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
    RecordId rid = sp.insertForeigner(record, originalTupleId);
-   freeSpaceInventory.setFreeBytes(pid, sp.getBytesFreeForRecord());
+   updateFreeBytes(pid, sp.getBytesFreeForRecord());
    bufferManager.unfixPage(frame, kDirty);
    return TupleId(pid, rid);
 }
@@ -82,14 +83,14 @@ void SPSegment::update(TupleId tid, const Record& record)
       // Do simple in page update
       if(sp.canUpdateRecord(tid.toRecordId(), record)) {
          sp.update(tid.toRecordId(), record);
-         freeSpaceInventory.setFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
+         updateFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
          bufferManager.unfixPage(frame, kDirty);
          return;
       }
       // Store on some other page and add reference on original page
       TupleId remoteId = insertForeigner(tid, record);
       sp.updateToReference(tid.toRecordId(), remoteId);
-      freeSpaceInventory.setFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
+      updateFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
       return;
    }
@@ -98,7 +99,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    if(sp.canUpdateRecord(tid.toRecordId(), record)) {
       // Move record back to first page
       sp.update(tid.toRecordId(), record);
-      freeSpaceInventory.setFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
+      updateFreeBytes(tid.toPageId(), sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
       remove(remoteId);
       return;
@@ -110,13 +111,13 @@ void SPSegment::update(TupleId tid, const Record& record)
          // Update inside second page
          bufferManager.unfixPage(frame, kClean);
          sp2.updateForeigner(remoteId.toRecordId(), tid, record);
-         freeSpaceInventory.setFreeBytes(remoteId.toPageId(), sp2.getBytesFreeForRecord());
+         updateFreeBytes(remoteId.toPageId(), sp2.getBytesFreeForRecord());
          bufferManager.unfixPage(frame2, kDirty);
          return;
       } else {
          // Remove from remote page (as it is to small)
          sp2.remove(remoteId.toRecordId());
-         freeSpaceInventory.setFreeBytes(remoteId.toPageId(), sp2.getBytesFreeForRecord());
+         updateFreeBytes(remoteId.toPageId(), sp2.getBytesFreeForRecord());
          bufferManager.unfixPage(frame2, kDirty);
 
          // Store on some other page and add reference on original page
@@ -159,16 +160,41 @@ void SPSegment::initializeExtent(Extent extent)
       auto& frame = bufferManager.fixPage(iter, kExclusive);
       auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
       sp.initialize();
-      freeSpaceInventory.setFreeBytes(iter, sp.getBytesFreeForRecord());
+      updateFreeBytes(iter, sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);
    }
 }
 
+uint32_t SPSegment::toLogScale(uint16_t bytes) const
+{
+   // Scale to log => (0,8)->0 .. (9,16)->1 .. (17,32)->2 ..
+   uint32_t ld = 0;
+   for(uint64_t tmp=bytes; tmp>1; tmp=tmp>>1)
+      ld++;
+   ld = ld>2 ? ld-3 : 0;
+   ld = ld>=fristFreePages.size() ? fristFreePages.size()-1 : ld;
+   return ld;
+}
+
+void SPSegment::updateFreeBytes(PageId pid, uint16_t freeBytes)
+{
+   // Update first free pages
+   uint32_t ld = toLogScale(freeBytes);
+   auto iter = findPageID(pid);
+   for(uint32_t i=0; i<=ld; i++)
+      fristFreePages[i] = min(fristFreePages[i], iter);
+
+   // Update FSI
+   freeSpaceInventory.setFreeBytes(pid, freeBytes);
+}
+
 PageId SPSegment::aquirePage(uint16_t length)
 {
-   for(auto iter = beginPageID(); iter != endPageID(); iter++)
-      if(freeSpaceInventory.getFreeBytes(*iter) >= length)
-         return *iter;
+   for(uint32_t ld = toLogScale(length); ld<fristFreePages.size(); ld++)
+      for(auto& iter = fristFreePages[ld]; iter != endPageID(); iter++)
+         if(freeSpaceInventory.getFreeBytes(*iter) >= length)
+            return *iter;
+
    grow();
    return aquirePage(length);
 }

@@ -27,6 +27,7 @@ public:
 
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
    PageIDIterator beginPageID();
+   PageIDIterator findPageID(PageId pid); // TODO: why not const
    PageIDIterator endPageID();
 
    /// Get extents for this segment (extent is added by the segment inventory)

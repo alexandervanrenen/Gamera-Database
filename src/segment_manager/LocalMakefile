@@ -8,4 +8,5 @@ src_segment_manager_files :=  src/segment_manager/SegmentManager.o   \
                               src/segment_manager/Slot.o             \
                               src/segment_manager/Persister.o        \
                               src/segment_manager/Extent.o           \
+                              src/segment_manager/PageIdIterator.o   \
                               src/segment_manager/BTreeSegment.o     

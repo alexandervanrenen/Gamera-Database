@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "PageIDIterator.hpp"
+#include "PageIdIterator.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -26,9 +26,9 @@ public:
    uint64_t numPages() const;
 
    /// Iterate over all pages in segment -- Do not change segment while iterating ..
-   PageIDIterator beginPageID() const;
-   PageIDIterator findPageID(PageId pid) const;
-   PageIDIterator endPageID() const;
+   PageIdIterator beginPageID() const;
+   PageIdIterator findPageID(PageId pid) const;
+   PageIdIterator endPageID() const;
 
    /// Get extents for this segment (extent is added by the segment inventory)
    virtual const Extent grow() = 0;

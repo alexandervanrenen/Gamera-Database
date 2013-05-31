@@ -21,19 +21,19 @@ uint64_t Segment::numPages() const
    return extents.numPages();
 }
 
-PageIDIterator Segment::beginPageID() const
+PageIdIterator Segment::beginPageID() const
 {
-   return PageIDIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageID : extents.get()[0].begin());
+   return PageIdIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageID : extents.get()[0].begin());
 }
 
-PageIDIterator Segment::findPageID(PageId pid) const
+PageIdIterator Segment::findPageID(PageId pid) const
 {
-   return PageIDIterator(extents.get(), pid);
+   return PageIdIterator(extents.get(), pid);
 }
 
-PageIDIterator Segment::endPageID() const
+PageIdIterator Segment::endPageID() const
 {
-   return PageIDIterator(extents.get(), kInvalidPageID);
+   return PageIdIterator(extents.get(), kInvalidPageID);
 }
 
 const Extent Segment::grow()
@@ -63,7 +63,7 @@ BufferFrame& Segment::fixInternalPage(uint64_t offset, bool exclusive) const
 
 BufferFrame& Segment::fixGlobalPage(PageId pid, bool exclusive) const
 {
-   bufferManager.fixPage(pid, exclusive);
+   return bufferManager.fixPage(pid, exclusive);
 }
 
 void Segment::unfixPage(BufferFrame& bufferFrame, bool dirty) const

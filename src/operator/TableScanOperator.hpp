@@ -3,7 +3,7 @@
 #include "common/Config.hpp"
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "segment_manager/PageIDIterator.hpp"
+#include "segment_manager/PageIdIterator.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -30,7 +30,7 @@ public:
 
 private:
    SPSegment& segment;
-   PageIDIterator nextPage;
+   PageIdIterator nextPage;
    std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
    uint32_t positionInCurrentPage;
    OperatorState state;

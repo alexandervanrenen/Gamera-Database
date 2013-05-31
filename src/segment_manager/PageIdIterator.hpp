@@ -9,16 +9,16 @@ namespace dbi {
 
 /// Define PageID iterator -- use to iterate over all page ids of this segment
 /// Changing the extents of the segment potentially breaks the iterator
-class PageIDIterator : public std::iterator<std::forward_iterator_tag, PageIDIterator> {
+class PageIdIterator : public std::iterator<std::forward_iterator_tag, PageIdIterator> {
 public:
-   PageIDIterator(const PageIDIterator& other)
+   PageIdIterator(const PageIdIterator& other)
    : extent(other.extent)
    , pageID(other.pageID)
    , extents(other.extents)
    {
    }
 
-   PageIDIterator& operator=(const PageIDIterator& other)
+   PageIdIterator& operator=(const PageIdIterator& other)
    {
       extent = other.extent;
       pageID = other.pageID;
@@ -26,31 +26,31 @@ public:
       return *this;
    }
 
-   const PageIDIterator operator++()
+   const PageIdIterator operator++()
    {
-      PageIDIterator result = *this;
+      PageIdIterator result = *this;
       inc();
       return result;
    }
 
-   const PageIDIterator& operator++(int)
+   const PageIdIterator& operator++(int)
    {
       inc();
       return *this;
    }
 
-   const PageIDIterator& operator+=(uint64_t count)
+   const PageIdIterator& operator+=(uint64_t count)
    {
       inc(count);
       return *this;
    }
 
-   bool operator==(const PageIDIterator& other) const
+   bool operator==(const PageIdIterator& other) const
    {
       return pageID == other.pageID;
    }
 
-   bool operator!=(const PageIDIterator& other) const
+   bool operator!=(const PageIdIterator& other) const
    {
       return pageID != other.pageID;
    }
@@ -60,7 +60,7 @@ public:
       return pageID;
    }
 
-   friend const PageIDIterator& min(const PageIDIterator& lhs, const PageIDIterator& rhs)
+   friend const PageIdIterator& min(const PageIdIterator& lhs, const PageIdIterator& rhs)
    {
       if(lhs.extent < rhs.extent)
          return lhs;
@@ -76,7 +76,7 @@ private:
    PageId pageID;
    const std::vector<Extent>* extents;
 
-   PageIDIterator(const std::vector<Extent>& extents, PageId target)
+   PageIdIterator(const std::vector<Extent>& extents, PageId target)
    : extent(0), pageID(kInvalidPageID), extents(&extents)
    {
       for(;extent<extents.size(); extent++)

@@ -43,7 +43,7 @@ private:
    void updateFreeBytes(PageId pid, uint16_t freeBytes);
 
    /// Store first free page for each size magnitude (8, 16, 32, 64, 128, 256, 512, 1024, 2048, bigger)
-   std::array<PageIDIterator, 10> fristFreePages;
+   std::array<PageIdIterator, 10> fristFreePages;
 };
 
 }

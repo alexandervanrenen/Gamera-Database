@@ -26,7 +26,7 @@ TupleId SPSegment::insert(const Record& record)
 {
    PageId pid = aquirePage(record.size());
    auto& frame = bufferManager.fixPage(pid, kExclusive);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    RecordId rid = sp.insert(record);
    updateFreeBytes(pid, sp.getBytesFreeForRecord());
    bufferManager.unfixPage(frame, kDirty);
@@ -38,7 +38,7 @@ Record SPSegment::lookup(TupleId tid)
    assert(any_of(beginPageID(), endPageID(), [tid](const PageId& pid) {return pid==tid.toPageId();}));
 
    auto& frame = bufferManager.fixPage(tid.toPageId(), kShared);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteId = sp.isReference(tid.toRecordId());
    if(remoteId == kInvalidTupleID) {
       Record result = sp.lookup(tid.toRecordId());
@@ -53,7 +53,7 @@ void SPSegment::remove(TupleId tId)
 {
    assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid) {return pid==tId.toPageId();}));
    auto& frame = bufferManager.fixPage(tId.toPageId(), kExclusive);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteTupleId = sp.isReference(tId.toRecordId());
    sp.remove(tId.toRecordId());
    bufferManager.unfixPage(frame, kDirty);
@@ -65,7 +65,7 @@ TupleId SPSegment::insertForeigner(TupleId originalTupleId, const Record& record
    /// Find page and insert foreign record
    PageId pid = aquirePage(record.size() + sizeof(TupleId));
    auto& frame = bufferManager.fixPage(pid, kExclusive);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    RecordId rid = sp.insertForeigner(record, originalTupleId);
    updateFreeBytes(pid, sp.getBytesFreeForRecord());
    bufferManager.unfixPage(frame, kDirty);
@@ -75,7 +75,7 @@ TupleId SPSegment::insertForeigner(TupleId originalTupleId, const Record& record
 void SPSegment::update(TupleId tid, const Record& record)
 {
    auto& frame = bufferManager.fixPage(tid.toPageId(), kExclusive);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteId = sp.isReference(tid.toRecordId());
 
    // Case 1 - Record is on a single
@@ -106,7 +106,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    } else {
       // Update on second page
       auto& frame2 = bufferManager.fixPage(remoteId.toPageId(), kExclusive);
-      auto& sp2 = reinterpret_cast<SlottedPage&>(*frame2.getData());
+      auto& sp2 = reinterpret_cast<SlottedPage&>(*frame2.data());
       if(sp2.canUpdateForeignRecord(remoteId.toRecordId(), record)) {
          // Update inside second page
          bufferManager.unfixPage(frame, kClean);
@@ -133,7 +133,7 @@ void SPSegment::update(TupleId tid, const Record& record)
 vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
 {
    auto& frame = bufferManager.fixPage(pageId, kShared);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    auto result = sp.getAllRecords(pageId);
    bufferManager.unfixPage(frame, kClean);
    return result;
@@ -158,7 +158,7 @@ void SPSegment::initializeExtent(Extent extent)
    // Get and initialize new extents
    for(PageId iter = extent.begin(); iter != extent.end(); iter++) {
       auto& frame = bufferManager.fixPage(iter, kExclusive);
-      auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+      auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
       sp.initialize();
       updateFreeBytes(iter, sp.getBytesFreeForRecord());
       bufferManager.unfixPage(frame, kDirty);

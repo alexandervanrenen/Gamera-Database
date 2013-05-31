@@ -123,14 +123,14 @@ void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)
 {
    assert(!frame.isDirty);
    stats->count("loads", 1);
-   if(pread(fileFD, frame.data.data(), kPageSize, pageId.toInteger() * kPageSize) != kPageSize)
+   if(pread(fileFD, frame.pageContent.data(), kPageSize, pageId.toInteger() * kPageSize) != kPageSize)
       throw;
 }
 
 void BufferManager::saveFrame(BufferFrame& frame)
 {
    if(frame.isDirty)
-      if(pwrite(fileFD, frame.data.data(), kPageSize, frame.pageId.toInteger() * kPageSize) != kPageSize)
+      if(pwrite(fileFD, frame.pageContent.data(), kPageSize, frame.pageId.toInteger() * kPageSize) != kPageSize)
          throw;
    frame.isDirty = false;
 }

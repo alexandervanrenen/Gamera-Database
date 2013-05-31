@@ -13,10 +13,10 @@ namespace dbi {
 class BufferFrame {
 public:
    /// Access page memory, is mapped to disc by the buffer manager
-   char* getData(); // TODO: rename
+   char* data();
 
 private:
-   std::array<char, kPageSize> data;
+   std::array<char, kPageSize> pageContent;
    bool isDirty = false;
    PageId pageId = kInvalidPageID;
    using BufferFrameLockType = util::ReadWriteSpinLock;

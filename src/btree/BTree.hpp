@@ -61,12 +61,12 @@ private:
     std::pair<BufferFrame*, Node*> getNode(PageId id, bool exclusive=kExclusive) {
         assert(id != kMetaPageId);
         BufferFrame& frame = bsm.getPage(id, exclusive);
-        Node* node = reinterpret_cast<Node*>(frame.getData());
+        Node* node = reinterpret_cast<Node*>(frame.data());
         if (node->nodeType == Node::typeInner) {
-            LeafNode* leafnode = static_cast<LeafNode*>(static_cast<void*>(frame.getData()));
+            LeafNode* leafnode = static_cast<LeafNode*>(static_cast<void*>(frame.data()));
             node = leafnode;
         } else {
-            InnerNode* innernode = static_cast<InnerNode*>(static_cast<void*>(frame.getData()));
+            InnerNode* innernode = static_cast<InnerNode*>(static_cast<void*>(frame.data()));
             node = innernode;
         }
         node->pageId = id;
@@ -77,9 +77,9 @@ private:
         std::pair<BufferFrame&, PageId> p = bsm.newPage();
         Node* node;
         if (nodeType == Node::typeLeaf)
-            node = reinterpret_cast<LeafNode*>(p.first.getData());
+            node = reinterpret_cast<LeafNode*>(p.first.data());
         else if (nodeType == Node::typeInner)
-            node = reinterpret_cast<InnerNode*>(p.first.getData());
+            node = reinterpret_cast<InnerNode*>(p.first.data());
         else
             assert(false && "unknown nodeType");
         node->pageId = p.second;

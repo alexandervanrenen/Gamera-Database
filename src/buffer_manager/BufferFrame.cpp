@@ -4,9 +4,9 @@ namespace dbi {
 
 using namespace std;
 
-char* BufferFrame::getData()
+char* BufferFrame::data()
 {
-   return data.data();
+   return pageContent.data();
 }
 
 }

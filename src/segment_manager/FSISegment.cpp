@@ -26,7 +26,7 @@ uint32_t FSISegment::getFreeBytes(PageId id) const
    // Get data
    uint32_t extent = id.toInteger() / 2 / kPageSize; // which extent to look on
    BufferFrame& bufferFrame = fixPage(extent, false);
-   char* data = bufferFrame.getData();
+   char* data = bufferFrame.data();
 
    // Read nibble
    uint32_t offset = id.toInteger() / 2 % kPageSize; // offset on page
@@ -47,7 +47,7 @@ void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
    // Get data
    uint32_t extent = id.toInteger() / 2 / kPageSize; // which extent to look on
    BufferFrame& bufferFrame = fixPage(extent, true);
-   char* data = bufferFrame.getData();
+   char* data = bufferFrame.data();
 
    // Change nibble
    uint32_t offset = id.toInteger() / 2 % kPageSize; // offset on page

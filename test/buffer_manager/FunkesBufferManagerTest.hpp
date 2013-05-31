@@ -34,7 +34,7 @@ static void* scan(void * /*arg*/)
       unsigned start = random() % (pagesOnDisk - 10);
       for(unsigned page = start; page < start + 10; page++) {
          dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(page), false);
-         unsigned newcount = reinterpret_cast<unsigned*>(bf.getData())[0];
+         unsigned newcount = reinterpret_cast<unsigned*>(bf.data())[0];
          assert(counters[page] <= newcount);
          counters[page] = newcount;
          bm->unfixPage(bf, false);
@@ -56,7 +56,7 @@ static void* readWrite(void *arg)
 
       if(isWrite) {
          count++;
-         reinterpret_cast<unsigned*>(bf.getData())[0]++;
+         reinterpret_cast<unsigned*>(bf.data())[0]++;
       }
       bm->unfixPage(bf, isWrite);
    }
@@ -88,7 +88,7 @@ int main_funke(int argc, char** argv)
    // set all counters to 0
    for(unsigned i = 0; i < pagesOnDisk; i++) {
       dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(i), true);
-      reinterpret_cast<unsigned*>(bf.getData())[0] = 0;
+      reinterpret_cast<unsigned*>(bf.data())[0] = 0;
       bm->unfixPage(bf, true);
    }
 
@@ -120,7 +120,7 @@ int main_funke(int argc, char** argv)
    unsigned totalCountOnDisk = 0;
    for(unsigned i = 0; i < pagesOnDisk; i++) {
       dbi::BufferFrame& bf = bm->fixPage(dbi::PageId(i), false);
-      totalCountOnDisk += reinterpret_cast<unsigned*>(bf.getData())[0];
+      totalCountOnDisk += reinterpret_cast<unsigned*>(bf.data())[0];
       bm->unfixPage(bf, false);
    }
    if(totalCount == totalCountOnDisk) {

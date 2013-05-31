@@ -21,7 +21,7 @@ void Persister::create()
 {
    // Setup linked list structure on meta page
    auto& frame = bufferManager.fixPage(kMetaPageId, kExclusive);
-   auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+   auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    sp.initialize();
    if(sp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != kLinkRecordId) {
       assert(false&&"assuming record id zero for first insert");
@@ -47,7 +47,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStor
    do {
       // Load current page
       auto& frame = bufferManager.fixPage(currentPageId, kExclusive);
-      auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+      auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
       auto records = sp.getAllRecords(currentPageId);
 
       // Add to internal structure
@@ -91,7 +91,7 @@ TupleId Persister::insert(SegmentId sid, const ExtentStore& extents)
    for(auto& page : pages) {
       if(page.freeBytes >= record.size()) {
          auto& frame = bufferManager.fixPage(page.pid, kExclusive);
-         auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+         auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
          assert(page.freeBytes == sp.getBytesFreeForRecord());
          RecordId rid = sp.insert(record);
          page.freeBytes = sp.getBytesFreeForRecord();
@@ -108,13 +108,13 @@ TupleId Persister::insert(SegmentId sid, const ExtentStore& extents)
 
    // Add new page to linked list
    auto& lastElementInList = bufferManager.fixPage(pages.back().pid, kExclusive);
-   auto& lastSp = reinterpret_cast<SlottedPage&>(*lastElementInList.getData());
+   auto& lastSp = reinterpret_cast<SlottedPage&>(*lastElementInList.data());
    lastSp.update(kLinkRecordId, Record(reinterpret_cast<const char*>(&newPage.pid), sizeof(PageId))); // Needs to work, because record has the same size
    bufferManager.unfixPage(lastElementInList, kDirty);
 
    // Setup new page
    auto& newFrame = bufferManager.fixPage(newPage.pid, kExclusive);
-   auto& newSp = reinterpret_cast<SlottedPage&>(*newFrame.getData());
+   auto& newSp = reinterpret_cast<SlottedPage&>(*newFrame.data());
    newSp.initialize();
    if(newSp.insert(Record(reinterpret_cast<const char*>(&kMetaPageId), sizeof(PageId))) != kLinkRecordId)
       throw; // Assuming record id zero for first insert
@@ -143,7 +143,7 @@ void Persister::remove(TupleId tid)
    for(auto& page : pages) {
       if(page.pid == pid) {
          auto& frame = bufferManager.fixPage(page.pid, kExclusive);
-         auto& sp = reinterpret_cast<SlottedPage&>(*frame.getData());
+         auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
          sp.remove(tid.toRecordId());
          page.freeBytes = sp.getBytesFreeForRecord();
          bufferManager.unfixPage(frame, kDirty);

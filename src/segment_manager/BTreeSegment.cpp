@@ -13,7 +13,7 @@ BTreeSegment::BTreeSegment(SegmentId id, SegmentInventory& si, BufferManager& bm
     if (getNumPages() == 0) {
         Extent extent = Segment::grow();
         metadataFrame = &Segment::fixPage(metadataPage.toInteger(), kExclusive);
-        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
+        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->data());
         metadata->nextFreePage = PageId(1);
         metadata->numberOfPages = extent.numPages();
         metadata->numberOfPages--; // minus metadatapage
@@ -22,7 +22,7 @@ BTreeSegment::BTreeSegment(SegmentId id, SegmentInventory& si, BufferManager& bm
         metadata->rootPage = p.second;
     } else {
         metadataFrame = &Segment::fixPage(metadataPage.toInteger(), kExclusive);
-        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
+        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->data());
     }
 }
 

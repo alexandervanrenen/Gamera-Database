@@ -18,20 +18,13 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
    segmentInventory = util::make_unique<SegmentInventory>(bufferManager, isInitialSetup);
 
    if(isInitialSetup) {
-      // Calculate required pages for free space inventory
-      uint64_t FSIPages = (bufferManager.getNumDiscPages() + 1) / 2; // Required bytes
-      FSIPages = FSIPages / kPageSize + (FSIPages % kPageSize != 0); // Required pages
-
       // Build free space inventory
       SegmentId fsiID = segmentInventory->createSegment();
-      auto extent = segmentInventory->assignExtentToSegment(fsiID, FSIPages);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, segmentInventory->getExtentsOfSegment(fsiID));
-      freeSpaceInventory->initializeExtent(extent);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, *segmentInventory, bufferManager);
    } else {
       // Load free space inventory
       SegmentId fsiID = kFreeSpaceInventoryId;
-      auto& extents = segmentInventory->getExtentsOfSegment(fsiID);
-      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, bufferManager, extents);
+      freeSpaceInventory = util::make_unique<FSISegment>(fsiID, *segmentInventory, bufferManager);
    }
 
    assert(freeSpaceInventory->getId() == kFreeSpaceInventoryId); // for now bitches =) .. move this to meta segment later
@@ -43,14 +36,13 @@ SegmentManager::~SegmentManager()
 
 SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPages)
 {
-   //assert(segmentType == SegmentType::SP);
    // Create segment
    SegmentId id = segmentInventory->createSegment();
    unique_ptr<Segment> segment;
    if (segmentType == SegmentType::SP) {
-      segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
+      segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, *segmentInventory, bufferManager));
    } else if (segmentType == SegmentType::BT) {
-      segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
+      segment = unique_ptr<Segment>(new BTreeSegment(id, *segmentInventory, bufferManager));
    }
    growSegment(*segment, numPages);
 
@@ -61,21 +53,12 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
 
 void SegmentManager::growSegment(Segment& segment)
 {
-   // Do exponential grow
-   uint64_t numPages;
-   if(segment.getNumPages() < 32)
-      numPages = segment.getNumPages();
-   else
-      // exp(2) when small
-      numPages = segment.getNumPages() * 1.25f - segment.getNumPages(); // exp(1.25) otherwise
-   growSegment(segment, numPages);
+   segment.grow();
 }
 
 void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
 {
-   // Get extent and add to segment
-   Extent extent = segmentInventory->assignExtentToSegment(segment.getId(), numPages);
-   segment.initializeExtent(extent);
+   segment.grow(numPages);
 }
 
 void SegmentManager::dropSegment(Segment& segment)
@@ -92,7 +75,7 @@ SPSegment& SegmentManager::getSPSegment(const SegmentId id)
       return reinterpret_cast<SPSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new SPSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, *segmentInventory, bufferManager));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<SPSegment&>(*result.first->second);
 }
@@ -105,7 +88,7 @@ BTreeSegment& SegmentManager::getBTreeSegment(const SegmentId id)
       return reinterpret_cast<BTreeSegment&>(*iter->second);
 
    // Otherwise create it
-   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *this, bufferManager, segmentInventory->getExtentsOfSegment(id)));
+   auto segment = unique_ptr<Segment>(new BTreeSegment(id, *segmentInventory, bufferManager));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<BTreeSegment&>(*result.first->second);
 }

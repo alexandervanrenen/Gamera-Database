@@ -3,8 +3,10 @@ all: tester
 # Define compile and link flags
 -include config.local
 CXX ?= g++
-cf = -g0 -O3 -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
-lf = -g0 -O3 --std=c++0x -I./src
+#opt = -g3 -O0
+opt = -g0 -O3
+cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I./libs/gtest/include
+lf = $(opt) --std=c++0x -I./src
 
 # Object director
 objDir:= build/

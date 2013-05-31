@@ -18,13 +18,26 @@ SegmentInventory::SegmentInventory(BufferManager& bufferManager, bool isInitialS
 
 SegmentId SegmentInventory::createSegment()
 {
-   SegmentId sid = ++nextSegmentId;
+   SegmentId sid = nextSegmentId++;
    TupleId tid = persister.insert(sid, ExtentStore());
    segmentMap.insert(make_pair(sid, make_pair(tid, ExtentStore())));
    return sid;
 }
 
-const Extent SegmentInventory::assignExtentToSegment(const SegmentId sid, const uint32_t numPages)
+const Extent SegmentInventory::growSegment(const SegmentId sid)
+{
+   assert(segmentMap.count(sid)==1);
+
+   // Do exponential grow
+   uint64_t numPages = segmentMap.find(sid)->second.second.numPages();
+   if(numPages < 16)
+      numPages = 16; // just increase size to 16 pages .. damn don't be cheap
+   else
+      numPages = numPages * 1.25f - numPages; // exp(1.25) otherwise
+   return growSegment(sid, numPages);
+}
+
+const Extent SegmentInventory::growSegment(const SegmentId sid, const uint32_t numPages)
 {
    assert(segmentMap.count(sid)==1 && numPages>0);
 

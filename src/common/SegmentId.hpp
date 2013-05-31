@@ -16,8 +16,8 @@ public:
    constexpr bool operator== (const SegmentId& other) const {return sid == other.sid;}
    constexpr bool operator!= (const SegmentId& other) const {return sid != other.sid;}
 
-   const SegmentId operator++() {return SegmentId(sid++);}
-   const SegmentId& operator++(int) {sid++; return *this;}
+   const SegmentId operator++() {return SegmentId(++sid);}
+   const SegmentId operator++(int) {return SegmentId(sid++);}
 
    friend std::ostream& operator<< (std::ostream& out, const SegmentId& sid) {return out << sid.sid;}
 

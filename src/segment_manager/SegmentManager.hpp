@@ -32,9 +32,7 @@ public:
 
    // Access segment with given id and cast to SPSegment
    SPSegment& getSPSegment(const SegmentId id);
-   
    BTreeSegment& getBTreeSegment(const SegmentId id);
-
    FSISegment& getFSISegment();
 
 private:

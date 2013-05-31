@@ -7,16 +7,13 @@ namespace dbi {
 
 class BufferManager;
 class Record;
-class SegmentManager;
+class FSISegment;
 
 class SPSegment : public Segment {
 public:
    /// Constructor
-   SPSegment(SegmentId id, SegmentManager& segmentManager, BufferManager& bufferManager, const ExtentStore& extents);
+   SPSegment(SegmentId id, FSISegment& fsi, SegmentInventory& si, BufferManager& bm);
    virtual ~SPSegment();
-
-   /// Called by segment manager after a extent has been added to this object
-   virtual void initializeExtent(const Extent& extent);
 
    /// Operations on records
    TupleId insert(const Record& record);
@@ -25,13 +22,20 @@ public:
    void update(TupleId tId, const Record& record);
    std::vector<std::pair<TupleId, Record>> getAllRecordsOfPage(PageId pageId);
 
+   /// Get extents for this segment (extent is added by the segment inventory)
+   virtual const Extent grow();
+   virtual const Extent grow(uint64_t numPages);
+
 private:
-   SegmentManager& segmentManager;
+   FSISegment& freeSpaceInventory;
 
    /// Looks for a page in this segment large enough to hold length (grows if not found)
    PageId aquirePage(uint16_t length);
    /// Insert record on a new page
    TupleId insertForeigner(TupleId originalTupleId, const Record& record);
+
+   /// Initialize all extents to a slotted page
+   void initializeExtent(Extent extent);
 };
 
 }

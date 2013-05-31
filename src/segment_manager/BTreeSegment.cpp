@@ -7,19 +7,11 @@ using namespace std;
 
 namespace dbi {
 
-BTreeSegment::BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const ExtentStore& extents)
-: Segment(id, bufferManager, extents)
-, segmentManager(sm)
+BTreeSegment::BTreeSegment(SegmentId id, SegmentInventory& si, BufferManager& bm)
+: Segment(id, si, bm)
 {
-    if (getNumPages() > 0) {
-        metadataFrame = &getPage(metadataPage, kExclusive);
-        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
-    } 
-}
-
-void BTreeSegment::initializeExtent(const Extent& extent) {
-    //std::cout << "Assigning extent with begin: " << extent.begin << ", end: " << extent.end << std::endl;
-    if (getNumPages() == 0) { // first extent -> initialize metadata
+    if (getNumPages() == 0) {
+        Extent extent = Segment::grow();
         metadataFrame = &Segment::fixPage(metadataPage.toInteger(), kExclusive);
         metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
         metadata->nextFreePage = PageId(1);
@@ -29,10 +21,10 @@ void BTreeSegment::initializeExtent(const Extent& extent) {
         bufferManager.unfixPage(p.first, true);
         metadata->rootPage = p.second;
     } else {
-        metadata->numberOfPages += extent.numPages();
+        metadataFrame = &Segment::fixPage(metadataPage.toInteger(), kExclusive);
+        metadata = reinterpret_cast<BTreeMetadata*>(metadataFrame->getData());
     }
 }
-
 
 BufferFrame& BTreeSegment::getPage(PageId id, bool exclusive) {
     assert(id.toInteger() < metadata->nextFreePage.toInteger());
@@ -43,10 +35,9 @@ void BTreeSegment::releasePage(BufferFrame& frame, bool isDirty) {
     bufferManager.unfixPage(frame, isDirty);
 }
 
-
 pair<BufferFrame&, PageId> BTreeSegment::newPage() {
     if (metadata->numberOfPages <= metadata->nextFreePage.toInteger()) {
-        segmentManager.growSegment(*this);
+        grow();
         assert(metadata->nextFreePage.toInteger() < metadata->numberOfPages);
     }
     PageId newid = metadata->nextFreePage++;
@@ -61,5 +52,18 @@ void BTreeSegment::setRootPage(PageId id) {
     metadata->rootPage = id;
 }
 
+const Extent BTreeSegment::grow()
+{
+   Extent extent = Segment::grow();
+   metadata->numberOfPages += extent.numPages();
+   return extent;
 }
 
+const Extent BTreeSegment::grow(uint64_t numPages)
+{
+   Extent extent = Segment::grow(numPages);
+   metadata->numberOfPages += extent.numPages();
+   return extent;
+}
+
+}

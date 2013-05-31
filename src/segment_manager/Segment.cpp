@@ -1,15 +1,17 @@
 #include "buffer_manager/BufferManager.hpp"
 #include "Segment.hpp"
 #include "ExtentStore.hpp"
+#include "SegmentInventory.hpp"
 #include <cassert>
 
 using namespace std;
 
 namespace dbi {
 
-Segment::Segment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents)
+Segment::Segment(SegmentId id, SegmentInventory& segmentInventory, BufferManager& bufferManager)
 : id(id)
-, extents(extents)
+, extents(segmentInventory.getExtentsOfSegment(id))
+, segmentInventory(segmentInventory)
 , bufferManager(bufferManager)
 {
 }
@@ -27,6 +29,16 @@ PageIDIterator Segment::beginPageID()
 PageIDIterator Segment::endPageID()
 {
    return PageIDIterator(extents.get(), kInvalidPageID);
+}
+
+const Extent Segment::grow()
+{
+   return segmentInventory.growSegment(id);
+}
+
+const Extent Segment::grow(uint64_t numPages)
+{
+   return segmentInventory.growSegment(id, numPages);
 }
 
 BufferFrame& Segment::fixPage(uint64_t offset, bool exclusive) const // TODO: who is using that .. and why .. ?

@@ -16,7 +16,8 @@ public:
    SegmentId createSegment();
 
    /// Add pages to a segment
-   const Extent assignExtentToSegment(const SegmentId id, const uint32_t numPages);
+   const Extent growSegment(const SegmentId id);
+   const Extent growSegment(const SegmentId id, const uint32_t numPages);
 
    /// Access all extents of a given segment
    const ExtentStore& getExtentsOfSegment(const SegmentId id);

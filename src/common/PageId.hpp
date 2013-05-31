@@ -16,8 +16,8 @@ public:
    constexpr bool operator== (const PageId& other) const {return pid == other.pid;}
    constexpr bool operator!= (const PageId& other) const {return pid != other.pid;}
 
-   const PageId operator++() {return PageId(pid++);}
-   const PageId& operator++(int) {pid++; return *this;}
+   const PageId operator++() {return PageId(++pid);}
+   const PageId operator++(int) {return PageId(pid++);}
 
    friend std::ostream& operator<< (std::ostream& out, const PageId& pid) {return out << pid.pid;}
 

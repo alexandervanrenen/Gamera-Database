@@ -10,18 +10,17 @@ class BufferManager;
 class FSISegment : public Segment {
 public:
    /// Constructor
-   FSISegment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents);
-   virtual ~FSISegment()
-   {
-   }
-
-   /// Called by segment manager after a extent has been added to this object
-   virtual void initializeExtent(const Extent& extent);
+   FSISegment(SegmentId id, SegmentInventory& segmentInventory, BufferManager& bufferManager);
+   virtual ~FSISegment();
 
    /// Returns number of minimum free bytes
    uint32_t getFreeBytes(PageId id) const;
    /// Expects exact number of free bytes
    void setFreeBytes(PageId id, uint32_t freeBytes);
+
+   /// Get extents for this segment (extent is added by the segment inventory)
+   virtual const Extent grow();
+   virtual const Extent grow(uint64_t numPages);
 };
 
 }

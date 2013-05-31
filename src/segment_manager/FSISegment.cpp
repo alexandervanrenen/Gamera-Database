@@ -1,5 +1,6 @@
 #include "buffer_manager/BufferFrame.hpp"
 #include "FSISegment.hpp"
+#include "buffer_manager/BufferManager.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -7,12 +8,16 @@ using namespace std;
 
 namespace dbi {
 
-FSISegment::FSISegment(SegmentId id, BufferManager& bufferManager, const ExtentStore& extents)
-: Segment(id, bufferManager, extents)
+FSISegment::FSISegment(SegmentId id, SegmentInventory& segmentInventory, BufferManager& bufferManager)
+: Segment(id, segmentInventory, bufferManager)
 {
+   // Calculate required pages for free space inventory
+   uint64_t FSIBytes = (bufferManager.getNumDiscPages() + 1) / 2; // Required bytes
+   uint64_t FSIPages = FSIBytes / kPageSize + (FSIBytes % kPageSize != 0); // Required pages
+   Segment::grow(FSIPages);
 }
 
-void FSISegment::initializeExtent(const Extent&)
+FSISegment::~FSISegment()
 {
 }
 
@@ -55,6 +60,18 @@ void FSISegment::setFreeBytes(PageId id, uint32_t freeBytes)
       data[offset] |= (val << 4);
    }
    unfixPage(bufferFrame, true);
+}
+
+const Extent FSISegment::grow()
+{
+   assert("growing segment inventory"&&false);
+   throw;
+}
+
+const Extent FSISegment::grow(uint64_t numPages)
+{
+   assert("growing segment inventory"&&false);
+   throw;
 }
 
 }

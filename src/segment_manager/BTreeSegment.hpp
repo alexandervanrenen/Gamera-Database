@@ -16,13 +16,10 @@ class SegmentManager;
 class BTreeSegment : public Segment {
 public:
     /// Constructor
-    BTreeSegment(SegmentId id, SegmentManager& sm, BufferManager& bufferManager, const ExtentStore& extents);
+    BTreeSegment(SegmentId id, SegmentInventory& si, BufferManager& bm);
     virtual ~BTreeSegment() {
         bufferManager.unfixPage(*metadataFrame, true);
     }
-
-    /// Called by segment manager after a extent has been added to this object
-    virtual void initializeExtent(const Extent& extent);
 
     BufferFrame& getPage(PageId id, bool exclusive=kShared);
 
@@ -33,8 +30,11 @@ public:
     PageId getRootPage();
     void setRootPage(PageId id);
 
+    /// Get extents for this segment (extent is added by the segment inventory)
+    virtual const Extent grow();
+    virtual const Extent grow(uint64_t numPages);
+
 private:
-    SegmentManager& segmentManager;
     BufferFrame* metadataFrame;
     BTreeMetadata* metadata;
 };

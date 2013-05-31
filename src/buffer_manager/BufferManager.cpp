@@ -23,13 +23,17 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 , stats(util::make_unique<util::StatisticsCollector<collectPerformance>>("buffer manager"))
 {
    // Check length of the file
+   uint64_t length = util::getFileLength(fileName);
+   if(length == 0 || length%kPageSize!=0) {
+      assert(length > 0 && length%kPageSize==0);
+      throw;
+   }
+   discPagesCount = length / kPageSize;
+
+   // Open file
    fileFD = open(fileName.c_str(), O_RDWR);
    if(fcntl(fileFD, F_GETFL) == -1)
       assert("can not open file" && false);
-   struct stat st;
-   fstat(fileFD, &st);
-   assert(st.st_size > 0 && st.st_size % kPageSize == 0);
-   discPagesCount = st.st_size / kPageSize;
 
    // Insert in map
    for(uint32_t i = 0; i < memoryPagesCount; i++)
@@ -112,6 +116,7 @@ BufferManager::~BufferManager()
 {
    flush();
    stats->print(cout);
+   close(fileFD);
 }
 
 void BufferManager::loadFrame(PageId pageId, BufferFrame& frame)

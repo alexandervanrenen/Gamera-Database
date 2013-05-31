@@ -110,6 +110,7 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    scanner.open();
    ASSERT_TRUE(!scanner.next());
    scanner.close();
+   remove(fileName.c_str());
 }
 
 TEST(SPSegment, Randomized)
@@ -201,4 +202,5 @@ TEST(SPSegment, Randomized)
          }
       }
    }
+   remove(kFileName.c_str());
 }

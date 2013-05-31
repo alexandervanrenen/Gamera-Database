@@ -25,6 +25,9 @@ bool foreachInFile(const std::string& fileName, std::function<void(uint64_t)> ca
 /// Create a file with random(not set) data of given size
 bool createFile(const std::string& fileName, const uint64_t bytes);
 
+/// Reads the length of the file
+uint64_t getFileLength(const std::string& fileName);
+
 /// Create a unique pointer
 template<class T, class ... Arg>
 std::unique_ptr<T> make_unique(Arg&& ...args)

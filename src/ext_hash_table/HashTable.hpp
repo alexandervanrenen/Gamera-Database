@@ -14,10 +14,10 @@ class HashTable {
 public:
     HashTable() {
         numRelevantBits = 1;
-        Bucket<Key,Value>* initialBucket = new Bucket<Key,Value>();
+        std::shared_ptr<Bucket<Key,Value>> initialBucket = std::make_shared<Bucket<Key,Value>>();
         directory.resize(2);
-        directory[0] = std::shared_ptr<Bucket<Key,Value>>(initialBucket);
-        directory[1] = std::shared_ptr<Bucket<Key,Value>>(initialBucket);
+        directory[0] = initialBucket;
+        directory[1] = initialBucket;
     }
     
     ~HashTable() {

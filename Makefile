@@ -1,11 +1,11 @@
-all: tester
+all: tester server client
 
 # Define compile and link flags
 -include config.local
 CXX ?= g++
-#opt = -g3 -O0
-opt = -g0 -O3
-cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include
+opt = -g3 -O0
+#opt = -g0 -O3
+cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -fPIC
 lf = $(opt) --std=c++0x -I./src
 
 # Object director
@@ -19,16 +19,28 @@ ifeq (ccache clang,$(filter $(CXX),ccache clang))
 endif
 
 # Get source file names
--include src/LocalMakefile
-src_files := $(addprefix $(objDir),$(src_files))
--include test/LocalMakefile
-test_files := $(addprefix $(objDir),$(test_files))
-all_files := $(src_files) $(test_files)
+src_files := $(patsubst src/%,build/src/%, $(patsubst %.cpp,%.o,$(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp)))
+test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard test/*.cpp test/*/*.cpp test/*/*/*.cpp)))
+
+# Build database
+bin/database.so: $(src_files) libs/zmq
+	$(build_dir) bin
+	$(CXX) -shared -o bin/database.so $(src_files) $(lf) -lpthread
 
 # Build tester
-tester: libs/gtest $(all_files) build/test/tester.o
+tester: libs/gtest $(test_files) build/test/tester.o bin/database.so
 	$(build_dir) bin
-	$(CXX) -o bin/tester build/test/tester.o $(lf) $(all_files) libs/gtest/libgtest.a -pthread
+	$(CXX) -o bin/tester $(lf) $(test_files) bin/database.so libs/gtest/libgtest.a -pthread
+
+# Build server
+server: libs/zmq bin/database.so build/server.o
+	$(build_dir) bin
+	$(CXX) -o bin/server build/server.o $(lf) bin/database.so libs/zmq/libzmq.a -pthread -lrt
+
+# Build client
+client: libs/zmq build/client.o
+	$(build_dir) bin
+	$(CXX) -o bin/client build/client.o $(lf) libs/zmq/libzmq.a -pthread -lrt
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp
@@ -42,6 +54,7 @@ $(objDir)%.o: %.cpp
 -include $(objDir)*.P
 -include $(objDir)*/*.P
 -include $(objDir)*/*/*.P
+-include $(objDir)*/*/*/*.P
 
 # Build gtest library
 libs/gtest:
@@ -68,13 +81,38 @@ libs/tbb:
 	wget http://threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb41_20130116oss_src.tgz ;\
 	tar -xaf tbb41_20130116oss_src.tgz ;\
 	cd tbb41_20130116oss ;\
-	make tbb ;\
+	make tbb -j4 ;\
 	rm build/*_debug/* -rf ;\
 	cd .. ;\
 	mkdir -p tbb ;\
 	find . -name "libtbb*.*" -exec mv {} ./tbb/ \; ;\
 	mv tbb41_20130116oss/include/ tbb/ ;\
 	rm tbb41_20130116oss* -rf
+
+# Build zmq
+libs/zmq:
+	$(build_dir)
+	cd libs/ ;\
+	wget http://download.zeromq.org/zeromq-3.2.3.tar.gz ;\
+	tar -xaf zeromq-3.2.3.tar.gz ;\
+	cd zeromq-3.2.3 ;\
+	./configure --enable-static --disable-shared --prefix ${PWD}/libs/zmq ;\
+	make -j4 ;\
+	make install ;\
+	cd .. ;\
+	rm zeromq-3.2.3.tar.gz ;\
+	rm zeromq-3.2.3 -rf ;\
+	rm zmq/share -rf ;\
+	mv zmq/lib/libzmq.a zmq/ ;\
+	rm zmq/lib -rf ;\
+	mkdir zmq/include/zmq ;\
+	mv zmq/include/*.h zmq/include/zmq/
+	# now get c++ header files for zmq
+	cd libs ;\
+	git clone https://github.com/zeromq/cppzmq.git ;\
+	mv cppzmq/zmq.hpp zmq/include/zmq/ ;\
+	sed -i "s/#include <zmq.h>/#include \"zmq.h\"/g" zmq/include/zmq/zmq.hpp ;\
+	rm cppzmq -rf
 
 # Clean up =)
 clean:

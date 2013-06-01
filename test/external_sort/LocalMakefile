@@ -1,1 +1,0 @@
-test_external_sort_files := test/external_sort/ExternalSortTest.o

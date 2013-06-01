@@ -9,7 +9,7 @@ namespace dbi {
 
 TableScanOperator::TableScanOperator(SPSegment& input)
 : segment(input)
-, nextPage(input.endPageID())
+, nextPage(input.endPageId())
 , positionInCurrentPage(0)
 , state(kClosed)
 {
@@ -21,7 +21,7 @@ void TableScanOperator::open()
    state = kOpen;
 
    // Initialize
-   nextPage = segment.beginPageID();
+   nextPage = segment.beginPageId();
    positionInCurrentPage = 0; // next will load the data
    assert(recordsInCurrentPage.size() == 0);
 }
@@ -31,7 +31,7 @@ bool TableScanOperator::next()
    assert(state == kOpen);
 
    // Check if end is reached
-   if(positionInCurrentPage == recordsInCurrentPage.size() && nextPage == segment.endPageID())
+   if(positionInCurrentPage == recordsInCurrentPage.size() && nextPage == segment.endPageId())
       return false;
 
    // Current page has more elements
@@ -41,7 +41,7 @@ bool TableScanOperator::next()
    }
 
    // Find next page
-   while(positionInCurrentPage >= recordsInCurrentPage.size() && nextPage != segment.endPageID()) {
+   while(positionInCurrentPage >= recordsInCurrentPage.size() && nextPage != segment.endPageId()) {
       recordsInCurrentPage = segment.getAllRecordsOfPage(*nextPage);
       positionInCurrentPage = 0;
       ++nextPage;

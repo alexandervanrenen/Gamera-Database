@@ -38,38 +38,9 @@ void ExtentStore::add(const Extent& extent)
 
    // Add extent
    pageCount += extent.numPages();
-   extents.emplace_back(extent);
-   sort(extents.begin(), extents.end(), [](const Extent& lhs, const Extent& rhs){return lhs.begin().toInteger() < rhs.begin().toInteger();});
-
-   // Merge
-   for(uint32_t i=0; i<extents.size()-1; i++) {
-      if(extents[i].end() == extents[i+1].begin()) {
-         extents[i] = Extent(extents[i].begin(), extents[i+1].end());
-         extents.erase(extents.begin()+i+1);
-         i--;
-         continue;
-      }
-   }
-}
-
-void ExtentStore::remove(const Extent& extent)
-{
-   assert(extent.numPages() > 0);
-
-   // The has to be completely inside an already existing one (iterators are not stable)
-   for(uint32_t i=0; i<extents.size(); i++)
-      if(extents[i].begin().toInteger() <= extent.begin().toInteger() && extent.end().toInteger() <= extents[i].end().toInteger()) {
-         pageCount -= extent.numPages();
-         // Is there a range before the removed extent ?
-         if(extents[i].end() != extent.end())
-            extents.insert(extents.begin()+i+1, Extent(extent.end(), extents[i].end()));
-         if(extents[i].begin() != extent.begin())
-            extents.insert(extents.begin()+i+1, Extent(extents[i].begin(), extent.begin()));
-         extents.erase(extents.begin()+i);
-         return;
-      }
-
-   throw util::StupidUserException("extent store: removing extent which does not belong to this store");
+   if(!extents.empty() && extents.back().end() == extent.begin())
+      extents.back() = Extent(extents.back().begin(), extent.end()); else // Merge to last extent
+      extents.emplace_back(extent); // Add a new extent
 }
 
 const vector<Extent>& ExtentStore::get() const

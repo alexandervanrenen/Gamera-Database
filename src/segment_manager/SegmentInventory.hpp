@@ -3,6 +3,7 @@
 #include "Persister.hpp"
 #include "Extent.hpp"
 #include "ExtentStore.hpp"
+#include "CompactExtentStore.hpp"
 #include <unordered_map>
 
 namespace dbi {
@@ -35,7 +36,7 @@ private:
    Persister persister;
 
    /// Stores free pages
-   ExtentStore freePages;
+   CompactExtentStore freePages;
 };
 
 }

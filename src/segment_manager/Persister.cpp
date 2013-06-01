@@ -1,6 +1,7 @@
 #include "Persister.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include "ExtentStore.hpp"
+#include "CompactExtentStore.hpp"
 #include "SlottedPage.hpp"
 
 using namespace std;
@@ -11,7 +12,7 @@ namespace {
    constexpr RecordId kLinkRecordId = RecordId(0);
 }
 
-Persister::Persister(BufferManager& bufferManager, ExtentStore& freePages)
+Persister::Persister(BufferManager& bufferManager, CompactExtentStore& freePages)
 : bufferManager(bufferManager)
 , freePages(freePages)
 {

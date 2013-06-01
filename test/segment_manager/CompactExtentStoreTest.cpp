@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "segment_manager/ExtentStore.hpp"
+#include "segment_manager/CompactExtentStore.hpp"
 #include "segment_manager/Extent.hpp"
 #include "test/TestConfig.hpp"
 #include <array>
@@ -11,9 +11,9 @@
 using namespace std;
 using namespace dbi;
 
-TEST(SegmentManager, ExtentStore)
+TEST(SegmentManager, CompactExtentStore)
 {
-   ExtentStore extentStore;
+   CompactExtentStore extentStore;
 
    // Add
    extentStore.add(Extent(PageId(5), PageId(10)));

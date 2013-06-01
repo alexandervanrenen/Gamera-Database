@@ -10,12 +10,13 @@ namespace dbi {
 
 class BufferManager;
 class ExtentStore;
+class CompactExtentStore;
 
 /// Persist all SegmentId -> vector<Extent> mappings
 /// Uses linked list like structure beginning at kMetaPageId
 class Persister {
 public:
-   Persister(BufferManager& bufferManager, ExtentStore& freePages);
+   Persister(BufferManager& bufferManager, CompactExtentStore& freePages); // Free pages are loaded and used when the persister needs a new page itself
    void create();
    void load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStore>>& segmentMap, SegmentId& nextFreeId);
 
@@ -25,7 +26,7 @@ public:
 
 private:
    BufferManager& bufferManager;
-   ExtentStore& freePages;
+   CompactExtentStore& freePages;
 
    struct PageReference {uint32_t freeBytes; PageId pid;};
    std::vector<PageReference> pages; // Remember each page id and its free bytes

@@ -4,7 +4,6 @@
 #include "SegmentManager.hpp"
 #include "SlottedPage.hpp"
 #include "SPSegment.hpp"
-#include "ExtentStore.hpp"
 #include "util/ByteEncoding.hpp"
 #include <iostream>
 

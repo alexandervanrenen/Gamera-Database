@@ -21,8 +21,6 @@ endif
 # Get source file names
 src_files := $(patsubst src/%,build/src/%, $(patsubst %.cpp,%.o,$(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp)))
 test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard test/*.cpp test/*/*.cpp test/*/*/*.cpp)))
-server_files := $(patsubst server/%,build/server/%, $(patsubst %.cpp,%.o,$(wildcard server/*.cpp server/*/*.cpp)))
-client_files := $(patsubst client/%,build/client/%, $(patsubst %.cpp,%.o,$(wildcard client/*.cpp client/*/*.cpp)))
 
 # Build database
 bin/database.so: $(src_files) libs/zmq
@@ -35,14 +33,14 @@ tester: libs/gtest $(test_files) build/test/tester.o bin/database.so
 	$(CXX) -o bin/tester $(lf) $(test_files) bin/database.so libs/gtest/libgtest.a -pthread
 
 # Build server
-server: libs/zmq $(server_files) bin/database.so
+server: libs/zmq bin/database.so build/server.o
 	$(build_dir) bin
-	$(CXX) -o bin/server $(lf) $(server_files) bin/database.so libs/zmq/libzmq.a -pthread -lrt
+	$(CXX) -o bin/server build/server.o $(lf) bin/database.so libs/zmq/libzmq.a -pthread -lrt
 
 # Build client
-client: libs/zmq $(client_files)
+client: libs/zmq build/client.o
 	$(build_dir) bin
-	$(CXX) -o bin/client $(lf) $(client_files) libs/zmq/libzmq.a -pthread -lrt
+	$(CXX) -o bin/client build/client.o $(lf) libs/zmq/libzmq.a -pthread -lrt
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp

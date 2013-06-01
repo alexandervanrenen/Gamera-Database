@@ -42,8 +42,8 @@ private:
    uint32_t toLogScale(uint16_t bytes) const;
    void updateFreeBytes(PageId pid, uint16_t freeBytes);
 
-   /// Store first free page for each size magnitude (8, 16, 32, 64, 128, 256, 512, 1024, 2048, bigger)
-   std::array<PageIdIterator, 10> fristFreePages;
+   /// Store first free page for each size magnitude (8, 16, 32, 64, 128, 256, 512, 1024, ..)
+   std::array<PageIdIterator, 16> fristFreePages;
 };
 
 }

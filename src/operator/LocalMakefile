@@ -1,2 +1,0 @@
-src_operator_files :=    src/operator/Operator.o            \
-                         src/operator/TableScanOperator.o

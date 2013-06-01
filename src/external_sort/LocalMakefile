@@ -1,3 +1,0 @@
-src_external_sort_files :=    src/external_sort/ExternalSort.o   \
-                              src/external_sort/InputRun.o       \
-                              src/external_sort/OutputRun.o

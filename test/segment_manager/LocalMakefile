@@ -1,4 +1,0 @@
-test_segment_manager_files :=	test/segment_manager/SegmentManagerTest.o       \
-                              test/segment_manager/CompactExtentStoreTest.o   \
-                              test/segment_manager/SPSegmentTest.o            \
-				                  test/segment_manager/SlottedPageTest.o

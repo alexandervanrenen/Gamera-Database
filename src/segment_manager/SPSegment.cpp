@@ -15,7 +15,7 @@ namespace dbi {
 SPSegment::SPSegment(SegmentId id, FSISegment& fsi, SegmentInventory& si, BufferManager& bm)
 : Segment(id, si, bm)
 , freeSpaceInventory(fsi)
-, fristFreePages({{beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID(), beginPageID()}})
+, fristFreePages({{beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId(), beginPageId()}})
 {
 }
 
@@ -36,7 +36,7 @@ TupleId SPSegment::insert(const Record& record)
 
 Record SPSegment::lookup(TupleId tid)
 {
-   assert(any_of(beginPageID(), endPageID(), [tid](const PageId& pid) {return pid==tid.toPageId();}));
+   assert(any_of(beginPageId(), endPageId(), [tid](const PageId& pid) {return pid==tid.toPageId();}));
 
    auto& frame = fixGlobalPage(tid.toPageId(), kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
@@ -52,7 +52,7 @@ Record SPSegment::lookup(TupleId tid)
 
 void SPSegment::remove(TupleId tId)
 {
-   assert(any_of(beginPageID(), endPageID(), [tId](const PageId& pid) {return pid==tId.toPageId();}));
+   assert(any_of(beginPageId(), endPageId(), [tId](const PageId& pid) {return pid==tId.toPageId();}));
    auto& frame = fixGlobalPage(tId.toPageId(), kExclusive);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteTupleId = sp.isReference(tId.toRecordId());
@@ -170,7 +170,7 @@ void SPSegment::updateFreeBytes(PageId pid, uint16_t freeBytes)
 {
    // Update first free pages
    uint32_t ld = util::encodeBytes(freeBytes);
-   auto iter = findPageID(pid);
+   auto iter = findPageId(pid);
    for(uint32_t i=0; i<ld; i++)
       fristFreePages[i] = min(fristFreePages[i], iter);
 
@@ -181,7 +181,7 @@ void SPSegment::updateFreeBytes(PageId pid, uint16_t freeBytes)
 PageId SPSegment::aquirePage(uint16_t length)
 {
    for(uint32_t ld = util::encodeBytes(length); ld<fristFreePages.size(); ld++)
-      for(auto& iter = fristFreePages[ld]; iter != endPageID(); iter++)
+      for(auto& iter = fristFreePages[ld]; iter != endPageId(); iter++)
          if(freeSpaceInventory.getFreeBytes(*iter) >= length)
             return *iter;
 

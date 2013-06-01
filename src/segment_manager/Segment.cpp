@@ -21,17 +21,17 @@ uint64_t Segment::numPages() const
    return extents.numPages();
 }
 
-PageIdIterator Segment::beginPageID() const
+PageIdIterator Segment::beginPageId() const
 {
    return PageIdIterator(extents.get(), extents.get().size() == 0 ? kInvalidPageId : extents.get()[0].begin());
 }
 
-PageIdIterator Segment::findPageID(PageId pid) const
+PageIdIterator Segment::findPageId(PageId pid) const
 {
    return PageIdIterator(extents.get(), pid);
 }
 
-PageIdIterator Segment::endPageID() const
+PageIdIterator Segment::endPageId() const
 {
    return PageIdIterator(extents.get(), kInvalidPageId);
 }

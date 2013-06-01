@@ -204,7 +204,7 @@ TEST(SPSegment, Randomized)
       }
 
       uint64_t sum = 0;
-      for(auto iter=segment->beginPageID(); iter!=segment->endPageID(); iter++) {
+      for(auto iter=segment->beginPageId(); iter!=segment->endPageId(); iter++) {
          auto& bf = bufferManager.fixPage(*iter, kShared);
          auto& sp = reinterpret_cast<SlottedPage&>(*bf.data());
          sum += sp.getBytesFreeForRecord();

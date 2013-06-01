@@ -29,12 +29,19 @@ struct hash<std::pair<std::string, dbi::SegmentId>> {
 };
 }
 
-
 namespace dbi {
+
+
+struct IndexMetadata {
+    RelationMetadata* relation;
+    SegmentId segment;
+    std::vector<AttributeMetadata*> attributes;
+};
+
 
 class MetadataManager { 
 public:
-    typedef std::vector<IndexMetadata*> RelationIndexes;
+    typedef std::vector<IndexMetadata> RelationIndexes;
     typedef sqlparser::Schema sqlSchema;
     typedef sqlparser::Schema::Relation sqlRelation;
     typedef sqlparser::Schema::Relation::Attribute sqlAttribute;
@@ -48,12 +55,11 @@ public:
 
     // Get information from relations
     SegmentId getSegmentForRelation(const std::string name);
-    AttributeType getTypeForAttribute(const std::string relationName, const std::string attributeName);
+    AttributeType getTypeForAttribut(const std::string relationName, const std::string attributeName);
     RelationIndexes getRelationIndexes(const std::string relationName);
-    void addIndex(const std::string relationName, SegmentId sid, std::vector<std::string> attr);
-    void setSegment(const std::string relationName, SegmentId sid);
-    uint16_t getAttributeOffset(const std::string relationName, const std::string attributeName);
-        
+    void addIndex(std::string relationName, SegmentId sid, std::vector<std::string> attributes);
+    void setSegment(std::string relationName, SegmentId sid);
+
 private:
     SPSegment& segRelations;
     SPSegment& segAttributes;
@@ -62,7 +68,6 @@ private:
     std::unordered_map<std::string, RelationMetadata*> relations; 
     std::unordered_map<TupleId, RelationMetadata*> relationsByTid; 
     std::unordered_map<StringPair, AttributeMetadata*> attributes; 
-    std::unordered_map<std::string, RelationIndexes> relationIndexes;
 
     RelationMetadata* loadRelationMetadata(const Record& r, const TupleId& tid);
     Record* saveRelationMetadata(RelationMetadata* rm);
@@ -71,9 +76,6 @@ private:
     Record* saveAttributeMetadata(AttributeMetadata* am);
     void saveAttribute(AttributeMetadata* am);
     void loadData();
-    void calculateRelationIndexes(RelationMetadata* rm);
-
-    void reorderRelation(sqlRelation& r);
 };
 
 

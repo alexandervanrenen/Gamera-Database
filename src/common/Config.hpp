@@ -12,7 +12,7 @@ namespace dbi {
 static const uint32_t kPageSize = 1 << 14;
 
 static constexpr TupleId kInvalidTupleId = TupleId(-1);
-static constexpr PageId kInvalidPageId = PageId(-1);
+static constexpr PageId kInvalidPageId = PageId(-1); // High page ids are also used by the buffer manager.
 static constexpr RecordId kInvalidRecordId = RecordId(-1);
 
 /// Use same id for free space inventory

@@ -37,7 +37,7 @@ BufferManager::BufferManager(const std::string& fileName, uint64_t memoryPagesCo
 
    // Insert in map
    for(uint32_t i = 0; i < memoryPagesCount; i++)
-      bufferFrameDir.insert(PageId(10000000 + i)).pageId = PageId(10000000 + i); // TODO: WTF !?
+      bufferFrameDir.insert(PageId(kInvalidPageId.toInteger() - 1 - i)).pageId = PageId(kInvalidPageId.toInteger() - 1 - i);
 
    // Add to swap out strategy
    swapOutAlgorithm->initialize(bufferFrameDir);

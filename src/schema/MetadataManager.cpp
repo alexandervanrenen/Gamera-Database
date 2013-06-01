@@ -91,6 +91,7 @@ void MetadataManager::addRelation(sqlRelation rel) {
     TupleId relTid = segRelations.insert(*relRec);
     rm->tid = relTid;
     relationsByTid.insert({relTid, rm});
+    relations.insert({rm->name, rm});
     for (sqlAttribute a: rel.attributes) {
         AttributeMetadata* am = new AttributeMetadata(a.name, a.type, a.len, a.notNull, a.primaryKey);
         am->relationTid = relTid;
@@ -103,7 +104,7 @@ void MetadataManager::addRelation(sqlRelation rel) {
 
 void MetadataManager::saveRelation(RelationMetadata* rm) {
     Record* r = saveRelationMetadata(rm);
-    if (rm->tid != kInvalidTupleID)
+    if (rm->tid != kInvalidTupleId)
         segRelations.update(rm->tid, *r);
     else {
         TupleId tid = segRelations.insert(*r);
@@ -113,7 +114,7 @@ void MetadataManager::saveRelation(RelationMetadata* rm) {
 
 void MetadataManager::saveAttribute(AttributeMetadata* am) {
     Record* r = saveAttributeMetadata(am);
-    if (am->tid != kInvalidTupleID)
+    if (am->tid != kInvalidTupleId)
         segAttributes.update(am->tid, *r);
     else {
         TupleId tid = segAttributes.insert(*r);

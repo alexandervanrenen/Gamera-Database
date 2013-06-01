@@ -5,7 +5,7 @@ create table employee (
 	salery integer,
 	first_name char(20),
 	middle char(1),
-	last_name char(20),
+	last_name char(25),
 	primary key (id, country_id)
 );
 

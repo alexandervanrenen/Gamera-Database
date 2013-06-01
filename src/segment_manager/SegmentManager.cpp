@@ -21,6 +21,11 @@ SegmentManager::SegmentManager(BufferManager& bufferManager, bool isInitialSetup
       // Build free space inventory
       SegmentId fsiID = segmentInventory->createSegment();
       freeSpaceInventory = util::make_unique<FSISegment>(fsiID, *segmentInventory, bufferManager);
+      // Create SPSegments for MetadataManager
+      SegmentId spMetadataRelationsId = createSegment(SegmentType::SP, 2);
+      SegmentId spMetadataAttributesId = createSegment(SegmentType::SP, 10);
+      assert(spMetadataRelationsId == kRelationsSegmentId);
+      assert(spMetadataAttributesId == kAttributesSegmentId);
    } else {
       // Load free space inventory
       SegmentId fsiID = kFreeSpaceInventoryId;

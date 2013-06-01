@@ -22,7 +22,7 @@ TEST(MetadataManagerTest, SimpleTest) {
     typedef dbi::SegmentId SegmentId;
     const std::string fileName = "bin/swap_file";
     const std::string schemaFile = "test/schema/test.sql";
-    const uint32_t pages = 1000;
+    const uint32_t pages = 100;
 
     // Create
     ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
@@ -41,11 +41,11 @@ TEST(MetadataManagerTest, SimpleTest) {
         ASSERT_EQ(mdm.getSegmentForRelation("country"), SegmentId(5));
         ASSERT_EQ(mdm.getSegmentForRelation("employee"), SegmentId(6));
     }
+    // Load data from disk to see it persisting works
     {
         dbi::BufferManager bufferManager(fileName, pages / 2);
         dbi::SegmentManager segmentManager(bufferManager, false);
         dbi::MetadataManager mdm { segmentManager };
-        std::cout << "Loading segment from disk\n";
         ASSERT_EQ(mdm.getSegmentForRelation("country"), SegmentId(5));
         ASSERT_EQ(mdm.getSegmentForRelation("employee"), SegmentId(6));
     }

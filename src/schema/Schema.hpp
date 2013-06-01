@@ -11,6 +11,7 @@ struct AttributeMetadata {
     std::string name;
     AttributeType type;
     uint8_t len;
+    uint16_t offset;
     bool notNull;
     bool primaryKey;
     TupleId tid; // not saved

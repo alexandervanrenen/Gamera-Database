@@ -6,3 +6,6 @@ config.local
 core
 *.png
 *.dot
+
+src/query_parser/Parser.cpp
+

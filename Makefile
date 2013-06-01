@@ -23,24 +23,30 @@ src_files := $(patsubst src/%,build/src/%, $(patsubst %.cpp,%.o,$(wildcard src/*
 test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard test/*.cpp test/*/*.cpp test/*/*/*.cpp)))
 
 # Build database
-bin/database.so: $(src_files) libs/zmq
+bin/database.so: libs src/query_parser/Parser.cpp $(src_files)
 	$(build_dir) bin
 	$(CXX) -shared -o bin/database.so $(src_files) $(lf) -lpthread
 
 # Build tester
-tester: libs/gtest $(test_files) build/test/tester.o bin/database.so
+tester: libs bin/database.so $(test_files) build/test/tester.o
 	$(build_dir) bin
 	$(CXX) -o bin/tester $(lf) $(test_files) bin/database.so libs/gtest/libgtest.a -pthread
 
 # Build server
-server: libs/zmq bin/database.so build/server.o
+server: libs bin/database.so build/server.o
 	$(build_dir) bin
 	$(CXX) -o bin/server build/server.o $(lf) bin/database.so libs/zmq/libzmq.a -pthread -lrt
 
 # Build client
-client: libs/zmq build/client.o
+client: libs build/client.o
 	$(build_dir) bin
 	$(CXX) -o bin/client build/client.o $(lf) libs/zmq/libzmq.a -pthread -lrt
+
+# Ensure latest parser version
+src/query_parser/Parser.cpp: src/query_parser/Parser.leg
+	./libs/greg-cpp/greg -o src/query_parser/Parser.cpp src/query_parser/Parser.leg
+
+libs: libs/gtest libs/zmq libs/greg-cpp
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp
@@ -114,7 +120,22 @@ libs/zmq:
 	sed -i "s/#include <zmq.h>/#include \"zmq.h\"/g" zmq/include/zmq/zmq.hpp ;\
 	rm cppzmq -rf
 
+# Build greg
+libs/greg-cpp:
+	$(build_dir)
+	cd libs/ ;\
+	git clone git@github.com:alexandervanrenen/greg-cpp.git ;\
+	cd greg-cpp ;\
+	make
+
 # Clean up =)
 clean:
 	rm bin -rf
 	rm build -rf
+
+# Clean up =)
+clean-complete:
+	rm bin -rf
+	rm build -rf
+	rm libs -rf
+	rm src/query_parser/Parser.cpp

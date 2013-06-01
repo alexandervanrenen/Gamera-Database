@@ -69,7 +69,7 @@ void Persister::load(std::unordered_map<SegmentId, std::pair<TupleId, ExtentStor
                freePages.remove(extent);
 
             // Keep track of used ids
-            nextFreeId = SegmentId(min(mapping.first.toInteger(), nextFreeId.toInteger()));
+            nextFreeId = SegmentId(max(mapping.first.toInteger() + 1, nextFreeId.toInteger()));
 
             // Add to segment -> extent mapping
             segmentMap.insert(make_pair(mapping.first , make_pair(iter.first, move(mapping.second))));

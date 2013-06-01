@@ -58,6 +58,7 @@ void SegmentManager::growSegment(Segment& segment)
 
 void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
 {
+   assert(numPages>0);
    segment.grow(numPages);
 }
 

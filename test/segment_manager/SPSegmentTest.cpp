@@ -216,3 +216,11 @@ TEST(SPSegment, Randomized)
       // cout << "remove " << removedSize << endl;
    }
 }
+
+TEST(SPSegment, FunkeTest)
+{
+   const uint32_t pages = 1 * 1000;
+   assert(kSwapFilePages>=pages);
+
+   ASSERT_EQ(run(kSwapFileName, pages), 0);
+}

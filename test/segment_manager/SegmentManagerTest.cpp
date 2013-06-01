@@ -8,6 +8,8 @@
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
 #include "operator/TableScanOperator.hpp"
+#include "segment_manager/ExtentStore.hpp"
+#include "util/Random.hpp"
 #include <array>
 #include <fstream>
 #include <string>
@@ -115,10 +117,71 @@ TEST(SegmentManager, PersistentSIList)
    }
 }
 
-TEST(SegmentManager, FunkeTest)
+TEST(SegmentManager, Randomized)
 {
-   const uint32_t pages = 1 * 1000;
-   assert(kSwapFilePages>=pages);
+   const uint32_t kTestScale = 1;
+   const uint32_t kIterations = 10000;
+   const uint32_t kPages = 10000;
+   assert(kSwapFilePages>=kPages);
+   const uint32_t kMaxSegmentSize = 64;
+   util::Random ranny;
 
-   ASSERT_EQ(run(kSwapFileName, pages), 0);
+   for(uint32_t j=0; j<kTestScale; j++) {
+      /// Create structure
+      BufferManager bufferManager(kSwapFileName, kPages / 2);
+      auto segmentManager = util::make_unique<SegmentManager>(bufferManager, true);
+
+      unordered_map<SegmentId, uint32_t> reference;
+
+     // Work on it
+     for(uint32_t i=0; i<kIterations; i++) {
+         int32_t operation = ranny.rand() % 100;
+
+         // Do insert
+         if(operation <= 40) {
+            uint32_t pageCount = 1 + ranny.rand() % kMaxSegmentSize;
+            SegmentId id = segmentManager->createSegment(SegmentType::SP, pageCount);
+            // cout << "insert " << id << " " << pageCount << endl;
+            reference.insert({id, pageCount});
+         }
+
+         // Do drop
+         else if(operation <= 80 && !reference.empty()) {
+            auto iter = reference.begin();
+            advance(iter, ranny.rand()%reference.size());
+            // cout << "drop " << iter->first << endl;
+            ASSERT_EQ(segmentManager->getSPSegment(iter->first).numPages(), iter->second);
+            segmentManager->dropSegment(segmentManager->getSPSegment(iter->first));
+            reference.erase(iter);
+         }
+
+         // Do grow
+         else if(operation <= 97 && !reference.empty()) {
+            // cout << "grow" << endl;
+            auto iter = reference.begin();
+            advance(iter, ranny.rand()%reference.size());
+            SegmentId sid = iter->first;
+            ASSERT_EQ(segmentManager->getSPSegment(sid).numPages(), iter->second);
+            uint32_t pageCount = 1 + ranny.rand() % kMaxSegmentSize;
+            segmentManager->growSegment(segmentManager->getSPSegment(sid), pageCount);
+            ASSERT_EQ(segmentManager->getSPSegment(sid).numPages(), iter->second + pageCount);
+            reference.erase(iter);
+            reference.insert({sid, segmentManager->getSPSegment(sid).numPages()});
+         }
+
+         // Do restart of the database
+         else if(operation<=98) {
+            // cout << "restart" << endl;
+            segmentManager = util::make_unique<SegmentManager>(bufferManager, false);
+         }
+
+         // Do consistency check
+         if(operation<=99 || i==kIterations-1 || i==0) {
+            // Do scan empty
+            for(auto iter : reference) {
+               ASSERT_EQ(segmentManager->getSPSegment(iter.first).numPages(), iter.second);
+            }
+         }
+      }
+   }
 }

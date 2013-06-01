@@ -2,6 +2,7 @@
 #include "util/Utility.hpp"
 #include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "test/TestConfig.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
@@ -19,12 +20,11 @@ using namespace dbi;
 
 TEST(SPSegment, SPSegmentSimple)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
 
    // Create
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-   BufferManager bufferManager(fileName, pages / 2);
+   BufferManager bufferManager(kSwapFileName, pages / 2);
    SegmentManager segmentManager(bufferManager, true);
    SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
    SPSegment& segment = segmentManager.getSPSegment(id);
@@ -49,14 +49,12 @@ TEST(SPSegment, SPSegmentSimple)
 
    // Remove created page
    segment.remove(tid);
-
-   remove(fileName.c_str());
 }
 
 TEST(SPSegment, SPSegmentManyPageUpdate)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
    const Record smallRecord = Record("the tree of liberty must be refreshed from time to time with the blood of patriots and tyrants. it is it's natural manure.");
    const Record bigRecord1 = Record(string(kPageSize/2, 'a'));
    const Record bigRecord2 = Record(string(kPageSize/2, 'b'));
@@ -64,8 +62,7 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    const Record memdiumRecord = Record(string(kPageSize/4, 'd'));
 
    // Create
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-   BufferManager bufferManager(fileName, pages / 2);
+   BufferManager bufferManager(kSwapFileName, pages / 2);
    SegmentManager segmentManager(bufferManager, true);
    SegmentId id = segmentManager.createSegment(SegmentType::SP, 10);
    SPSegment& segment = segmentManager.getSPSegment(id);
@@ -110,22 +107,20 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    scanner.open();
    ASSERT_TRUE(!scanner.next());
    scanner.close();
-   remove(fileName.c_str());
 }
 
 TEST(SPSegment, Randomized)
 {
    const uint32_t kTestScale = 1;
    const uint32_t kIterations = 10000;
-   const string kFileName = "swap_file";
    const uint32_t kPages = 1000;
+   assert(kSwapFilePages>=kPages);
    const uint32_t kMaxWordSize = 512;
    util::Random ranny;
-   ASSERT_TRUE(util::createFile(kFileName, kPages * kPageSize));
 
    for(uint32_t j=0; j<kTestScale; j++) {
       /// Create structure
-      BufferManager bufferManager(kFileName, kPages / 2);
+      BufferManager bufferManager(kSwapFileName, kPages / 2);
       auto segmentManager = util::make_unique<SegmentManager>(bufferManager, true);
       SegmentId id = segmentManager->createSegment(SegmentType::SP, 10);
       SPSegment* segment = &segmentManager->getSPSegment(id);
@@ -220,5 +215,4 @@ TEST(SPSegment, Randomized)
       // cout << "insert " << insertedSize << endl;
       // cout << "remove " << removedSize << endl;
    }
-   remove(kFileName.c_str());
 }

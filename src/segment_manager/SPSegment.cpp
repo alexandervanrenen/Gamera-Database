@@ -79,7 +79,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());
    TupleId remoteId = sp.isReference(tid.toRecordId());
 
-   // Case 1 - Record is on a single
+   // Case 1 - Record is on a single page
    if(remoteId == kInvalidTupleId) {
       // Do simple in page update
       if(sp.canUpdateRecord(tid.toRecordId(), record)) {

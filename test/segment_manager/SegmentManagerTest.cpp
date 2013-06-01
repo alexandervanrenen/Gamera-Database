@@ -2,6 +2,7 @@
 #include "util/Utility.hpp"
 #include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "test/TestConfig.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
@@ -17,11 +18,10 @@ using namespace dbi;
 
 TEST(SegmentManager, Simple)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
 
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-   BufferManager bufferManager(fileName, pages / 2);
+   BufferManager bufferManager(kSwapFileName, pages / 2);
    SegmentManager segmentManager(bufferManager, true);
 
    // Create
@@ -40,23 +40,20 @@ TEST(SegmentManager, Simple)
    SegmentId id_b = segmentManager.createSegment(SegmentType::SP, 98);
    SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.numPages(), 98ul);
-
-   remove(fileName.c_str());
 }
 
 TEST(SegmentManager, PersistentSISingle)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
 
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
    SegmentId sid1;
    TupleId tid;
 
    // Create
    {
       // Add one 10 page segment
-      BufferManager bufferManager(fileName, pages / 2);
+      BufferManager bufferManager(kSwapFileName, pages / 2);
       SegmentManager segmentManager(bufferManager, true);
       sid1 = segmentManager.createSegment(SegmentType::SP, 10);
       SPSegment& segment1 = segmentManager.getSPSegment(sid1);
@@ -66,28 +63,25 @@ TEST(SegmentManager, PersistentSISingle)
    // Restart
    {
       // Check that the 10 page segment is still there
-      BufferManager bufferManager(fileName, pages / 2);
+      BufferManager bufferManager(kSwapFileName, pages / 2);
       SegmentManager segmentManager(bufferManager, false);
       SPSegment& segment1 = segmentManager.getSPSegment(sid1);
       ASSERT_EQ(segment1.lookup(tid), Record("Experience is simply the name we give our mistakes - Oscar Wilde"));
    }
-
-   remove(fileName.c_str());
 }
 
 TEST(SegmentManager, PersistentSIList)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 4000;
+   assert(kSwapFilePages>=pages);
 
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
    SegmentId sid1;
    SegmentId sid2;
    SegmentId sid3;
 
    // Create
    {
-      BufferManager bufferManager(fileName, pages / 2);
+      BufferManager bufferManager(kSwapFileName, pages / 2);
       SegmentManager segmentManager(bufferManager, true);
       sid1 = segmentManager.createSegment(SegmentType::SP, 1);
       SPSegment& segment1 = segmentManager.getSPSegment(sid1);
@@ -109,7 +103,7 @@ TEST(SegmentManager, PersistentSIList)
 
    // Restart
    {
-      BufferManager bufferManager(fileName, pages / 2);
+      BufferManager bufferManager(kSwapFileName, pages / 2);
       SegmentManager segmentManager(bufferManager, false);
       SPSegment& segment1 = segmentManager.getSPSegment(sid1);
       SPSegment& segment2 = segmentManager.getSPSegment(sid2);
@@ -119,16 +113,12 @@ TEST(SegmentManager, PersistentSIList)
       ASSERT_EQ(segment2.numPages(), kPageSize/16 - 11);
       ASSERT_EQ(segment3.numPages(), kPageSize/16 - 11);
    }
-
-   remove(fileName.c_str());
 }
 
 TEST(SegmentManager, FunkeTest)
 {
-   const string fileName = "swap_file";
    const uint32_t pages = 1 * 1000;
+   assert(kSwapFilePages>=pages);
 
-   ASSERT_TRUE(util::createFile(fileName, pages * kPageSize));
-   ASSERT_EQ(run(fileName, pages), 0);
-   remove(fileName.c_str());
+   ASSERT_EQ(run(kSwapFileName, pages), 0);
 }

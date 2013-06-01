@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "common/Config.hpp"
+#include "test/TestConfig.hpp"
 #include <array>
 #include <fstream>
 #include <string>

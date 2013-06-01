@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer_manager/BufferManager.hpp"
+#include "test/TestConfig.hpp"
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>

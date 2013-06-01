@@ -1,3 +1,4 @@
+#include "test/TestConfig.hpp"
 #include "util/Utility.hpp"
 #include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
@@ -14,12 +15,11 @@
 
 TEST(Operator, TableScanEmpty)
 {
-   const std::string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
 
    // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-   dbi::BufferManager bufferManager(fileName, pages / 2);
+   dbi::BufferManager bufferManager(kSwapFileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
@@ -29,19 +29,16 @@ TEST(Operator, TableScanEmpty)
    scanner.open();
    ASSERT_TRUE(!scanner.next());
    scanner.close();
-
-   remove(fileName.c_str());
 }
 
 TEST(Operator, TableScan)
 {
-   const std::string fileName = "swap_file";
    const uint32_t pages = 100;
+   assert(kSwapFilePages >= pages);
    dbi::util::Random ranny;
 
    // Create
-   ASSERT_TRUE(dbi::util::createFile(fileName, pages * dbi::kPageSize));
-   dbi::BufferManager bufferManager(fileName, pages / 2);
+   dbi::BufferManager bufferManager(kSwapFileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
    dbi::SegmentId id = segmentManager.createSegment(dbi::SegmentType::SP, 10);
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
@@ -64,8 +61,6 @@ TEST(Operator, TableScan)
       records.erase(record.first);
    }
    scanner.close();
-
-   remove(fileName.c_str());
 }
 
 

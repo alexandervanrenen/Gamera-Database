@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "segment_manager/ExtentStore.hpp"
 #include "segment_manager/Extent.hpp"
+#include "test/TestConfig.hpp"
 #include <array>
 #include <fstream>
 #include <string>

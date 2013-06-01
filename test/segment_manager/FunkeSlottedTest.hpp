@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string.h>
 
+#include "test/TestConfig.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"

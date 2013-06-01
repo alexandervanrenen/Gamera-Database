@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "util/ConcurrentOffsetHash.hpp"
+#include "test/TestConfig.hpp"
 #include <iostream>
 #include <unordered_map>
 

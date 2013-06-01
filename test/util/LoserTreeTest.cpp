@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "util/LoserTree.hpp"
+#include "test/TestConfig.hpp"
 #include <limits>
 #include <set>
 

@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "util/Utility.hpp"
+#include "test/TestConfig.hpp"
 
 TEST(Utility, FileCreatorSimple)
 {

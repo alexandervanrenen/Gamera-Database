@@ -6,4 +6,5 @@ src_util_files := src/util/Utility.o               \
                   src/util/SpinLock.o              \
                   src/util/ByteEncoding.o          \
                   src/util/Random.o                \
-                  src/util/ReadWriteSpinLock.o
+                  src/util/ReadWriteSpinLock.o	   \
+				  src/util/AttributeTypeConversion.o

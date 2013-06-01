@@ -1,0 +1,1 @@
+test_schema_files := test/schema/MetadataManagerTest.o

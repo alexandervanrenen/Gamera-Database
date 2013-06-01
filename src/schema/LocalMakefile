@@ -1,0 +1,1 @@
+src_schema_files :=  src/schema/MetadataManager.o  

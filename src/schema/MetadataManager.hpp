@@ -29,18 +29,8 @@ struct hash<std::pair<std::string, dbi::SegmentId>> {
 };
 }
 
+
 namespace dbi {
-
-
-struct IndexMetadata {
-    RelationMetadata* relation;
-    SegmentId segment;
-    std::vector<AttributeMetadata*> attributes;
-    
-    IndexMetadata() {};
-    IndexMetadata(RelationMetadata* relation, SegmentId segment, std::vector<AttributeMetadata*> attributes): relation(relation), segment(segment), attributes(attributes) {}
-};
-
 
 class MetadataManager { 
 public:

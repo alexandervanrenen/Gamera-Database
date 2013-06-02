@@ -39,18 +39,26 @@ TEST(MetadataManagerTest, SimpleTest) {
         mdm.setSegment("country", SegmentId(5));
         mdm.setSegment("employee", SegmentId(6));
         mdm.addIndex("employee", SegmentId(7), {"id", "country_id"});
+        mdm.addIndex("employee", SegmentId(8), {"id"});
         ASSERT_EQ(mdm.getSegmentForRelation("country"), SegmentId(5));
         ASSERT_EQ(mdm.getSegmentForRelation("employee"), SegmentId(6));
         ASSERT_EQ(dbi::AttributeType::Integer, mdm.getTypeForAttribute("employee", "id"));
         ASSERT_EQ(dbi::AttributeType::Char, mdm.getTypeForAttribute("employee", "last_name"));
+        // Check that indexes were correctly saved
         dbi::MetadataManager::RelationIndexes idxs = mdm.getRelationIndexes("employee");
-        ASSERT_EQ(idxs.size(), uint64_t(1));
-        dbi::IndexMetadata* idx = idxs.front();
-        ASSERT_EQ(idx->segment, SegmentId(7));
-        ASSERT_EQ(idx->attributes.size(), uint64_t(2));
-        for (dbi::AttributeMetadata* am : idx->attributes) {
-            ASSERT_TRUE(am->name == "id" || am->name == "country_id");
+        ASSERT_EQ(idxs.size(), uint64_t(2));
+        for (dbi::IndexMetadata* idx : idxs) {
+            if (idx->attributes.size() == uint64_t(2)) {
+                ASSERT_EQ(idx->segment, SegmentId(7));
+                for (dbi::AttributeMetadata* am : idx->attributes)
+                    ASSERT_TRUE(am->name == "id" || am->name == "country_id");
+            } else if (idx->attributes.size() == uint64_t(1)) {
+                ASSERT_EQ(idx->segment, SegmentId(8));
+                ASSERT_EQ(idx->attributes[0]->name, "id");
+            } else 
+                ASSERT_TRUE(false);
         }
+        // Check that attribute reordering is correct
         ASSERT_EQ(0, mdm.getAttributeOffset("employee", "id")); 
         ASSERT_EQ(8, mdm.getAttributeOffset("employee", "mgr_id")); 
         ASSERT_EQ(16, mdm.getAttributeOffset("employee", "salery")); 
@@ -68,14 +76,21 @@ TEST(MetadataManagerTest, SimpleTest) {
         ASSERT_EQ(mdm.getSegmentForRelation("employee"), SegmentId(6));
         ASSERT_EQ(dbi::AttributeType::Integer, mdm.getTypeForAttribute("employee", "id"));
         ASSERT_EQ(dbi::AttributeType::Char, mdm.getTypeForAttribute("employee", "last_name"));
+        // Check that indexes were correctly persisted 
         dbi::MetadataManager::RelationIndexes idxs = mdm.getRelationIndexes("employee");
-        ASSERT_EQ(idxs.size(), uint64_t(1));
-        dbi::IndexMetadata* idx = idxs.front();
-        ASSERT_EQ(idx->segment, SegmentId(7));
-        ASSERT_EQ(idx->attributes.size(), uint64_t(2));
-        for (dbi::AttributeMetadata* am : idx->attributes) {
-            ASSERT_TRUE(am->name == "id" || am->name == "country_id");
-        }
+        ASSERT_EQ(idxs.size(), uint64_t(2));
+        for (dbi::IndexMetadata* idx : idxs) {
+            if (idx->attributes.size() == uint64_t(2)) {
+                ASSERT_EQ(idx->segment, SegmentId(7));
+                for (dbi::AttributeMetadata* am : idx->attributes)
+                    ASSERT_TRUE(am->name == "id" || am->name == "country_id");
+            } else if (idx->attributes.size() == uint64_t(1)) {
+                ASSERT_EQ(idx->segment, SegmentId(8));
+                ASSERT_EQ(idx->attributes[0]->name, "id");
+            } else 
+                ASSERT_TRUE(false);
+        } 
+        // Check that attribute reordering was correctly persisted
         ASSERT_EQ(0, mdm.getAttributeOffset("employee", "id")); 
         ASSERT_EQ(8, mdm.getAttributeOffset("employee", "mgr_id")); 
         ASSERT_EQ(16, mdm.getAttributeOffset("employee", "salery")); 

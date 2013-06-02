@@ -1,60 +1,31 @@
 %{
+#include "Parser.hpp"
+#include "Statement.hpp"
+#include "util/Utility.hpp"
 #include <unistd.h>
 #include <sstream>
 #include <memory>
 #include <iostream>
+#include <mutex>
 
 using namespace std;
-
-struct Statement {
-   virtual void dump() = 0;
-};
-
-struct SelectStatement : public Statement {
-
-   struct Selector { std::string tableIdentifier; std::string columnIdentifier; };
-   std::vector<Selector> selectors;
-
-   struct Source { std::string tableIdentifier; std::string alias; };
-   std::vector<Source> sources;
-
-   virtual void dump() {
-      std::cout << "---------" << std::endl;
-      std::cout << "select " << std::endl;
-      for(auto iter : selectors)
-         std::cout << "    " << iter.tableIdentifier << " " << iter.columnIdentifier << std::endl;
-      std::cout << "from " << std::endl;
-      for(auto iter : sources)
-         std::cout << "    " << iter.tableIdentifier << " " << iter.alias << std::endl;
-      std::cout << "---------" << std::endl;
-   }
-};
-
-struct CreateStatement : public Statement {
-
-   struct Attribute {
-      std::string name;
-      std::string type;
-      bool notNull;
-      void dump() {cout << name << " " << type << " " << notNull << endl;}
-   };
-   std::string name;
-   std::vector<Attribute> attributes;
-   std::vector<unsigned> primaryKey;
-
-   virtual void dump() {
-      std::cout << "---------" << std::endl;
-      std::cout << "create " << name << std::endl;
-      for(auto& iter : attributes)
-         iter.dump();
-      std::cout << "---------" << std::endl;
-   }
-};
+using namespace dbi::script;
 
 struct Value {
-   int   number;
-   std::string string;
    bool boolean;
+   int number;
+   string str;
+
+   ColumnIdentifier columnIdentifier;
+   TableAccess tableAccess;
+   AttributeDeclaration attributeDeclaration;
+
+   vector<AttributeDeclaration> attributeDeclarationVec;
+   vector<TableAccess> tableAccessVec;
+   vector<ColumnIdentifier> columnIdentifierVec;
+
+   unique_ptr<Statement> statement;
+   vector<unique_ptr<Statement>> statements;
 };
 
 # define YYSTYPE struct Value
@@ -66,84 +37,89 @@ static int lineNumber= 0;
 static int columnNumber= 0;
 }
 
-# define YY_INPUT(buf, result, max, D, G)                         \
-  {                                                               \
-    int c= input.get();                                           \
-    columnNumber++;                                               \
-    if ('\n' == c || '\r' == c) {++lineNumber; columnNumber=0;}   \
-    result= (EOF == c) ? 0 : (*(buf)= c, 1);                      \
-  };
+# define YY_INPUT(buf, result, max, D, G)                           \
+   {                                                                \
+      int c= input.get();                                           \
+      columnNumber++;                                               \
+      if ('\n' == c || '\r' == c) {++lineNumber; columnNumber=0;}   \
+      result= (EOF == c) ? 0 : (*(buf)= c, 1);                      \
+   };
 
 %}
 
-start = STATEMENT - SEM (- STATEMENT - SEM)*               { }
+# --------------------------------------------------------------------------------------------------------------
+start = s:STATEMENT                                        { statements = move(s.statements); }
       | < . >                                              { throw 2; }
+# --------------------------------------------------------------------------------------------------------------
+STATEMENT = - a:SINGLE                                     { a.statements.push_back(move(a.statement)); }
+          ( - s:SINGLE                                     { a.statements.push_back(move(s.statement)); }
+          )*                                               { $$ = move(a); }
+SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
+       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = unique_ptr<CreateStatement>(new CreateStatement(id.str, l.attributeDeclarationVec)); }
+       | "{" - s:STATEMENT - "}"                           { $$.statement = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
+# --------------------------------------------------------------------------------------------------------------
+SELECT = "select"                                          { }
+PROJECTION = s:SELECTORNAME                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
+           (- COMMA - i:SELECTORNAME                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
+           )*                                              { $$ = move(s); }
+SELECTORNAME = tid:ID POINT cid:ID                         { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
+             | cid:ID                                      { $$.columnIdentifier = ColumnIdentifier{"", cid.str}; }
 
-STATEMENT = SELECT - PROJECTION - FROM - TABLES            { }
-          | CREATE - TABLE - id:ID - LAYOUT                { reinterpret_cast<CreateStatement*>(statements.back().get())->name = id.string;}
-
-CREATE = "create"                                          { statements.push_back(std::unique_ptr<CreateStatement>(new CreateStatement()));}
+FROM = "from"                                              { }
+TABLES = t:TABLENAME                                       { t.tableAccessVec.push_back(t.tableAccess); }
+       (- COMMA - i:TABLENAME                              { t.tableAccessVec.push_back(i.tableAccess); }
+       )*                                                  { $$ = move(t);}
+TABLENAME = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
+          | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
+# --------------------------------------------------------------------------------------------------------------
+CREATE = "create"                                          { }
 TABLE = "table"                                            { }
-LAYOUT = OPEN - ATTRIBUTE ( - COMMA - ATTRIBUTE)* CLOSE    { }
-ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { reinterpret_cast<CreateStatement*>(statements.back().get())->attributes.push_back(CreateStatement::Attribute{id.string, t.string, n.boolean});}
-TYPE = "integer"                                           { $$.string=std::string("integer")}
-     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.string=std::string("char " + std::to_string(n.number))}
+LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
+       ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
+       )* CLOSE                                            { $$ = move(a); }
+ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
+TYPE = "integer"                                           { $$.str = std::string("integer") }
+     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = std::string("char " + std::to_string(n.number)) }
 NULLABLE = "not null"                                      { $$.boolean=false; }
          | "null"                                          { $$.boolean=true; }
          | ""                                              { $$.boolean=true; }
-
-SELECT = "select"                                          { statements.push_back(std::unique_ptr<SelectStatement>(new SelectStatement()));}
-PROJECTION = SELECTORNAME (- COMMA - SELECTORNAME)*        { }
-SELECTORNAME = tid:ID POINT cid:ID                         { reinterpret_cast<SelectStatement*>(statements.back().get())->selectors.push_back({tid.string, cid.string});}
-             | cid:ID                                      { reinterpret_cast<SelectStatement*>(statements.back().get())->selectors.push_back({"", cid.string});}
-
-FROM = "from"                                              { }
-TABLES = TABLENAME (- COMMA - TABLENAME)*                  { }
-TABLENAME = tid:ID ' ' alias:ID                            { reinterpret_cast<SelectStatement*>(statements.back().get())->sources.push_back({tid.string, alias.string});}
-          | tid:ID                                         { reinterpret_cast<SelectStatement*>(statements.back().get())->sources.push_back({tid.string, ""});}
-
-
-ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.string=std::string(yytext);}
+# --------------------------------------------------------------------------------------------------------------
+ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=std::string(yytext); }
+NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext); }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
 SEM = ';'                                                  { }
 POINT = '.'                                                { }
 OPEN = '('                                                 { }
 CLOSE = ')'                                                { }
-NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext);}
+# --------------------------------------------------------------------------------------------------------------
 
 %%
 
-namespace {
 
-void parse(const std::string& string)
+namespace dbi {
+
+namespace script {
+
+mutex parserGuard; // Sorry only one parsing at a time ..
+
+vector<unique_ptr<Statement>> parse(const string& query) throw(ParserException)
 {
+  unique_lock<mutex> l(parserGuard);
+
   input.clear();
-  input.str(string);
+  input.str(query);
+  statements.clear();
+
   GREG g;
   yyinit(&g);
   while (yyparse(&g));
   yydeinit(&g);
+
+  return move(statements);
 }
 
 }
 
-using namespace std;
-
-int main()
-{
-   try {
-      parse("select s.matr, name from studenten,  studenten asd;");
-      parse("create table employee (id integer, \n country_id char(2), mgr_id integer, salery integer, first_name char(20), middle char(1), last_name char(20));");
-   } catch (int i)  {
-      cout << "error " << lineNumber << " " << columnNumber << endl;
-   }
-
-  cout << "line number: " << lineNumber << endl;
-  cout << "found statements: " << statements.size() << endl;
-
-   for(auto& iter : statements)
-      iter->dump();
-  return 0;
 }
 

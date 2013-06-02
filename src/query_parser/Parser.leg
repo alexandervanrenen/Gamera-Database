@@ -25,7 +25,7 @@ struct Value {
    vector<ColumnIdentifier> columnIdentifierVec;
 
    unique_ptr<Statement> statement;
-   vector<Statement> statements;
+   vector<unique_ptr<Statement>> statements;
 };
 
 # define YYSTYPE struct Value
@@ -48,25 +48,15 @@ static int columnNumber= 0;
 %}
 
 # --------------------------------------------------------------------------------------------------------------
-start = s:STATEMENT - SEM                                  { statements.push_back(move(s.statement)); }
-      (- s:STATEMENT - SEM                                 { statements.push_back(move(s.statement)); }
-      )*                                                   { }
+start = s:STATEMENT                                        { statements = move(s.statements); }
       | < . >                                              { throw 2; }
 # --------------------------------------------------------------------------------------------------------------
-STATEMENT = SELECT - p:PROJECTION - FROM - t:TABLES        { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
-          | CREATE - TABLE - id:ID - l:LAYOUT              { $$.statement = unique_ptr<CreateStatement>(new CreateStatement(id.str, l.attributeDeclarationVec)); }
-
-CREATE = "create"                                          { }
-TABLE = "table"                                            { }
-LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
-       ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
-       )* CLOSE                                            { $$ = move(a); }
-ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
-TYPE = "integer"                                           { $$.str = std::string("integer") }
-     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = std::string("char " + std::to_string(n.number)) }
-NULLABLE = "not null"                                      { $$.boolean=false; }
-         | "null"                                          { $$.boolean=true; }
-         | ""                                              { $$.boolean=true; }
+STATEMENT = - a:SINGLE                                     { a.statements.push_back(move(a.statement)); }
+          ( - s:SINGLE                                     { a.statements.push_back(move(s.statement)); }
+          )*                                               { $$ = move(a); }
+SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
+       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = unique_ptr<CreateStatement>(new CreateStatement(id.str, l.attributeDeclarationVec)); }
+       | "{" - s:STATEMENT - "}"                           { $$.statement = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
 # --------------------------------------------------------------------------------------------------------------
 SELECT = "select"                                          { }
 PROJECTION = s:SELECTORNAME                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
@@ -81,6 +71,18 @@ TABLES = t:TABLENAME                                       { t.tableAccessVec.pu
        )*                                                  { $$ = move(t);}
 TABLENAME = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
+# --------------------------------------------------------------------------------------------------------------
+CREATE = "create"                                          { }
+TABLE = "table"                                            { }
+LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
+       ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
+       )* CLOSE                                            { $$ = move(a); }
+ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
+TYPE = "integer"                                           { $$.str = std::string("integer") }
+     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = std::string("char " + std::to_string(n.number)) }
+NULLABLE = "not null"                                      { $$.boolean=false; }
+         | "null"                                          { $$.boolean=true; }
+         | ""                                              { $$.boolean=true; }
 # --------------------------------------------------------------------------------------------------------------
 ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=std::string(yytext); }
 NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext); }

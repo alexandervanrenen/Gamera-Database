@@ -57,6 +57,20 @@ struct CreateStatement : public Statement {
    }
 };
 
+struct BlockStatement : public Statement {
+
+   std::vector<std::unique_ptr<Statement>> statements;
+
+   BlockStatement(std::vector<std::unique_ptr<Statement>>&& statements) : statements(std::move(statements)) {}
+
+   virtual void dump() {
+      for(auto& iter : statements) {
+         iter->dump();
+         std::cout << std::endl;
+      }
+   }
+};
+
 }
 
 }

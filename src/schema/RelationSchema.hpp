@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/SegmentId.hpp"
+#include "segment_manager/Record.hpp"
 #include <vector>
 #include <string>
 
@@ -25,6 +26,9 @@ struct RelationSchema {
    std::string name;
    std::vector<AttributeSchema> attributes;
    std::vector<IndexSchema> indexes;
+
+   Record marschall() const;
+   void unmarschall(const Record& record);
 };
 
 }

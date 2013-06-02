@@ -29,4 +29,7 @@ static const PageId kFirstFreePageId = PageId(1);
 /// Maximum: Each record has to fit on one page.
 static const uint16_t kMinimumRecordSize = 8;
 static const uint16_t kMaximumRecordSize = kPageSize - 16 - 4; // 16 == Slotted page header; 4 == slot
+
+/// Number of pages for each new relation segment
+static const uint64_t kInitialPagesPerRelation = 8;
 }

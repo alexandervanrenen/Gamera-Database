@@ -9,6 +9,7 @@
 #include <mutex>
 
 using namespace std;
+using namespace dbi;
 using namespace dbi::script;
 
 struct Value {
@@ -48,15 +49,15 @@ static int columnNumber= 0;
 %}
 
 # --------------------------------------------------------------------------------------------------------------
-start = s:STATEMENT                                        { result = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
+start = s:STATEMENT                                        { result = util::make_unique<RootStatement>(util::make_unique<BlockStatement>(move(s.statements))); }
       | < . >                                              { throw 2; }
 # --------------------------------------------------------------------------------------------------------------
 STATEMENT = - a:SINGLE                                     { a.statements.push_back(move(a.statement)); }
           ( - s:SINGLE                                     { a.statements.push_back(move(s.statement)); }
           )*                                               { $$ = move(a); }
-SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
-       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = unique_ptr<CreateTableStatement>(new CreateTableStatement(id.str, l.attributeDeclarationVec)); }
-       | "{" - s:STATEMENT - "}"                           { $$.statement = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
+SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = util::make_unique<SelectStatement>(p.columnIdentifierVec, t.tableAccessVec); }
+       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = util::make_unique<CreateTableStatement>(id.str, l.attributeDeclarationVec); }
+       | "{" - s:STATEMENT - "}"                           { $$.statement = util::make_unique<BlockStatement>(move(s.statements)); }
 # --------------------------------------------------------------------------------------------------------------
 SELECT = "select"                                          { }
 PROJECTION = s:SELECTORNAME                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
@@ -110,10 +111,14 @@ unique_ptr<Statement> parse(const string& query) throw(ParserException)
   input.clear();
   input.str(query);
 
-  GREG g;
-  yyinit(&g);
-  while (yyparse(&g));
-  yydeinit(&g);
+  try {
+    GREG g;
+    yyinit(&g);
+    while (yyparse(&g));
+    yydeinit(&g);
+  } catch (int) {
+    throw ParserException("parser error: ", lineNumber, columnNumber);
+  }
 
   return move(result);
 }

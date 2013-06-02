@@ -35,7 +35,7 @@ void CreateTableStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-BlockStatement::BlockStatement(vector<unique_ptr<Statement>>&& statements)
+BlockStatement::BlockStatement(vector<unique_ptr<Statement>> statements)
 : statements(move(statements))
 {
 }
@@ -45,6 +45,18 @@ void BlockStatement::acceptVisitor(Visitor& visitor)
    visitor.onPreVisit(*this);
    for(auto& iter : statements)
       iter->acceptVisitor(visitor);
+   visitor.onPostVisit(*this);
+}
+
+RootStatement::RootStatement(unique_ptr<BlockStatement> statement)
+: statement(move(statement))
+{
+}
+
+void RootStatement::acceptVisitor(Visitor& visitor)
+{
+   visitor.onPreVisit(*this);
+   statement->acceptVisitor(visitor);
    visitor.onPostVisit(*this);
 }
 

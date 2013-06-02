@@ -1,5 +1,7 @@
 #include "SchemaManager.hpp"
 #include "RelationSchema.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include "util/Utility.hpp"
 #include <iostream>
 
 using namespace std;
@@ -16,9 +18,15 @@ SchemaManager::~SchemaManager()
 {
 }
 
-void SchemaManager::addRelation(unique_ptr<RelationSchema> relationShema)
+void SchemaManager::addRelation(RelationSchema& schema)
 {
+   TupleId tid = storage.insert(schema.marschall());
+   relations.insert(make_pair(schema.name, make_pair(tid, util::make_unique<RelationSchema>(schema))));
+
    cout << "void SchemaManager::addRelation(unique_ptr<RelationSchema> relationShema)" << endl;
+   cout << "sss: " << schema.name << endl;
+   for(auto iter : schema.attributes)
+      cout << iter.name << " " << iter.type << " " << (iter.notNull?"not null":"null") << endl;
 }
 
 void SchemaManager::dropRelation(const string& relationName)

@@ -1,12 +1,12 @@
-all: tester server client
+all: bin/tester bin/server bin/client bin/driver
 
 # Define compile and link flags
 -include config.local
 CXX ?= g++
 opt = -g3 -O0
 #opt = -g0 -O3
-cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -fPIC
-lf = $(opt) --std=c++0x -I./src
+cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -fPIC
+lf = $(opt) --std=c++0x -ldl -lpthread -lrt
 
 # Object director
 objDir:= build/
@@ -24,23 +24,28 @@ test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard te
 
 # Build database
 bin/database.so: libs src/query_parser/Parser.cpp $(src_files)
-	$(build_dir) bin
-	$(CXX) -shared -o bin/database.so $(src_files) $(lf) -lpthread
+	$(build_dir) bin/gen
+	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a $(lf)
 
 # Build tester
-tester: libs bin/database.so $(test_files) build/test/tester.o
-	$(build_dir) bin
-	$(CXX) -o bin/tester $(lf) $(test_files) bin/database.so libs/gtest/libgtest.a -pthread
+bin/tester: libs bin/database.so $(test_files) build/test/tester.o
+	$(build_dir) bin/gen
+	$(CXX) -o bin/tester $(test_files) bin/database.so libs/gtest/libgtest.a $(lf)
+
+# Build driver
+bin/driver: libs bin/database.so build/driver.o
+	$(build_dir) bin/gen
+	$(CXX) -o bin/driver build/driver.o bin/database.so libs/gflags/libgflags.a $(lf)
 
 # Build server
-server: libs bin/database.so build/server.o
-	$(build_dir) bin
-	$(CXX) -o bin/server build/server.o $(lf) bin/database.so libs/zmq/libzmq.a -pthread -lrt
+bin/server: libs bin/database.so build/server.o
+	$(build_dir) bin/gen
+	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/gflags/libgflags.a $(lf)
 
 # Build client
-client: libs build/client.o
-	$(build_dir) bin
-	$(CXX) -o bin/client build/client.o $(lf) libs/zmq/libzmq.a -pthread -lrt
+bin/client: libs build/client.o
+	$(build_dir) bin/gen
+	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/gflags/libgflags.a $(lf)
 
 # Ensure latest parser version
 src/query_parser/Parser.cpp: src/query_parser/Parser.leg
@@ -127,6 +132,25 @@ libs/greg-cpp:
 	git clone git@github.com:alexandervanrenen/greg-cpp.git ;\
 	cd greg-cpp ;\
 	make
+
+# Build gflags
+libs/gflags:
+	$(build_dir)
+	cd libs/ ;\
+	wget http://gflags.googlecode.com/files/gflags-2.0-no-svn-files.tar.gz ;\
+	tar -xaf gflags-2.0-no-svn-files.tar.gz ;\
+	cd gflags-2.0 ;\
+	./configure --enable-static --disable-shared --prefix ${PWD}/libs/gflags ;\
+	make -j4 ;\
+	make install ;\
+	cd .. ;\
+	rm gflags-2.0-no-svn-files.tar.gz ;\
+	rm gflags-2.0 -rf ;\
+	mv gflags/lib/libgflags.a gflags/ ;\
+	rm gflags/bin -rf ;\
+	rm gflags/include/google -rf ;\
+	rm gflags/share -rf ;\
+	rm gflags/lib -rf
 
 # Clean up =)
 clean:

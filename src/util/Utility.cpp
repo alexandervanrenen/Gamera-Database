@@ -104,6 +104,15 @@ uint64_t getFileLength(const string& fileName)
    return st.st_size;
 }
 
+string loadFileToMemory(const std::string& fileName)
+{
+   uint64_t length = getFileLength(fileName);
+   string data(length, 'a');
+   ifstream in(fileName);
+   in.read(&data[0], length);
+   return move(data);
+}
+
 string randomWord(util::Random& ranny, uint32_t min, uint32_t max)
 {
    assert(max > min);

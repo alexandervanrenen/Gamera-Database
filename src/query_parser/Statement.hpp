@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace dbi {
 
@@ -62,7 +63,17 @@ struct BlockStatement : public Statement {
 
    std::vector<std::unique_ptr<Statement>> statements;
 
-   BlockStatement(std::vector<std::unique_ptr<Statement>>&& statements);
+   BlockStatement(std::vector<std::unique_ptr<Statement>> statements);
+
+   virtual void acceptVisitor(Visitor& visitor);
+};
+
+/// 
+struct RootStatement : public Statement {
+
+   std::unique_ptr<Statement> statement;
+
+   RootStatement(std::unique_ptr<BlockStatement> statement);
 
    virtual void acceptVisitor(Visitor& visitor);
 };

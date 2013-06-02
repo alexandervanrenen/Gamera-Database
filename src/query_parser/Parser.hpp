@@ -19,7 +19,7 @@ struct ParserException : public std::exception {
    virtual const char* what() const throw() {return (message + " (line: " + std::to_string(line) + "; column: " + std::to_string(column) + ")").c_str();}
 };
 
-std::vector<std::unique_ptr<Statement>> parse(const std::string& query) throw(ParserException);
+std::unique_ptr<Statement> parse(const std::string& query) throw(ParserException);
 }
 
 }

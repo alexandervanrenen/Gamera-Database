@@ -31,8 +31,8 @@ struct Value {
 # define YYSTYPE struct Value
 
 namespace {
-std::vector<std::unique_ptr<Statement>> statements;
-std::istringstream input;
+unique_ptr<Statement> result;
+istringstream input;
 static int lineNumber= 0;
 static int columnNumber= 0;
 }
@@ -48,14 +48,14 @@ static int columnNumber= 0;
 %}
 
 # --------------------------------------------------------------------------------------------------------------
-start = s:STATEMENT                                        { statements = move(s.statements); }
+start = s:STATEMENT                                        { result = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
       | < . >                                              { throw 2; }
 # --------------------------------------------------------------------------------------------------------------
 STATEMENT = - a:SINGLE                                     { a.statements.push_back(move(a.statement)); }
           ( - s:SINGLE                                     { a.statements.push_back(move(s.statement)); }
           )*                                               { $$ = move(a); }
 SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
-       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = unique_ptr<CreateStatement>(new CreateStatement(id.str, l.attributeDeclarationVec)); }
+       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = unique_ptr<CreateTableStatement>(new CreateTableStatement(id.str, l.attributeDeclarationVec)); }
        | "{" - s:STATEMENT - "}"                           { $$.statement = unique_ptr<BlockStatement>(new BlockStatement(move(s.statements))); }
 # --------------------------------------------------------------------------------------------------------------
 SELECT = "select"                                          { }
@@ -78,13 +78,13 @@ LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarat
        ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
        )* CLOSE                                            { $$ = move(a); }
 ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
-TYPE = "integer"                                           { $$.str = std::string("integer") }
-     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = std::string("char " + std::to_string(n.number)) }
+TYPE = "integer"                                           { $$.str = string("integer") }
+     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = string("char " + to_string(n.number)) }
 NULLABLE = "not null"                                      { $$.boolean=false; }
          | "null"                                          { $$.boolean=true; }
          | ""                                              { $$.boolean=true; }
 # --------------------------------------------------------------------------------------------------------------
-ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=std::string(yytext); }
+ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=string(yytext); }
 NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext); }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
@@ -103,20 +103,19 @@ namespace script {
 
 mutex parserGuard; // Sorry only one parsing at a time ..
 
-vector<unique_ptr<Statement>> parse(const string& query) throw(ParserException)
+unique_ptr<Statement> parse(const string& query) throw(ParserException)
 {
   unique_lock<mutex> l(parserGuard);
 
   input.clear();
   input.str(query);
-  statements.clear();
 
   GREG g;
   yyinit(&g);
   while (yyparse(&g));
   yydeinit(&g);
 
-  return move(statements);
+  return move(result);
 }
 
 }

@@ -17,6 +17,7 @@ static constexpr RecordId kInvalidRecordId = RecordId(-1);
 
 /// Use same id for free space inventory
 static const SegmentId kFreeSpaceInventoryId = SegmentId(0);
+static const SegmentId kSchemaSegmentId = SegmentId(1);
 
 /// The first page in a linked list like structure of pages used to store the SI.
 static const PageId kMetaPageId = PageId(0);

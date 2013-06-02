@@ -48,12 +48,12 @@ void PrintVisitor::onPostVisit(CreateTableStatement&)
 {
 }
 
-void PrintVisitor::onPreVisit(BlockStatement& block)
+void PrintVisitor::onPreVisit(BlockStatement&)
 {
    out << "{" << endl;
 }
 
-void PrintVisitor::onPostVisit(BlockStatement& block)
+void PrintVisitor::onPostVisit(BlockStatement&)
 {
    out << "}" << endl;
 }

@@ -10,7 +10,7 @@ MetadataManager::MetadataManager(SegmentManager& sm): segRelations(sm.getSPSegme
     loadData();    
 }
 
-
+// Construct RelationMetadata object from Record
 RelationMetadata* MetadataManager::loadRelationMetadata(const Record& r, const TupleId& tid) {
     RelationMetadata* rm = new RelationMetadata();
     rm->tid = tid;
@@ -21,6 +21,7 @@ RelationMetadata* MetadataManager::loadRelationMetadata(const Record& r, const T
     return rm;
 }
 
+// Construct Record from RelationMetadata object
 Record* MetadataManager::saveRelationMetadata(RelationMetadata* rm) {
     char* data = new char[rm->name.size()+sizeof(uint64_t)];
     char* databegin = data;
@@ -30,48 +31,58 @@ Record* MetadataManager::saveRelationMetadata(RelationMetadata* rm) {
     return new Record(databegin, rm->name.size()+sizeof(uint64_t));
 }
 
+// Used for easier retrieval of information from record
+struct AttrHeader {
+    uint64_t indexSegment;
+    uint64_t relationTid;
+    uint16_t type;
+    uint16_t flags;
+    uint16_t len;
+    uint16_t offset; 
+};
+
+static_assert(sizeof(AttrHeader) == 24, "Padding is wrong");
+
+// Get data from record and construct AttributeMetadata object
 AttributeMetadata* MetadataManager::loadAttributeMetadata(const Record& r, const TupleId& tid) {
     AttributeMetadata* am = new AttributeMetadata();
     am->tid = tid;
     char* data = (char*)r.data();
-    am->indexSegment = SegmentId(*((uint64_t*)data));
-    data += sizeof(uint64_t);
-    am->relationTid = TupleId(*((uint64_t*)data));
-    data += sizeof(uint64_t);
-    am->type = intToType(*((uint8_t*)data++));
-    //std::cout << "reading Type: " << int(typeToInt(am->type)) << std::endl;
-    am->len = *((uint8_t*)data++);
-    uint8_t flags = *((uint8_t*)data++);
-    if (((flags >> 7) & 1) == 1) am->notNull = true;
-    if (((flags >> 6) & 1) == 1) am->primaryKey = true;
-    am->offset = *((uint16_t*)data);
-    data += sizeof(uint16_t);
-    am->name = std::string(data, r.size()-2*sizeof(uint64_t)-3*sizeof(uint8_t)-sizeof(uint16_t));
+    AttrHeader* header = (AttrHeader*)data;
+    am->indexSegment = SegmentId(header->indexSegment);
+    am->relationTid = TupleId(header->relationTid);
+    am->type = intToType(header->type);
+    am->len = header->len;
+    uint16_t flags = header->flags;
+    if (((flags) & 1) == 1) am->notNull = true;
+    if (((flags >> 1) & 1) == 1) am->primaryKey = true;
+    am->offset = header->offset;
+    data += sizeof(AttrHeader);
+    am->name = std::string(data, r.size()-sizeof(AttrHeader));
     return am;
 }
 
+// Construct record from AttributeMetdata object
 Record* MetadataManager::saveAttributeMetadata(AttributeMetadata* am) {
-    uint64_t size = am->name.size()+2*sizeof(uint64_t)+3*sizeof(uint8_t)+sizeof(uint16_t);
+    uint64_t size = am->name.size()+sizeof(AttrHeader);
     char* data = new char[size];
     char* databegin = data;
-    *((uint64_t*)data) = am->indexSegment.toInteger();
-    data += sizeof(uint64_t);
-    *((uint64_t*)data) = am->relationTid.toInteger();
-    data += sizeof(uint64_t);
-    *((uint8_t*)data++) = typeToInt(am->type);
-    //std::cout << "Type (should be): " << int(typeToInt(am->type)) << std::endl;
-    //std::cout << "Type: " << int(*((uint8_t*)(data-1))) << std::endl;
-    *((uint8_t*)data++) = am->len;
-    uint8_t flags = 0;
-    if (am->notNull) flags |= (1<<7);
-    if (am->primaryKey) flags |= (1<<6);
-    *((uint8_t*)data++) = flags;
-    *((uint16_t*)data) = am->offset;
-    data += sizeof(uint16_t);
+    AttrHeader* header = (AttrHeader*)data;
+    header->indexSegment = am->indexSegment.toInteger();
+    header->relationTid = am->relationTid.toInteger();
+    header->type = typeToInt(am->type);
+    header->len = am->len;
+    uint16_t flags = 0;
+    if (am->notNull) flags |= (1);
+    if (am->primaryKey) flags |= (1<<1);
+    header->flags = flags;
+    header->offset = am->offset;
+    data += sizeof(AttrHeader);
     memcpy(data, am->name.c_str(), am->name.size());
     return new Record(databegin, size);
 }
 
+// Load data from SPSegments
 void MetadataManager::loadData() {
     TableScanOperator relScan{segRelations};
     relScan.open();

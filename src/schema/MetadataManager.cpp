@@ -33,15 +33,15 @@ Record* MetadataManager::saveRelationMetadata(RelationMetadata* rm) {
 
 // Used for easier retrieval of information from record
 struct AttrHeader {
-    uint64_t indexSegment;
     uint64_t relationTid;
     uint16_t type;
-    uint16_t flags;
+    uint8_t flags;
     uint16_t len;
-    uint16_t offset; 
+    uint16_t offset;
+    uint8_t numberOfIndexSegments;
 };
 
-static_assert(sizeof(AttrHeader) == 24, "Padding is wrong");
+static_assert(sizeof(AttrHeader) == 24, "Padding is wrong"); // Assume padding of 4 bytes
 
 // Get data from record and construct AttributeMetadata object
 AttributeMetadata* MetadataManager::loadAttributeMetadata(const Record& r, const TupleId& tid) {
@@ -49,35 +49,42 @@ AttributeMetadata* MetadataManager::loadAttributeMetadata(const Record& r, const
     am->tid = tid;
     char* data = (char*)r.data();
     AttrHeader* header = (AttrHeader*)data;
-    am->indexSegment = SegmentId(header->indexSegment);
     am->relationTid = TupleId(header->relationTid);
     am->type = intToType(header->type);
     am->len = header->len;
-    uint16_t flags = header->flags;
+    uint8_t flags = header->flags;
     if (((flags) & 1) == 1) am->notNull = true;
     if (((flags >> 1) & 1) == 1) am->primaryKey = true;
     am->offset = header->offset;
-    data += sizeof(AttrHeader);
-    am->name = std::string(data, r.size()-sizeof(AttrHeader));
+    data += sizeof(AttrHeader)-4;
+    for (uint8_t i=0; i < header->numberOfIndexSegments; i++) {
+        am->indexSegments.push_back(SegmentId(*((uint64_t*)data)));
+        data += sizeof(uint64_t);
+    }
+    am->name = std::string(data, r.size()-sizeof(AttrHeader)+4-sizeof(uint64_t)*header->numberOfIndexSegments);
     return am;
 }
 
 // Construct record from AttributeMetdata object
 Record* MetadataManager::saveAttributeMetadata(AttributeMetadata* am) {
-    uint64_t size = am->name.size()+sizeof(AttrHeader);
+    uint64_t size = am->name.size()+sizeof(AttrHeader)-4+am->indexSegments.size()*sizeof(uint64_t);
     char* data = new char[size];
     char* databegin = data;
     AttrHeader* header = (AttrHeader*)data;
-    header->indexSegment = am->indexSegment.toInteger();
     header->relationTid = am->relationTid.toInteger();
     header->type = typeToInt(am->type);
     header->len = am->len;
-    uint16_t flags = 0;
+    uint8_t flags = 0;
     if (am->notNull) flags |= (1);
     if (am->primaryKey) flags |= (1<<1);
     header->flags = flags;
     header->offset = am->offset;
-    data += sizeof(AttrHeader);
+    header->numberOfIndexSegments = am->indexSegments.size();
+    data += sizeof(AttrHeader)-4;
+    for (SegmentId id : am->indexSegments) {
+        *((uint64_t*)data) = id.toInteger();
+        data += sizeof(uint64_t);
+    }
     memcpy(data, am->name.c_str(), am->name.size());
     return new Record(databegin, size);
 }
@@ -114,8 +121,9 @@ void MetadataManager::calculateRelationIndexes(RelationMetadata* rm) {
     relationIndexes[rm->name].clear();
     std::unordered_map<SegmentId, std::vector<AttributeMetadata*>> map;
     for (AttributeMetadata* am : rm->attributes) {
-        if (am->indexSegment != kInvalidSegmentId)
-            map[am->indexSegment].push_back(am);
+        for (SegmentId id: am->indexSegments) {
+            map[id].push_back(am);
+        }
     }
     for (auto p : map) {
         IndexMetadata* idx = new IndexMetadata(rm, p.first, p.second);
@@ -199,7 +207,7 @@ void MetadataManager::addIndex(const std::string relationName, SegmentId sid, st
     for (std::string a: attr) {
         auto it = attributes.find({relationName, a});
         assert(it != attributes.end());
-        it->second->indexSegment = sid;
+        it->second->indexSegments.push_back(sid);
         saveAttribute(it->second);
     }
     calculateRelationIndexes(rm);

@@ -13,8 +13,19 @@ using namespace dbi::script;
 
 struct Value {
    bool boolean;
-   int   number;
-   std::string string;
+   int number;
+   string str;
+
+   ColumnIdentifier columnIdentifier;
+   TableAccess tableAccess;
+   AttributeDeclaration attributeDeclaration;
+
+   vector<AttributeDeclaration> attributeDeclarationVec;
+   vector<TableAccess> tableAccessVec;
+   vector<ColumnIdentifier> columnIdentifierVec;
+
+   unique_ptr<Statement> statement;
+   vector<Statement> statements;
 };
 
 # define YYSTYPE struct Value
@@ -26,53 +37,63 @@ static int lineNumber= 0;
 static int columnNumber= 0;
 }
 
-# define YY_INPUT(buf, result, max, D, G)                         \
-  {                                                               \
-    int c= input.get();                                           \
-    columnNumber++;                                               \
-    if ('\n' == c || '\r' == c) {++lineNumber; columnNumber=0;}   \
-    result= (EOF == c) ? 0 : (*(buf)= c, 1);                      \
-  };
+# define YY_INPUT(buf, result, max, D, G)                           \
+   {                                                                \
+      int c= input.get();                                           \
+      columnNumber++;                                               \
+      if ('\n' == c || '\r' == c) {++lineNumber; columnNumber=0;}   \
+      result= (EOF == c) ? 0 : (*(buf)= c, 1);                      \
+   };
 
 %}
 
-start = STATEMENT - SEM (- STATEMENT - SEM)*               { }
+# --------------------------------------------------------------------------------------------------------------
+start = s:STATEMENT - SEM                                  { statements.push_back(move(s.statement)); }
+      (- s:STATEMENT - SEM                                 { statements.push_back(move(s.statement)); }
+      )*                                                   { }
       | < . >                                              { throw 2; }
+# --------------------------------------------------------------------------------------------------------------
+STATEMENT = SELECT - p:PROJECTION - FROM - t:TABLES        { $$.statement = unique_ptr<SelectStatement>(new SelectStatement(p.columnIdentifierVec, t.tableAccessVec)); }
+          | CREATE - TABLE - id:ID - l:LAYOUT              { $$.statement = unique_ptr<CreateStatement>(new CreateStatement(id.str, l.attributeDeclarationVec)); }
 
-STATEMENT = SELECT - PROJECTION - FROM - TABLES            { }
-          | CREATE - TABLE - id:ID - LAYOUT                { reinterpret_cast<CreateStatement*>(statements.back().get())->name = id.string;}
-
-CREATE = "create"                                          { statements.push_back(std::unique_ptr<CreateStatement>(new CreateStatement()));}
+CREATE = "create"                                          { }
 TABLE = "table"                                            { }
-LAYOUT = OPEN - ATTRIBUTE ( - COMMA - ATTRIBUTE)* CLOSE    { }
-ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { reinterpret_cast<CreateStatement*>(statements.back().get())->attributes.push_back(CreateStatement::Attribute{id.string, t.string, n.boolean});}
-TYPE = "integer"                                           { $$.string=std::string("integer")}
-     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.string=std::string("char " + std::to_string(n.number))}
+LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
+       ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
+       )* CLOSE                                            { $$ = move(a); }
+ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
+TYPE = "integer"                                           { $$.str = std::string("integer") }
+     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = std::string("char " + std::to_string(n.number)) }
 NULLABLE = "not null"                                      { $$.boolean=false; }
          | "null"                                          { $$.boolean=true; }
          | ""                                              { $$.boolean=true; }
-
-SELECT = "select"                                          { statements.push_back(std::unique_ptr<SelectStatement>(new SelectStatement()));}
-PROJECTION = SELECTORNAME (- COMMA - SELECTORNAME)*        { }
-SELECTORNAME = tid:ID POINT cid:ID                         { reinterpret_cast<SelectStatement*>(statements.back().get())->selectors.push_back({tid.string, cid.string});}
-             | cid:ID                                      { reinterpret_cast<SelectStatement*>(statements.back().get())->selectors.push_back({"", cid.string});}
+# --------------------------------------------------------------------------------------------------------------
+SELECT = "select"                                          { }
+PROJECTION = s:SELECTORNAME                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
+           (- COMMA - i:SELECTORNAME                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
+           )*                                              { $$ = move(s); }
+SELECTORNAME = tid:ID POINT cid:ID                         { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
+             | cid:ID                                      { $$.columnIdentifier = ColumnIdentifier{"", cid.str}; }
 
 FROM = "from"                                              { }
-TABLES = TABLENAME (- COMMA - TABLENAME)*                  { }
-TABLENAME = tid:ID ' ' alias:ID                            { reinterpret_cast<SelectStatement*>(statements.back().get())->sources.push_back({tid.string, alias.string});}
-          | tid:ID                                         { reinterpret_cast<SelectStatement*>(statements.back().get())->sources.push_back({tid.string, ""});}
-
-
-ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.string=std::string(yytext);}
+TABLES = t:TABLENAME                                       { t.tableAccessVec.push_back(t.tableAccess); }
+       (- COMMA - i:TABLENAME                              { t.tableAccessVec.push_back(i.tableAccess); }
+       )*                                                  { $$ = move(t);}
+TABLENAME = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
+          | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
+# --------------------------------------------------------------------------------------------------------------
+ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=std::string(yytext); }
+NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext); }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
 SEM = ';'                                                  { }
 POINT = '.'                                                { }
 OPEN = '('                                                 { }
 CLOSE = ')'                                                { }
-NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext);}
+# --------------------------------------------------------------------------------------------------------------
 
 %%
+
 
 namespace dbi {
 

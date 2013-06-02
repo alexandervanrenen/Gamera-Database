@@ -16,9 +16,9 @@ struct AttributeMetadata {
     bool primaryKey;
     TupleId tid; // not saved
     TupleId relationTid;
-    SegmentId indexSegment;
-    AttributeMetadata() : len(~0), notNull(true), primaryKey(false), tid(kInvalidTupleId), relationTid(kInvalidTupleId), indexSegment() {};
-    AttributeMetadata(std::string name, AttributeType type, uint8_t len, bool notNull, bool primaryKey) : name(name), type(type), len(len), notNull(notNull), primaryKey(primaryKey), indexSegment(-1) {};
+    std::vector<SegmentId> indexSegments;
+    AttributeMetadata() : len(~0), notNull(true), primaryKey(false), tid(kInvalidTupleId), relationTid(kInvalidTupleId) {};
+    AttributeMetadata(std::string name, AttributeType type, uint8_t len, bool notNull, bool primaryKey) : name(name), type(type), len(len), notNull(notNull), primaryKey(primaryKey) {};
 };
 
 struct RelationMetadata {
@@ -29,5 +29,16 @@ struct RelationMetadata {
     RelationMetadata() : segment(-1) {};
     RelationMetadata(const std::string& name) : name(name), segment(-1), tid(kInvalidTupleId) {}
 };
+
+
+struct IndexMetadata {
+    RelationMetadata* relation;
+    SegmentId segment;
+    std::vector<AttributeMetadata*> attributes;
+
+    IndexMetadata() {};
+    IndexMetadata(RelationMetadata* relation, SegmentId segment, std::vector<AttributeMetadata*> attributes): relation(relation), segment(segment), attributes(attributes) {}
+};
+
 
 }

@@ -18,10 +18,11 @@ public:
 
     // Manage Relations
     void addRelation(RelationSchema& relationShema);
+    bool hasRelation(const std::string& relationName) const;
     void dropRelation(const std::string& relationName);
 
     // Get information about relations
-    RelationSchema& getRelationSchema(const std::string& relationName);
+    RelationSchema& getRelation(const std::string& relationName);
 
 private:
     /// Used to persist the schema

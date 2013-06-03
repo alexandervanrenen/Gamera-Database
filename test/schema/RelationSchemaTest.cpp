@@ -44,7 +44,7 @@ TEST(Schema, RelationSchemaMarschalling)
    // Create
    RelationSchema original;
    original.name = "students";
-   original.sid = SegmentId(8129);
+   original.sid = SegmentId(8128);
    original.attributes.push_back(dbi::AttributeSchema{"id", 2, 8, false, false});
    original.attributes.push_back(dbi::AttributeSchema{"name", 2, 2, true, true});
    original.attributes.push_back(dbi::AttributeSchema{"term", 3, 2, false, true});
@@ -61,5 +61,48 @@ TEST(Schema, RelationSchemaMarschalling)
 
 TEST(Schema, SchemaManager)
 {
+   const uint32_t pages = 100;
+   assert(kSwapFilePages>=pages);
 
+   dbi::BufferManager bufferManager(kSwapFileName, pages / 2);
+   dbi::SegmentManager segmentManager(bufferManager, true);
+
+   RelationSchema schema1;
+   schema1.name = "students";
+   schema1.sid = SegmentId(8128);
+   schema1.attributes.push_back(dbi::AttributeSchema{"id", 2, 8, false, false});
+
+   RelationSchema schema2;
+   schema2.name = "listens_to";
+   schema2.sid = SegmentId(7029);
+   schema2.attributes.push_back(dbi::AttributeSchema{"name", 3, 9, true, true});
+
+   // Set up schema manager and add two relations
+   {
+      dbi::SchemaManager schemaManager(segmentManager.getSPSegment(kSchemaSegmentId));
+      schemaManager.addRelation(schema1);
+      schemaManager.addRelation(schema2);
+   }
+
+   // Restart schema manager
+   {
+      dbi::SchemaManager schemaManager(segmentManager.getSPSegment(kSchemaSegmentId));
+
+      ASSERT_TRUE(schemaManager.hasRelation("students"));
+      ASSERT_TRUE(schemaManager.hasRelation("listens_to"));
+      compare(schema1, schemaManager.getRelation("students"));
+      compare(schema2, schemaManager.getRelation("listens_to"));
+
+      schemaManager.dropRelation("students");
+      schemaManager.dropRelation("listens_to");
+      ASSERT_FALSE(schemaManager.hasRelation("students"));
+      ASSERT_FALSE(schemaManager.hasRelation("listens_to"));
+   }
+
+   // Restart schema manager
+   {
+      dbi::SchemaManager schemaManager(segmentManager.getSPSegment(kSchemaSegmentId));
+      ASSERT_FALSE(schemaManager.hasRelation("students"));
+      ASSERT_FALSE(schemaManager.hasRelation("listens_to"));
+   }
 }

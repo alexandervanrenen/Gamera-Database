@@ -10,7 +10,7 @@
 
 TEST(BufferManager, Simple)
 {
-   uint32_t pages = 1024;
+   uint32_t pages = 1000;
    assert(kSwapFilePages>=pages);
 
    dbi::BufferManager bm(kSwapFileName, 10);
@@ -23,8 +23,8 @@ TEST(BufferManager, Simple)
 TEST(BufferManager, FunkeTest)
 {
    int argc = 5;
-   uint32_t pages = 1024;
+   uint32_t pages = 1000;
    assert(kSwapFilePages>=pages);
-   std::array<const char*, 5> argv = { {"", kSwapFileName.c_str(), "1024", "64", "2"}};
+   std::array<const char*, 5> argv = { {"", kSwapFileName.c_str(), "1000", "64", "2"}};
    ASSERT_EQ(main_funke(argc, const_cast<char**>(&std::get<0>(argv))), 0);
 }

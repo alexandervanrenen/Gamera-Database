@@ -46,6 +46,9 @@ class Random64 {
  */
 inline int run(const std::string& dbFile, uint32_t pages)
 {
+   // The database uses the first three pages for internal structures, therefore the first sp segment begins at 3
+   const uint32_t kFirstFreePageId = 3;
+
    // Bookkeeping
    std::unordered_map<dbi::TupleId, unsigned> values; // TID -> testData entry
    std::unordered_map<unsigned, unsigned> usage; // pageID -> bytes used within this page
@@ -66,7 +69,7 @@ inline int run(const std::string& dbFile, uint32_t pages)
 
       // Check that there is space available for 's'
       bool full = true;
-      for (unsigned p=2; p<initialSize+2; ++p) {
+      for (unsigned p=kFirstFreePageId; p<initialSize+kFirstFreePageId; ++p) {
          if (usage[p] < loadFactor*dbi::kPageSize) {
             full = false;
             break;
@@ -80,7 +83,7 @@ inline int run(const std::string& dbFile, uint32_t pages)
       assert(values.find(tid)==values.end()); // TIDs should not be overwritten
       values[tid]=r;
       unsigned pageId = tid.toPageId().toInteger(); // extract the pageId from the TID
-      assert(pageId < initialSize+2); // pageId should be within [0, initialSize)
+      assert(pageId < initialSize+kFirstFreePageId); // pageId should be within [0, initialSize)
       usage[pageId]+=s.size();
    }
 

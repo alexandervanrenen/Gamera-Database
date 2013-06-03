@@ -1,3 +1,10 @@
+#include "test/TestConfig.hpp"
+#include "btree/BTree.hpp"
+#include "util/Utility.hpp"
+#include "common/Config.hpp"
+#include "buffer_manager/BufferManager.hpp"
+#include "segment_manager/SegmentManager.hpp"
+#include "segment_manager/BTreeSegment.hpp"
 #include <gtest/gtest.h>
 #include <string>
 #include <cstdint>
@@ -8,13 +15,6 @@
 #include <string.h>
 #include <thread>
 
-#include "test/TestConfig.hpp"
-#include "btree/BTree.hpp"
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
-#include "buffer_manager/BufferManager.hpp"
-#include "segment_manager/SegmentManager.hpp"
-#include "segment_manager/BTreeSegment.hpp"
 
 typedef dbi::TID TID;
 
@@ -80,7 +80,7 @@ const IntPair& getKey(const uint64_t& i) {
 template <class T, class CMP>
 void test(uint64_t n) {
     typedef dbi::TID TID;
-    const uint32_t pages = 10000;
+    const uint32_t pages = 1000;
     assert(kSwapFilePages>=pages);
 
     // Create
@@ -131,7 +131,7 @@ void test(uint64_t n) {
 //const uint64_t n = 10*1000ul;
 
 TEST(BTreeTest, FunkeTestUintKey) {
-    uint64_t n = 1000*1000ul;
+    uint64_t n = 10*1000ul;
     // Test index with 64bit unsigned integers
     test<uint64_t, MyCustomUInt64Cmp>(n);
 }
@@ -143,7 +143,7 @@ TEST(BTreeTest, FunkeTestCharKey) {
 }
 
 TEST(BTreeTest, FunkeTestCompoundKey) {
-    uint64_t n = 1000*1000ul;
+    uint64_t n = 10*1000ul;
     // Test index with compound key
     test<IntPair, MyCustomIntPairCmp>(n);
 }
@@ -214,9 +214,9 @@ void threadTestErase(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads
 
 
 TEST(BTreeTest, ThreadTest) {
-    const uint32_t pages = 10000;
+    const uint32_t pages = 1000;
     assert(kSwapFilePages>=pages);
-    const uint64_t n = 1000*1000ul;
+    const uint64_t n = 5*1000ul;
     const uint64_t numthreads = 4;
     
     // Create

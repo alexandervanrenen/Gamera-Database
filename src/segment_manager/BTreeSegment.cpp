@@ -2,6 +2,7 @@
 #include "FSISegment.hpp"
 #include "SegmentManager.hpp"
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -46,7 +47,9 @@ pair<BufferFrame&, PageId> BTreeSegment::newPage() {
         assert(metadata->nextFreePage.toInteger() < metadata->numberOfPages);
     }
     PageId newid = metadata->nextFreePage++;
-    return {Segment::fixInternalPage(newid.toInteger(), kExclusive), newid};
+    BufferFrame& bf = Segment::fixInternalPage(newid.toInteger(), kExclusive);
+    memset(bf.data(), '\0', kPageSize);
+    return {bf, newid};
 }
 
 PageId BTreeSegment::getRootPage() {

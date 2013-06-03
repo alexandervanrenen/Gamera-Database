@@ -13,8 +13,6 @@
 using namespace std;
 using namespace dbi;
 
-static const uint32_t kTestScale = 1;
-
 TEST(SlottedPage, Simple)
 {
     SlottedPage* slottedPage = static_cast<SlottedPage*>(malloc(kPageSize));
@@ -145,6 +143,7 @@ TEST(SlottedPage, ReferenceRecords)
 
 TEST(SlottedPage, Randomized)
 {
+    const uint32_t kTestScale = 1;
     const uint32_t iterations = 10000;
     util::Random ranny;
 

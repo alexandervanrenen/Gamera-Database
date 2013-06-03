@@ -46,8 +46,13 @@ public:
       std::unique_lock<std::mutex> l(guard);
       auto start = running[tag];
       auto end = std::chrono::high_resolution_clock::now();
-      finished[tag].first += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-      finished[tag].second++;
+      if(finished.count(tag)==0) {
+         finished[tag].second = 1;
+         finished[tag].first = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+      } else {
+         finished[tag].first += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+         finished[tag].second++;
+      }
    }
 
    void print(std::ostream& stream) const
@@ -55,15 +60,15 @@ public:
       stream << name << std::endl;
       stream << std::string(name.size(), '=') << std::endl;
       for(auto iter : finished)
-         stream << iter.first << " : " << iter.second.first / 1000.0f << " ms [" << iter.second.second << ": " << iter.second.first / 1000.0f / iter.second.second << " ms ]" << std::endl;
+         stream << iter.first << " : " << iter.second.first << " ms [" << iter.second.second << ": " << iter.second.first / iter.second.second << " ms ]" << std::endl;
       for(auto iter : counters)
          stream << iter.first << " : " << iter.second << std::endl;
    }
 
 private:
-   std::unordered_map<std::string, std::pair<uint32_t, uint32_t> > finished;
+   std::unordered_map<std::string, std::pair<uint64_t, uint64_t> > finished;
    std::unordered_map<std::string, std::chrono::time_point<std::chrono::high_resolution_clock>> running;
-   std::unordered_map<std::string, uint32_t> counters;
+   std::unordered_map<std::string, uint64_t> counters;
    std::string name;
    std::mutex guard;
 };

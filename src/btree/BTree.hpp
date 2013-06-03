@@ -559,7 +559,7 @@ public:
         }
     }
 
-    void visualize(std::string filename = "tree.dot") {
+    void visualize(std::string filename = "bin/var/tree.dot") {
         std::ofstream out;
         out.open(filename.c_str(), std::ofstream::out);
         out << "digraph myBTree {\nnode [shape=record];\n";
@@ -567,7 +567,7 @@ public:
         visualizeNode(out, rootnode->pageId);
         out << "\n}\n";
         out.close();
-        if (system("dot -Tpng tree.dot -o tree.png") != 0) {
+        if (system("dot -Tpng bin/var/tree.dot -o bin/var/tree.png") != 0) {
             std::cout << "Converting tree.dot to a png-File failed" << std::endl;
         }
     }

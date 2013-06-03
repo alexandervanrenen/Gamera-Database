@@ -12,6 +12,30 @@
 using namespace std;
 using namespace dbi;
 
+void compare(const RelationSchema& lhs, const RelationSchema& rhs)
+{
+   ASSERT_EQ(lhs.name, rhs.name);
+   ASSERT_EQ(lhs.sid, rhs.sid);
+
+   // Check attributes
+   ASSERT_EQ(lhs.attributes.size(), rhs.attributes.size());
+   for(uint32_t i=0; i<lhs.attributes.size(); i++) {
+      ASSERT_EQ(lhs.attributes[i].name, rhs.attributes[i].name);
+      ASSERT_EQ(lhs.attributes[i].type, rhs.attributes[i].type);
+      ASSERT_EQ(lhs.attributes[i].len, rhs.attributes[i].len);
+      ASSERT_EQ(lhs.attributes[i].notNull, rhs.attributes[i].notNull);
+      ASSERT_EQ(lhs.attributes[i].primaryKey, rhs.attributes[i].primaryKey);
+   }
+
+   // Check indexes
+   ASSERT_EQ(lhs.indexes.size(), rhs.indexes.size());
+   for(uint32_t i=0; i<lhs.indexes.size(); i++) {
+      ASSERT_EQ(lhs.indexes[i].sid, rhs.indexes[i].sid);
+      ASSERT_EQ(lhs.indexes[i].indexedAttribute, rhs.indexes[i].indexedAttribute);
+      ASSERT_EQ(lhs.indexes[i].indexType, rhs.indexes[i].indexType);
+   }
+}
+
 TEST(Schema, RelationSchemaMarschalling)
 {
    const uint32_t kPages = 100;
@@ -30,26 +54,9 @@ TEST(Schema, RelationSchemaMarschalling)
    Record r = original.marschall();
    RelationSchema copy;
    copy.unmarschall(r);
-   ASSERT_EQ(original.name, copy.name);
-   ASSERT_EQ(original.sid, copy.sid);
 
-   // Check attributes
-   ASSERT_EQ(original.attributes.size(), copy.attributes.size());
-   for(uint32_t i=0; i<original.attributes.size(); i++) {
-      ASSERT_EQ(original.attributes[i].name, copy.attributes[i].name);
-      ASSERT_EQ(original.attributes[i].type, copy.attributes[i].type);
-      ASSERT_EQ(original.attributes[i].len, copy.attributes[i].len);
-      ASSERT_EQ(original.attributes[i].notNull, copy.attributes[i].notNull);
-      ASSERT_EQ(original.attributes[i].primaryKey, copy.attributes[i].primaryKey);
-   }
-
-   // Check indexes
-   ASSERT_EQ(original.indexes.size(), copy.indexes.size());
-   for(uint32_t i=0; i<original.indexes.size(); i++) {
-      ASSERT_EQ(original.indexes[i].sid, copy.indexes[i].sid);
-      ASSERT_EQ(original.indexes[i].indexedAttribute, copy.indexes[i].indexedAttribute);
-      ASSERT_EQ(original.indexes[i].indexType, copy.indexes[i].indexType);
-   }
+   // Compare
+   compare(original, copy);
 }
 
 TEST(Schema, SchemaManager)

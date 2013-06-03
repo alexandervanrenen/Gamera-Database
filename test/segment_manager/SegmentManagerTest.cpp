@@ -128,7 +128,7 @@ TEST(SegmentManager, Randomized)
 
    for(uint32_t j=0; j<kTestScale; j++) {
       /// Create structure
-      BufferManager bufferManager(kSwapFileName, kPages / 2);
+      BufferManager bufferManager(kSwapFileName, kPages);
       auto segmentManager = util::make_unique<SegmentManager>(bufferManager, true);
 
       unordered_map<SegmentId, uint32_t> reference;

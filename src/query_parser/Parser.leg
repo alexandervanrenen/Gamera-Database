@@ -2,6 +2,8 @@
 #include "Parser.hpp"
 #include "Statement.hpp"
 #include "util/Utility.hpp"
+#include "harriet/Utility.hpp"
+#include "harriet/Expression.hpp"
 #include <unistd.h>
 #include <sstream>
 #include <memory>
@@ -15,7 +17,9 @@ using namespace dbi::script;
 struct Value {
    bool boolean;
    int number;
+
    string str;
+   vector<string> stringVec;
 
    ColumnIdentifier columnIdentifier;
    TableAccess tableAccess;
@@ -27,6 +31,9 @@ struct Value {
 
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
+
+   unique_ptr<harriet::Value> value;
+   vector<unique_ptr<harriet::Value>> valueVec;
 };
 
 # define YYSTYPE struct Value
@@ -49,51 +56,62 @@ static int columnNumber= 0;
 %}
 
 # --------------------------------------------------------------------------------------------------------------
-start = s:STATEMENT                                        { result = util::make_unique<RootStatement>(util::make_unique<BlockStatement>(move(s.statements))); }
+start = s:Statement                                        { result = util::make_unique<RootStatement>(util::make_unique<BlockStatement>(move(s.statements))); }
       | < . >                                              { throw 2; }
 # --------------------------------------------------------------------------------------------------------------
-STATEMENT = - a:SINGLE                                     { a.statements.push_back(move(a.statement)); }
-          ( - s:SINGLE                                     { a.statements.push_back(move(s.statement)); }
+Statement = - a:Single                                     { a.statements.push_back(move(a.statement)); }
+          ( - s:Single                                     { a.statements.push_back(move(s.statement)); }
           )*                                               { $$ = move(a); }
-SINGLE = SELECT - p:PROJECTION - FROM - t:TABLES - SEM     { $$.statement = util::make_unique<SelectStatement>(p.columnIdentifierVec, t.tableAccessVec); }
-       | CREATE - TABLE - id:ID - l:LAYOUT - SEM           { $$.statement = util::make_unique<CreateTableStatement>(id.str, l.attributeDeclarationVec); }
-       | "{" - s:STATEMENT - "}"                           { $$.statement = util::make_unique<BlockStatement>(move(s.statements)); }
+Single = SELECT - p:Projection - FROM - t:Tables - SEM     { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec)); }
+       | CREATE - TABLE - id:ID - l:Layout - SEM           { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
+       | INSERT - INTO - id:ID - VALUES - v:Values - SEM   { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
+       | "{" - s:Statement - "}"                           { $$.statement = util::make_unique<BlockStatement>(move(s.statements)); }
 # --------------------------------------------------------------------------------------------------------------
-SELECT = "select"                                          { }
-PROJECTION = s:SELECTORNAME                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
-           (- COMMA - i:SELECTORNAME                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
+Projection = s:SelectorName                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
+           (- COMMA - i:SelectorName                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
            )*                                              { $$ = move(s); }
-SELECTORNAME = tid:ID POINT cid:ID                         { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
+SelectorName = tid:ID POINT cid:ID                         { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
              | cid:ID                                      { $$.columnIdentifier = ColumnIdentifier{"", cid.str}; }
-
-FROM = "from"                                              { }
-TABLES = t:TABLENAME                                       { t.tableAccessVec.push_back(t.tableAccess); }
-       (- COMMA - i:TABLENAME                              { t.tableAccessVec.push_back(i.tableAccess); }
+Tables = t:TableName                                       { t.tableAccessVec.push_back(t.tableAccess); }
+       (- COMMA - i:TableName                              { t.tableAccessVec.push_back(i.tableAccess); }
        )*                                                  { $$ = move(t);}
-TABLENAME = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
+TableName = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
 # --------------------------------------------------------------------------------------------------------------
-CREATE = "create"                                          { }
-TABLE = "table"                                            { }
-LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
-       ( - COMMA - i:ATTRIBUTE                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
+Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
+       ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
        )* CLOSE                                            { $$ = move(a); }
-ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
-TYPE = "integer"                                           { $$.str = string("integer") }
-     | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = string("char " + to_string(n.number)) }
-     | "float"                                             { $$.str = string("float") }
-NULLABLE = "not null"                                      { $$.boolean=false; }
-         | "null"                                          { $$.boolean=true; }
-         | ""                                              { $$.boolean=true; }
+Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
-ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str=string(yytext); }
-NUMBER = < [0-9]+ >                                        { $$.number=atoi(yytext); }
+Values = OPEN - a:VALUE                                    { a.valueVec.push_back(move(a.value)); }
+       ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
+       )* CLOSE                                            { $$ = move(a); }
+# --------------------------------------------------------------------------------------------------------------
+TYPE = "integer"                                           { $$.str = string("integer"); }
+     | "float"                                             { $$.str = string("float"); }
+VALUE = v:INTEGER                                          { $$.value = move(v.value); }
+      | v:FLOAT                                            { $$.value = move(v.value); }
+NULLABLE = "not null"                                      { $$.boolean = false; }
+         | "null"                                          { $$.boolean = true; }
+         | ""                                              { $$.boolean = true; }
+# --------------------------------------------------------------------------------------------------------------
+ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str = string(yytext); }
+INTEGER = < [0-9]+ > !'.'                                  { $$.value = util::make_unique<harriet::IntegerValue>(harriet::to_number<int32_t>(yytext)); }
+FLOAT = < [0-9]*'.'[0-9]+ >                                { $$.value = util::make_unique<harriet::FloatValue>(harriet::to_number<float>(yytext)); }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
+POINT = "."                                                { }
 SEM = ';'                                                  { }
-POINT = '.'                                                { }
 OPEN = '('                                                 { }
 CLOSE = ')'                                                { }
+# --------------------------------------------------------------------------------------------------------------
+SELECT = "select"                                          { }
+FROM = "from"                                              { }
+CREATE = "create"                                          { }
+TABLE = "table"                                            { }
+INSERT = "insert"                                          { }
+INTO = "into"                                              { }
+VALUES = "values"                                          { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

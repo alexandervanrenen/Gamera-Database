@@ -69,6 +69,16 @@ void CodeGenerationVisitor::onPreVisit(CreateTableStatement& createTable)
 
 void CodeGenerationVisitor::onPostVisit(CreateTableStatement&)
 {
+   throw;
+}
+
+void CodeGenerationVisitor::onPreVisit(InsertStatement& insert)
+{
+   throw;
+}
+
+void CodeGenerationVisitor::onPostVisit(InsertStatement& insert)
+{
 }
 
 void CodeGenerationVisitor::onPreVisit(BlockStatement&)

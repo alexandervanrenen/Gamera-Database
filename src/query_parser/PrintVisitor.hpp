@@ -19,6 +19,8 @@ public:
    virtual void onPostVisit(SelectStatement& select);
    virtual void onPreVisit(CreateTableStatement& createTable);
    virtual void onPostVisit(CreateTableStatement& createTable);
+   virtual void onPreVisit(InsertStatement& insert);
+   virtual void onPostVisit(InsertStatement& insert);
    virtual void onPreVisit(BlockStatement& block);
    virtual void onPostVisit(BlockStatement& block);
 private:

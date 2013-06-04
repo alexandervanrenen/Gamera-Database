@@ -45,8 +45,9 @@ Result Database::executeQuery(const std::string& query)
 
       // Generate code
       ofstream out((fileName + ".cpp").c_str());
-      script::CodeGenerationVisitor printy(out);
+      script::PrintVisitor printy(cout);
       root->acceptVisitor(printy);
+      return Result();
 
       // Compile code
       util::DynamicLinker linker;

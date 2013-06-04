@@ -1,5 +1,6 @@
 #include "Statement.hpp"
 #include "Visitor.hpp"
+#include "harriet/Expression.hpp"
 
 using namespace std;
 
@@ -11,9 +12,9 @@ Statement::~Statement()
 {
 }
 
-SelectStatement::SelectStatement(vector<ColumnIdentifier> selectors, vector<TableAccess> sources)
-: selectors(selectors)
-, sources(sources)
+SelectStatement::SelectStatement(vector<ColumnIdentifier>&& selectors, vector<TableAccess>&& sources)
+: selectors(move(selectors))
+, sources(move(sources))
 {
 }
 
@@ -23,13 +24,25 @@ void SelectStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>& attributes)
+CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>&& attributes)
 : name(name)
-, attributes(attributes)
+, attributes(move(attributes))
 {
 }
 
 void CreateTableStatement::acceptVisitor(Visitor& visitor)
+{
+   visitor.onPreVisit(*this);
+   visitor.onPostVisit(*this);
+}
+
+InsertStatement::InsertStatement(const string& tableName, vector<unique_ptr<harriet::Value>>&& values)
+: tableName(tableName)
+, values(move(values))
+{
+}
+
+void InsertStatement::acceptVisitor(Visitor& visitor)
 {
    visitor.onPreVisit(*this);
    visitor.onPostVisit(*this);

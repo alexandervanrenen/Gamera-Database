@@ -6,6 +6,10 @@
 #include <memory>
 #include <string>
 
+namespace harriet {
+   class Value;
+}
+
 namespace dbi {
 
 namespace script {
@@ -38,7 +42,7 @@ struct Statement {
 /// 
 struct SelectStatement : public Statement {
 
-   SelectStatement(std::vector<ColumnIdentifier> selectors, std::vector<TableAccess> sources);
+   SelectStatement(std::vector<ColumnIdentifier>&& selectors, std::vector<TableAccess>&& sources);
 
    std::vector<ColumnIdentifier> selectors;
    std::vector<TableAccess> sources;
@@ -49,11 +53,22 @@ struct SelectStatement : public Statement {
 /// 
 struct CreateTableStatement : public Statement {
 
-   CreateTableStatement(const std::string& name, std::vector<AttributeDeclaration>& attributes);
+   CreateTableStatement(const std::string& name, std::vector<AttributeDeclaration>&& attributes);
 
    std::string name;
    std::vector<AttributeDeclaration> attributes;
    // std::vector<unsigned> primaryKey;
+
+   virtual void acceptVisitor(Visitor& visitor);
+};
+
+/// 
+struct InsertStatement : public Statement {
+
+   InsertStatement(const std::string& tableName, std::vector<std::unique_ptr<harriet::Value>>&& values);
+
+   std::string tableName;
+   std::vector<std::unique_ptr<harriet::Value>> values;
 
    virtual void acceptVisitor(Visitor& visitor);
 };

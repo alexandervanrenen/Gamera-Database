@@ -7,6 +7,7 @@ namespace script {
 class RootStatement;
 class SelectStatement;
 class CreateTableStatement;
+class InsertStatement;
 class BlockStatement;
 
 /// 
@@ -20,10 +21,11 @@ public:
    virtual void onPostVisit(SelectStatement& select) = 0;
    virtual void onPreVisit(CreateTableStatement& createTable) = 0;
    virtual void onPostVisit(CreateTableStatement& createTable) = 0;
+   virtual void onPreVisit(InsertStatement& insert) = 0;
+   virtual void onPostVisit(InsertStatement& insert) = 0;
    virtual void onPreVisit(BlockStatement& block) = 0;
    virtual void onPostVisit(BlockStatement& block) = 0;
 };
-
 
 }
 

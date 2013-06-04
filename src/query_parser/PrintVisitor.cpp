@@ -1,5 +1,6 @@
 #include "PrintVisitor.hpp"
 #include "Statement.hpp"
+#include "harriet/Expression.hpp"
 #include <sstream>
 
 using namespace std;
@@ -51,6 +52,18 @@ void PrintVisitor::onPreVisit(CreateTableStatement& createTable)
 }
 
 void PrintVisitor::onPostVisit(CreateTableStatement&)
+{
+}
+
+void PrintVisitor::onPreVisit(InsertStatement& insert)
+{
+   out << "insert into " << insert.tableName << " values(" << endl;
+   for(auto& iter : insert.values)
+      out << *iter << endl;
+   out << ");" << endl;
+}
+
+void PrintVisitor::onPostVisit(InsertStatement& insert)
 {
 }
 

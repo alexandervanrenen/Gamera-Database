@@ -22,7 +22,6 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
    for(uint32_t i=0; i<lhs.attributes.size(); i++) {
       ASSERT_EQ(lhs.attributes[i].name, rhs.attributes[i].name);
       ASSERT_EQ(lhs.attributes[i].type, rhs.attributes[i].type);
-      ASSERT_EQ(lhs.attributes[i].len, rhs.attributes[i].len);
       ASSERT_EQ(lhs.attributes[i].notNull, rhs.attributes[i].notNull);
       ASSERT_EQ(lhs.attributes[i].primaryKey, rhs.attributes[i].primaryKey);
    }
@@ -45,10 +44,10 @@ TEST(Schema, RelationSchemaMarschalling)
    RelationSchema original;
    original.name = "students";
    original.sid = SegmentId(8128);
-   original.attributes.push_back(dbi::AttributeSchema{"id", 2, 8, false, false});
-   original.attributes.push_back(dbi::AttributeSchema{"name", 2, 2, true, true});
-   original.attributes.push_back(dbi::AttributeSchema{"term", 3, 2, false, true});
-   original.attributes.push_back(dbi::AttributeSchema{"term", 3, 2, false, true});
+   original.attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
+   original.attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true});
+   original.attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true});
+   original.attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true});
 
    // Serialize and de-serialize
    Record r = original.marschall();
@@ -70,12 +69,12 @@ TEST(Schema, SchemaManager)
    RelationSchema schema1;
    schema1.name = "students";
    schema1.sid = SegmentId(8128);
-   schema1.attributes.push_back(dbi::AttributeSchema{"id", 2, 8, false, false});
+   schema1.attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
 
    RelationSchema schema2;
    schema2.name = "listens_to";
-   schema2.sid = SegmentId(7029);
-   schema2.attributes.push_back(dbi::AttributeSchema{"name", 3, 9, true, true});
+   schema2.sid = SegmentId(1729);
+   schema2.attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true});
 
    // Set up schema manager and add two relations
    {

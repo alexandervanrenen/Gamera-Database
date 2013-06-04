@@ -19,7 +19,6 @@ Record RelationSchema::marschall() const
    for(auto& iter : attributes) {
       util::writeBinary(out, iter.name);
       util::writeBinary(out, iter.type);
-      util::writeBinary(out, iter.len);
       util::writeBinary(out, iter.notNull);
       util::writeBinary(out, iter.primaryKey);
    }
@@ -49,7 +48,6 @@ void RelationSchema::unmarschall(const Record& record)
    for(auto& iter : attributes) {
       util::readBinary(iter.name, in);
       util::readBinary(iter.type, in);
-      util::readBinary(iter.len, in);
       util::readBinary(iter.notNull, in);
       util::readBinary(iter.primaryKey, in);
    }
@@ -64,6 +62,15 @@ void RelationSchema::unmarschall(const Record& record)
    }
 
    assert(in.good());
+}
+
+const AttributeSchema& RelationSchema::getAttribute(const std::string& variableName) const
+{
+   for(auto& iter : attributes)
+      if(iter.name == variableName)
+         return iter;
+   assert("unknown variable name"&&false);
+   throw;
 }
 
 }

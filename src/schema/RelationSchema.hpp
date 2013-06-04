@@ -2,6 +2,7 @@
 
 #include "common/SegmentId.hpp"
 #include "segment_manager/Record.hpp"
+#include "harriet/ScriptLanguage.hpp"
 #include <vector>
 #include <string>
 
@@ -9,8 +10,7 @@ namespace dbi {
 
 struct AttributeSchema {
    std::string name;
-   uint8_t type;
-   uint8_t len;
+   harriet::VariableType type;
    bool notNull;
    bool primaryKey;
 };
@@ -26,6 +26,8 @@ struct RelationSchema {
    std::string name;
    std::vector<AttributeSchema> attributes;
    std::vector<IndexSchema> indexes;
+
+   const AttributeSchema& getAttribute(const std::string& variableName) const;
 
    Record marschall() const;
    void unmarschall(const Record& record);

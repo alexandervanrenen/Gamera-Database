@@ -81,6 +81,7 @@ LAYOUT = OPEN - a:ATTRIBUTE                                { a.attributeDeclarat
 ATTRIBUTE = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
 TYPE = "integer"                                           { $$.str = string("integer") }
      | "char" - OPEN - n:NUMBER - CLOSE                    { $$.str = string("char " + to_string(n.number)) }
+     | "float"                                             { $$.str = string("float") }
 NULLABLE = "not null"                                      { $$.boolean=false; }
          | "null"                                          { $$.boolean=true; }
          | ""                                              { $$.boolean=true; }

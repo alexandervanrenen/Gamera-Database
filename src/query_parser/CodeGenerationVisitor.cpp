@@ -62,7 +62,7 @@ void CodeGenerationVisitor::onPreVisit(CreateTableStatement& createTable)
    out << string(indention*3, ' ') << "schema.name = \"" << createTable.name << "\";" << endl;
 
    for(auto& iter : createTable.attributes)
-      out << string(indention*3, ' ')  << "schema.attributes.push_back(dbi::AttributeSchema{\"" << iter.name << "\", 2, 2, false, true});" << endl;
+      out << string(indention*3, ' ') << "schema.attributes.push_back(dbi::AttributeSchema{\"" << iter.name << "\", harriet::nameToType(\"" << iter.type << "\"), false, true});" << endl;
 
    out << string(indention*3, ' ') << "database.createTable(schema);" << endl;
 }

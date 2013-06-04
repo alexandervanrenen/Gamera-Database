@@ -8,6 +8,7 @@
 #include "query_parser/Visitor.hpp"
 #include "query_parser/PrintVisitor.hpp"
 #include "query_parser/CodeGenerationVisitor.hpp"
+#include "query_parser/ExecutionVisitor.hpp"
 #include "schema/SchemaManager.hpp"
 #include "util/DynamicLinker.hpp"
 #include "TransactionCallbackHandler.hpp"
@@ -45,18 +46,19 @@ Result Database::executeQuery(const std::string& query)
 
       // Generate code
       ofstream out((fileName + ".cpp").c_str());
-      script::PrintVisitor printy(cout);
+      TransactionCallbackHandler handler(*segmentManager, *schemaManager);
+      script::ExecutionVisitor printy(handler);
       root->acceptVisitor(printy);
       return Result();
 
-      // Compile code
-      util::DynamicLinker linker;
-      linker.compile(fileName, "-g3 -O0 -Isrc/");
-      auto function = linker.getFunction<void(TransactionCallbackHandler&)>("entry");
+      // // Compile code
+      // util::DynamicLinker linker;
+      // linker.compile(fileName, "-g3 -O0 -Isrc/");
+      // auto function = linker.getFunction<void(TransactionCallbackHandler&)>("entry");
 
-      // Run the code
-      TransactionCallbackHandler handler(*segmentManager, *schemaManager);
-      function(handler);
+      // // Run the code
+      // TransactionCallbackHandler handler(*segmentManager, *schemaManager);
+      // function(handler);
 
    } catch(script::ParserException e) {
       cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;

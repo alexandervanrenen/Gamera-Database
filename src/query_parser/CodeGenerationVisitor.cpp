@@ -46,7 +46,7 @@ void CodeGenerationVisitor::onPostVisit(RootStatement&)
    out << footer << endl;
 }
 
-void CodeGenerationVisitor::onPreVisit(SelectStatement& select)
+void CodeGenerationVisitor::onPreVisit(SelectStatement&)
 {
    throw;
 }
@@ -72,13 +72,14 @@ void CodeGenerationVisitor::onPostVisit(CreateTableStatement&)
    throw;
 }
 
-void CodeGenerationVisitor::onPreVisit(InsertStatement& insert)
+void CodeGenerationVisitor::onPreVisit(InsertStatement&)
 {
    throw;
 }
 
-void CodeGenerationVisitor::onPostVisit(InsertStatement& insert)
+void CodeGenerationVisitor::onPostVisit(InsertStatement&)
 {
+   throw;
 }
 
 void CodeGenerationVisitor::onPreVisit(BlockStatement&)

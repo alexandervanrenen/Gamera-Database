@@ -26,6 +26,8 @@ SchemaManager::SchemaManager(SPSegment& storage)
 
 SchemaManager::~SchemaManager()
 {
+   for(auto& iter : relations)
+      cout << iter.second.second->name << endl;
 }
 
 void SchemaManager::addRelation(RelationSchema& schema)

@@ -21,4 +21,11 @@ void TransactionCallbackHandler::createTable(RelationSchema& schema)
    schemaManager.addRelation(schema);
 }
 
+void TransactionCallbackHandler::insertIntoTable(string& tableName, vector<unique_ptr<harriet::Value>>& values)
+{
+   RelationSchema& relationSchema = schemaManager.getRelation(tableName);
+
+   cout << "inserting into " << relationSchema.name << endl;
+}
+
 }

@@ -1,6 +1,12 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <memory>
+
+namespace harriet {
+   class Value;
+}
 
 namespace dbi {
 
@@ -15,6 +21,7 @@ public:
    /// These functions are getting called by the generated code
    /// They perform the essential high level database operations
    void createTable(RelationSchema& schema);
+   void insertIntoTable(std::string& tableName, std::vector<std::unique_ptr<harriet::Value>>& values);
 
 private:
    SegmentManager& segmentManager;

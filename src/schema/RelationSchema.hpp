@@ -29,6 +29,8 @@ struct RelationSchema {
 
    const AttributeSchema& getAttribute(const std::string& variableName) const;
 
+   Record tupleToRecord() const;
+
    Record marschall() const;
    void unmarschall(const Record& record);
 };

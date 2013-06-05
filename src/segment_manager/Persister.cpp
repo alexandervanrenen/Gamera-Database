@@ -161,7 +161,7 @@ Record Persister::marshall(SegmentId sid, const ExtentStore& extents)
    vector<char> data(sizeof(SegmentId) + extents.get().size() * sizeof(Extent));
    memcpy(data.data(), &sid, sizeof(SegmentId));
    memcpy(data.data() + sizeof(SegmentId), extents.get().data(), extents.get().size() * sizeof(Extent));
-   return Record(move(data));
+   return Record(data);
 }
 
 pair<SegmentId, ExtentStore> Persister::unmarshall(const Record& record) // TODO: improve .. but don't chance Extent class if possible .. 

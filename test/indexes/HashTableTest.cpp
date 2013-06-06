@@ -18,13 +18,12 @@ TEST(HashMap, Simple)
    SegmentId id = segmentManager.createSegment(SegmentType::HM, 10);
    HashMapSegment& segment = segmentManager.getHashMapSegment(id);
 
-   int inputKey = 2;
-   string inputValue = "hello world";
-   string outputValue;
+   dbi::HashMap<int, int> testTable(segment);
 
-   dbi::HashMap<int, string> testTable(segment);
-
-   testTable.insert(inputKey, inputValue);
+   testTable.insert(2, 222);
+   testTable.insert(4, 444);
+   // testTable.insert(6, 666);
+   testTable.dump(cout);
 
    //    outputValue = testTable.get(inputKey);
    //    ASSERT_EQ(inputValue, outputValue);

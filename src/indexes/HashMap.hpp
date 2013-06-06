@@ -27,15 +27,12 @@ public:
 
     virtual void initializeExtent(const Extent& extent);
 
-    const Extent grow();
-    const Extent grow(uint64_t numPages);
-
-    void dump();
+    void dump(std::ostream& os);
 
 private:
     HashMapSegment& segment;
 
-    std::pair<PageId, uint32_t> mapToDirectory(const HashMapMetaPage& meta, const Key& key);
+    BufferFrame& getBucket(const HashMapMetaPage& meta, const Key& key);
 };
 
 template<class Key, class Value>
@@ -48,26 +45,23 @@ HashMap<Key, Value>::HashMap(HashMapSegment& segment)
 template<class Key, class Value>
 void HashMap<Key, Value>::insert(const Key& key, const Value& value)
 {
-    // Get position
+    // Fix meta page
     auto& metaBf = segment.getMetaBufferFrame();
     auto& metaPage = reinterpret_cast<HashMapMetaPage&>(*metaBf.data());
-    std::pair<PageId, uint32_t> position = mapToDirectory(metaPage, key);
 
-    // Get directory
-    auto& directoryBf = segment.fixGlobalPage(position.first, kShared);
-    auto& directoryPage = reinterpret_cast<DirectoryPage&>(*directoryBf.data());
-    PageId bucketPageId = directoryPage[position.second];
-    segment.unfixPage(directoryBf, kClean);
-
-    // Get bucket
-    auto& bucketBf = segment.fixGlobalPage(bucketPageId, kExclusive);
-    auto& bucketPage = reinterpret_cast<HashMapBucketPage&>(*bucketBf.data());
-    bucketPage.insert(key, value);
+    // Get the bucket corresponding to the given key
+    auto& bucketBf = getBucket(metaPage, key);
+    auto& bucketPage = reinterpret_cast<HashMapBucketPage<Key,Value>&>(*bucketBf.data());
+    bool success = bucketPage.insert(key, value);
     segment.unfixPage(bucketBf, kDirty);
 
-    // // Update meta data
-    metaPage.entries++;
-    segment.unfixPage(metaBf, kDirty);
+    // Update meta data
+    if(success) {
+        metaPage.entries++;
+        segment.unfixPage(metaBf, kDirty);
+    } else {
+        throw;
+    }
 }
 
 template<class Key, class Value>
@@ -89,45 +83,50 @@ void HashMap<Key, Value>::initializeExtent(const Extent& extent)
 }
 
 template<class Key, class Value>
-const Extent HashMap<Key, Value>::grow()
-{
-   Extent extent = Segment::grow();
-   initializeExtent(extent);
-   return extent;
-}
-
-template<class Key, class Value>
-const Extent HashMap<Key, Value>::grow(uint64_t numPages)
-{
-   Extent extent = Segment::grow(numPages);
-   initializeExtent(extent);
-   return extent;
-}
-
-template<class Key, class Value>
 void HashMap<Key, Value>::dump(std::ostream& os)
 {
     // Get meta page
     auto& metaBf = segment.getMetaBufferFrame();
     auto& metaPage = reinterpret_cast<HashMapMetaPage&>(*metaBf.data());
+    os << "Linear Hash Map" << std::endl;
+    os << "==================================" << std::endl;
+    os << "meta.nextFreePageInternalPageId: " << metaPage.nextFreePageInternalPageId << std::endl;
+    os << "meta.numRelevantBits: " << (int)metaPage.numRelevantBits << std::endl;
+    os << "meta.directoryPageCount: " << metaPage.directoryPageCount << std::endl;
+    os << "meta.next: " << metaPage.next << std::endl;
+    os << "meta.size: " << metaPage.size << std::endl;
+    os << "meta.entries: " << metaPage.entries << std::endl;
+    os << "==================================" << std::endl;
 
     // Loop over each directory entry
-    for(uint32_t i=0; i<(1<<metaPage.numRelevantBits); i++) {
+    for(uint32_t i=0; i<metaPage.directoryPageCount; i++) {
         // Get the directory page
         PageId directoryPageId = metaPage.getDirectoryPage(i);
         auto& directoryBf = segment.fixGlobalPage(directoryPageId, kShared);
         auto& directoryPage = reinterpret_cast<DirectoryPage&>(*directoryBf.data());
+        uint32_t bucketsOnPage = metaPage.size - i*(kPageSize/sizeof(PageId));
+        os << "Directory page " << directoryPageId << std::endl;
+        os << "==================================" << std::endl;
 
-        // Get the bucket and dump it
-        PageId bucketPageId = directoryPage[position.second];
+        // Loop over all entries in this directory page
+        for(uint32_t position=0; position<bucketsOnPage; position++) {
+            // Get the bucket and dump it
+            os << "Bucket " << position << std::endl;
+            os << "-------------------" << std::endl;
+            auto& bucketBf = segment.fixGlobalPage(directoryPage[position], kExclusive);
+            auto& bucketPage = reinterpret_cast<HashMapBucketPage<Key,Value>&>(*bucketBf.data());
+            bucketPage.dump(os);
+            segment.unfixPage(bucketBf, kClean);
+            os << "-------------------" << std::endl;
+        }
         segment.unfixPage(directoryBf, kClean);
-
-
     }
+    os << "==================================" << std::endl;
+    segment.unfixPage(metaBf, kClean);
 }
 
 template<class Key, class Value>
-std::pair<PageId, uint32_t> HashMap<Key, Value>::mapToDirectory(const HashMapMetaPage& meta, const Key& key)
+BufferFrame& HashMap<Key, Value>::getBucket(const HashMapMetaPage& meta, const Key& key)
 {
     // Obtain position
     uint32_t h = std::hash<Key>()(key);
@@ -140,7 +139,15 @@ std::pair<PageId, uint32_t> HashMap<Key, Value>::mapToDirectory(const HashMapMet
     // Map to a concrete page and an offset
     PageId directoryPageId = meta.getDirectoryPage(pos / (kPageSize/sizeof(PageId)));
     uint32_t offset = pos % (kPageSize/sizeof(PageId));
-    return std::make_pair(directoryPageId, offset);
+
+    // Get directory page
+    auto& directoryBf = segment.fixGlobalPage(directoryPageId, kShared);
+    auto& directoryPage = reinterpret_cast<DirectoryPage&>(*directoryBf.data());
+    PageId bucketPageId = directoryPage[offset];
+    segment.unfixPage(directoryBf, kClean);
+
+    // Get bucket
+    return segment.fixGlobalPage(bucketPageId, kExclusive);
 }
 
 }

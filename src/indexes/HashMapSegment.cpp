@@ -19,7 +19,7 @@ HashMapSegment::HashMapSegment(SegmentId id, SegmentInventory& segmentInventory,
       auto& metaBf = fixInternalPage(0, kExclusive);
       auto& metaPage = reinterpret_cast<HashMapMetaPage&>(*metaBf.data());
       metaPage.nextFreePageInternalPageId = 4;
-      metaPage.numRelevantBits = 1;
+      metaPage.numRelevantBits = 2;
       metaPage.directoryPageCount = 0;
       metaPage.next = 0;
       metaPage.size = 2;
@@ -37,12 +37,12 @@ HashMapSegment::HashMapSegment(SegmentId id, SegmentInventory& segmentInventory,
 
       // Set up buckets
       auto& firstBucketBf = fixInternalPage(2, kExclusive);
-      auto& firstBucketPage = reinterpret_cast<HashMapBucketPage&>(*firstBucketBf.data());
+      auto& firstBucketPage = reinterpret_cast<HashMapBucketPage<int,int>&>(*firstBucketBf.data()); // Just use any template parameter, as we do not know the right ones and it does not matter for the initialize method
       firstBucketPage.initialize();
       unfixPage(firstBucketBf, kDirty);
 
       auto& secondBucketBf = fixInternalPage(3, kExclusive);
-      auto& secondBucketPage = reinterpret_cast<HashMapBucketPage&>(*secondBucketBf.data());
+      auto& secondBucketPage = reinterpret_cast<HashMapBucketPage<int,int>&>(*secondBucketBf.data());
       secondBucketPage.initialize();
       unfixPage(secondBucketBf, kDirty);
    } else {

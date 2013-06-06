@@ -1,59 +1,72 @@
 #pragma once
 
+#include <iostream>
 #include <utility>
 
 namespace dbi {
 
+template<class Key, class Value>
 class HashMapBucketPage {
-    public:    
+public:
+   /// Set up this bucket
+   void initialize()
+   {
+      header.entryCount = 0;
+   }
 
-        void initialize()
-        {
-            entryCount = 0;
-        }
-
-        /// If the key is already in use, the coresponding value is overwritten
-        /// If space if left in the bucket, a key-value pair is appended
-        /// Returns true is these two cases, false otherwise
-        template<class Key, class Value>
-        bool insert(Key key, Value value) {
-            std::cout << "insert on bucket" << std::endl;
+   /// Check if the given key is contained in this bucket
+   bool has(Key key)
+   {
+      // Update if value exists
+      for(uint32_t i=0; i<header.entryCount; i++)
+         if(entries[i].key == key)
             return true;
-            // for(std::size_t i = 0; i < entries.size(); i++) {
-            //     // Key already in use -> overwrite
-            //     if(entries[i].first == key) {
-            //         entries[i].second = value;
-            //         return true;
-            //     }
-            // }            
-            // // Try to append
-            // if(entries.size() < maxSize) {
-            //     entries.push_back(std::make_pair(key,value));
-            //     return true;
-            // } else
-            //     return false;
-        }
-        
-        /// Returns the value associated to the provided key if present. Null otherwise.
-        template<class Key, class Value>
-        Value get(Key key) {
-            return Value(0);
-            // for(std::size_t i = 0; i < maxSize; i++) {
-            //     if(entries[i].first == key)
-            //         return entries[i].second;
-            // }
-            // return NULL;
-        }
-        
-    private:
-        uint16_t entryCount;
-        static const uint16_t maxSize = 2;
+   }
 
-        template<class Key, class Value>
-        struct Entry {
-            Key key;
-            Value value;
-        };
+   /// Assumes uniqueness of the keys.
+   /// If space if left in the bucket, a key-value pair is appended and true is returned. Otherwise false.
+   bool insert(Key key, Value value)
+   {
+      assert(!has(key));
+
+      // Try to append
+      if(header.entryCount < maxSize) {
+         entries[header.entryCount] = Entry{key, value};
+         header.entryCount++;
+         return true;
+      }
+
+      return false;
+   }
+
+   /// Returns the value associated to the provided key if present. Null otherwise.
+   Value* get(Key key) {
+      for(uint32_t i=0; i<header.entryCount; i++)
+         if(entries[i].key == key)
+            return &entries[i].value;
+   }
+
+   /// Print info about this bucket into the given stream
+   void dump(std::ostream& os)
+   {
+      os << "entry count: " << header.entryCount << std::endl;
+      for(uint32_t i=0; i<header.entryCount; i++)
+         os << i << " : " << entries[i].key << " " << entries[i].value << std::endl;
+   }
+
+private:
+   static const uint16_t maxSize = 2;
+
+   struct {
+      uint16_t entryCount;
+   } header;
+
+   struct Entry {
+      Key key;
+      Value value;
+   };
+
+   std::array<Entry, (kPageSize-sizeof(header) / sizeof(Entry))> entries;
 };
 
 }

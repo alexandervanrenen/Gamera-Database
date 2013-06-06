@@ -10,7 +10,6 @@ struct HashMapMetaPage {
    // TODO think about required sizes
    uint64_t nextFreePageInternalPageId;
    uint8_t numRelevantBits;
-   Extent extent;
    uint16_t directoryPageCount; // TODO: opt away
    uint32_t next;
    uint32_t size;

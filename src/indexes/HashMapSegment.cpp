@@ -25,7 +25,6 @@ HashMapSegment::HashMapSegment(SegmentId id, SegmentInventory& segmentInventory,
       metaPage.size = 2;
       metaPage.entries = 0;
       metaPage.addDirectoryPage(translateInternalToGlobalPageId(1));
-      cout << metaPage.getDirectoryPage(0) << endl;
       unfixPage(metaBf, kDirty);
 
       // Set up directory

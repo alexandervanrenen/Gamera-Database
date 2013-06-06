@@ -21,6 +21,7 @@ public:
       for(uint32_t i=0; i<header.entryCount; i++)
          if(entries[i].key == key)
             return true;
+      return false;
    }
 
    /// Assumes uniqueness of the keys.

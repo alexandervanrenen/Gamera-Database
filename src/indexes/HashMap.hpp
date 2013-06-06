@@ -25,21 +25,20 @@ public:
     Value get(const Key& key);
     void remove(const Key& key);
 
-    virtual void initializeExtent(const Extent& extent);
-
     void dump(std::ostream& os);
 
 private:
     HashMapSegment& segment;
 
+    bool tryInsert(const HashMapMetaPage& meta, const Key& key, const Value& value);
     BufferFrame& getBucket(const HashMapMetaPage& meta, const Key& key);
+    void doLinearGrow(const HashMapMetaPage& meta);
 };
 
 template<class Key, class Value>
 HashMap<Key, Value>::HashMap(HashMapSegment& segment)
 : segment(segment)
 {
-
 }
 
 template<class Key, class Value>
@@ -49,19 +48,13 @@ void HashMap<Key, Value>::insert(const Key& key, const Value& value)
     auto& metaBf = segment.getMetaBufferFrame();
     auto& metaPage = reinterpret_cast<HashMapMetaPage&>(*metaBf.data());
 
-    // Get the bucket corresponding to the given key
-    auto& bucketBf = getBucket(metaPage, key);
-    auto& bucketPage = reinterpret_cast<HashMapBucketPage<Key,Value>&>(*bucketBf.data());
-    bool success = bucketPage.insert(key, value);
-    segment.unfixPage(bucketBf, kDirty);
+    // Insert value
+    while(!tryInsert(metaPage, key, value))
+        doLinearGrow(metaPage);
 
-    // Update meta data
-    if(success) {
-        metaPage.entries++;
-        segment.unfixPage(metaBf, kDirty);
-    } else {
-        throw;
-    }
+    // Update and unfix meta
+    metaPage.entries++;
+    segment.unfixPage(metaBf, kDirty);
 }
 
 template<class Key, class Value>
@@ -74,12 +67,6 @@ Value HashMap<Key, Value>::get(const Key& key) {
 template<class Key, class Value>
 void HashMap<Key, Value>::remove(const Key& key) {
     throw;
-}
-
-template<class Key, class Value>
-void HashMap<Key, Value>::initializeExtent(const Extent& extent)
-{
-
 }
 
 template<class Key, class Value>
@@ -126,6 +113,19 @@ void HashMap<Key, Value>::dump(std::ostream& os)
 }
 
 template<class Key, class Value>
+bool HashMap<Key, Value>::tryInsert(const HashMapMetaPage& meta, const Key& key, const Value& value)
+{
+    // Get the bucket corresponding to the given key
+    auto& bucketBf = getBucket(meta, key);
+    auto& bucketPage = reinterpret_cast<HashMapBucketPage<Key,Value>&>(*bucketBf.data());
+    bool success = bucketPage.insert(key, value);
+    segment.unfixPage(bucketBf, kDirty);
+
+    // Update meta data
+    return success;
+}
+
+template<class Key, class Value>
 BufferFrame& HashMap<Key, Value>::getBucket(const HashMapMetaPage& meta, const Key& key)
 {
     // Obtain position
@@ -150,5 +150,11 @@ BufferFrame& HashMap<Key, Value>::getBucket(const HashMapMetaPage& meta, const K
     return segment.fixGlobalPage(bucketPageId, kExclusive);
 }
 
+template<class Key, class Value>
+void HashMap<Key, Value>::doLinearGrow(const HashMapMetaPage&)
+{
+    std::cout << "doing grow.." << std::endl;
+    throw;
 }
 
+}

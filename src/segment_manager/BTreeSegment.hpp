@@ -10,9 +10,6 @@ namespace dbi {
 
 constexpr PageId metadataPage = PageId(0);
 
-class BufferManager;
-class SegmentManager;
-
 class BTreeSegment : public Segment {
 public:
     /// Constructor

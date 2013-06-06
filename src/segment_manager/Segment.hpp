@@ -45,6 +45,7 @@ protected:
    BufferFrame& fixGlobalPage(PageId pid, bool exclusive) const;
    BufferFrame& fixInternalPage(uint64_t offset, bool exclusive) const;
    void unfixPage(BufferFrame& bufferFrame, bool dirty) const;
+   PageId translateInternalToGlobalPageId(uint64_t id) const;
 };
 
 }

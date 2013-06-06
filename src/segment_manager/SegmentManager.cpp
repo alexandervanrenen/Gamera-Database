@@ -2,6 +2,7 @@
 #include "SegmentManager.hpp"
 #include "SPSegment.hpp"
 #include "BTreeSegment.hpp"
+#include "indexes/HashMapSegment.hpp"
 #include "FSISegment.hpp"
 #include "util/Utility.hpp"
 #include "SegmentInventory.hpp"
@@ -46,6 +47,10 @@ SegmentId SegmentManager::createSegment(SegmentType segmentType, uint32_t numPag
       segment = unique_ptr<Segment>(new SPSegment(id, *freeSpaceInventory, *segmentInventory, bufferManager));
    } else if (segmentType == SegmentType::BT) {
       segment = unique_ptr<Segment>(new BTreeSegment(id, *segmentInventory, bufferManager));
+   } else if (segmentType == SegmentType::HM) {
+      segment = unique_ptr<Segment>(new HashMapSegment(id, *segmentInventory, bufferManager));
+   } else {
+      throw;
    }
    growSegment(*segment, numPages);
 
@@ -95,6 +100,19 @@ BTreeSegment& SegmentManager::getBTreeSegment(const SegmentId id)
    auto segment = unique_ptr<Segment>(new BTreeSegment(id, *segmentInventory, bufferManager));
    auto result = segments.insert(make_pair(id, move(segment)));
    return reinterpret_cast<BTreeSegment&>(*result.first->second);
+}
+
+HashMapSegment& SegmentManager::getHashMapSegment(const SegmentId id)
+{
+   // Look if segment is already created
+   auto iter = segments.find(id);
+   if(iter != segments.end())
+      return reinterpret_cast<HashMapSegment&>(*iter->second);
+
+   // Otherwise create it
+   auto segment = unique_ptr<Segment>(new HashMapSegment(id, *segmentInventory, bufferManager));
+   auto result = segments.insert(make_pair(id, move(segment)));
+   return reinterpret_cast<HashMapSegment&>(*result.first->second);
 }
 
 FSISegment& SegmentManager::getFSISegment()

@@ -48,17 +48,7 @@ const Extent Segment::grow(uint64_t numPages)
 
 BufferFrame& Segment::fixInternalPage(uint64_t offset, bool exclusive) const
 {
-   assert(extents.get().size() != 0);
-
-   // Find extent for the requested offset
-   for(auto& iter : extents.get())
-      if(iter.numPages() > offset)
-         return bufferManager.fixPage(PageId(iter.begin().toInteger() + offset), exclusive);
-      else
-         offset -= iter.numPages();
-
-   assert(false && "offset not in segment");
-   throw;
+   return bufferManager.fixPage(translateInternalToGlobalPageId(offset), exclusive);
 }
 
 BufferFrame& Segment::fixGlobalPage(PageId pid, bool exclusive) const
@@ -69,6 +59,21 @@ BufferFrame& Segment::fixGlobalPage(PageId pid, bool exclusive) const
 void Segment::unfixPage(BufferFrame& bufferFrame, bool dirty) const
 {
    bufferManager.unfixPage(bufferFrame, dirty);
+}
+
+PageId Segment::translateInternalToGlobalPageId(uint64_t offset) const
+{
+   assert(extents.get().size() != 0);
+
+   // Find extent for the requested offset
+   for(auto& iter : extents.get())
+      if(iter.numPages() > offset)
+         return PageId(iter.begin().toInteger() + offset);
+      else
+         offset -= iter.numPages();
+
+   assert(false && "offset not in segment");
+   throw;
 }
 
 }

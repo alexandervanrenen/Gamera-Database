@@ -10,6 +10,7 @@ namespace dbi {
 class BufferManager;
 class SPSegment;
 class BTreeSegment;
+class HashMapSegment;
 class FSISegment;
 class Segment;
 class SegmentInventory;
@@ -33,6 +34,7 @@ public:
    // Access segment with given id and cast to SPSegment
    SPSegment& getSPSegment(const SegmentId id);
    BTreeSegment& getBTreeSegment(const SegmentId id);
+   HashMapSegment& getHashMapSegment(const SegmentId id);
    FSISegment& getFSISegment();
 
 private:

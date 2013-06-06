@@ -5,7 +5,7 @@
 namespace dbi {
 
 enum SegmentType
-   : uint8_t {SP, FSI, SI, BT
+   : uint8_t {SP, FSI, SI, BT, HM
 };
 
 }

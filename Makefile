@@ -3,8 +3,8 @@ all: bin/tester bin/server bin/client bin/driver
 # Define compile and link flags
 -include config.local
 CXX ?= g++
-#opt = -g3 -O0
-opt = -g0 -O3
+opt = -g3 -O0
+#opt = -g0 -O3
 cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -fPIC
 lf = $(opt) --std=c++0x -ldl -lpthread -lrt
 

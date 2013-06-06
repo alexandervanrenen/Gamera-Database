@@ -79,7 +79,7 @@ private:
    std::unique_ptr<util::StatisticsCollector<collectPerformance>> stats;
 };
 
-const static bool kExclusive = true;
+const static bool kExclusive = true; // TODO: get this stuff out of here !!
 const static bool kShared = false;
 const static bool kClean = false;
 const static bool kDirty = true;

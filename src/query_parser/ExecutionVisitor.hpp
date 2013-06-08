@@ -13,7 +13,7 @@ namespace script {
 /// 
 class ExecutionVisitor : public Visitor {
 public:
-   ExecutionVisitor(SchemaManager& schemaManager, SegmentManager& segmentManager, bool verbose = false);
+   ExecutionVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, bool verbose = false);
    virtual ~ExecutionVisitor();
 
    virtual void onPreVisit(RootStatement& root);
@@ -28,8 +28,8 @@ public:
    virtual void onPostVisit(BlockStatement& block);
 
 private:
-   SchemaManager& schemaManager;
    SegmentManager& segmentManager;
+   SchemaManager& schemaManager;
    bool verbose;
 };
 

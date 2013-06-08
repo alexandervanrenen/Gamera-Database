@@ -21,7 +21,7 @@ public:
    TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema);
    virtual ~TableScanOperator();
 
-   virtual const RelationSchema& getSignatur() const;
+   virtual const RelationSchema& getSignature() const;
 
    virtual void open();
    virtual bool next();

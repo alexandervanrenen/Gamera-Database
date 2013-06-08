@@ -20,7 +20,7 @@ RecordScanOperator::~RecordScanOperator()
 {
 }
 
-const RelationSchema& RecordScanOperator::getSignatur() const
+const RelationSchema& RecordScanOperator::getSignature() const
 {
    throw;
 }

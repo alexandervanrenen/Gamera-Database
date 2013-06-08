@@ -21,7 +21,7 @@ SingleRecordOperator::~SingleRecordOperator()
 {
 }
 
-const RelationSchema& SingleRecordOperator::getSignatur() const
+const RelationSchema& SingleRecordOperator::getSignature() const
 {
    return schema;
 }
@@ -36,8 +36,9 @@ void SingleRecordOperator::open()
 bool SingleRecordOperator::next()
 {
    assert(state == kOpen);
+   bool result = hasNext;
    hasNext = false;
-   return hasNext;
+   return result;
 }
 
 vector<unique_ptr<harriet::Value>> SingleRecordOperator::getOutput()

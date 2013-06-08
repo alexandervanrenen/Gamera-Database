@@ -7,12 +7,11 @@
 #include "query_parser/Statement.hpp"
 #include "query_parser/Visitor.hpp"
 #include "query_parser/PrintVisitor.hpp"
-#include "query_parser/CodeGenerationVisitor.hpp"
 #include "query_parser/ExecutionVisitor.hpp"
-#include "query_parser/PlanGenerationVisitor.hpp"
 #include "schema/SchemaManager.hpp"
-#include "util/DynamicLinker.hpp"
-#include "TransactionCallbackHandler.hpp"
+#include "operator/RecordScanOperator.hpp"
+#include "operator/TableScanOperator.hpp"
+#include "harriet/Expression.hpp"
 #include <iostream>
 
 using namespace std;
@@ -29,7 +28,7 @@ Database::Database(const DatabaseConfig& config, bool isInitialSetup)
 
 Database::~Database()
 {
-   cout << "bye, have a good one ;)" << endl;
+   cout << "-" << endl << "bye, have a good one ;)" << endl;
 }
 
 template <typename Signature>
@@ -48,21 +47,29 @@ Result Database::executeQuery(const std::string& query)
       script::PrintVisitor printy(cout);
       root->acceptVisitor(printy);
 
-      // Generate plan
-      script::PlanGenerationVisitor plany(*schemaManager, *segmentManager);
-      root->acceptVisitor(plany);
-
       // Interpret script
-      TransactionCallbackHandler handler(*segmentManager, *schemaManager);
-      script::ExecutionVisitor inty(handler);
+      script::ExecutionVisitor inty(*segmentManager, *schemaManager);
       root->acceptVisitor(inty);
-
-      return Result();
-
    } catch(script::ParserException e) {
       cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;
       return Result();
    }
+
+   // Output players content
+   cout << "printing players content" << endl;
+   cout << "------------------------" << endl;
+   auto& schema = schemaManager->getRelation("players");
+   auto& segment = segmentManager->getSPSegment(schema.getSegmentId());
+   auto recordScan = util::make_unique<RecordScanOperator>(segment);
+   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), schema);
+   tableScan->open();
+   while(tableScan->next()) {
+      auto res = tableScan->getOutput();
+      for(auto& iter : res)
+         cout << *iter << " ";
+      cout << endl;
+   }
+   tableScan->close();
 
    return Result();
 }

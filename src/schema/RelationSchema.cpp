@@ -62,7 +62,7 @@ RelationSchema::RelationSchema(const vector<unique_ptr<harriet::Value>>& values)
       attributes.push_back(AttributeSchema{"", iter->getResultType(), true, true, 0});
 }
 
-vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& record)
+vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& record) const
 {
    vector<unique_ptr<harriet::Value>> result;
    result.reserve(attributes.size());
@@ -71,8 +71,9 @@ vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& r
    return result;
 }
 
-Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& tuple)
+Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& tuple) const
 {
+   assert(sid != kInvalidSegmentId);
    assert(attributes.size()==tuple.size());
 
    uint32_t tupleSize = 0;
@@ -111,6 +112,8 @@ void RelationSchema::optimizePadding()
 
 Record RelationSchema::marschall() const
 {
+   assert(sid != kInvalidSegmentId);
+
    // Serialize relation meta data
    ostringstream out(ios::binary);
    util::writeBinary(out, sid);

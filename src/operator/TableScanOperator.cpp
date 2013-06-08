@@ -2,6 +2,7 @@
 #include "schema/RelationSchema.hpp"
 #include "TableScanOperator.hpp"
 #include "RecordScanOperator.hpp"
+#include "harriet/Expression.hpp"
 #include <iostream>
 
 using namespace std;
@@ -19,7 +20,7 @@ TableScanOperator::~TableScanOperator()
 {
 }
 
-const RelationSchema& TableScanOperator::getSignatur() const
+const RelationSchema& TableScanOperator::getSignature() const
 {
    return schema;
 }
@@ -39,8 +40,8 @@ bool TableScanOperator::next()
 
 vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
 {
-   cout << "almost there" << endl;
-   throw;
+   auto& record = scanner->getRecord();
+   return schema.recordToTuple(record.second);
 }
 
 void TableScanOperator::close()

@@ -19,7 +19,7 @@ public:
    RecordScanOperator(SPSegment& input);
    ~RecordScanOperator();
 
-   virtual const RelationSchema& getSignatur() const;
+   virtual const RelationSchema& getSignature() const;
 
    void open();
    bool next();

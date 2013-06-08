@@ -29,8 +29,8 @@ struct RelationSchema {
    RelationSchema(const Record& record); // Load schema from raw record
    RelationSchema(const std::vector<std::unique_ptr<harriet::Value>>& values); // Deduce schema from an expression in a script
 
-   std::vector<std::unique_ptr<harriet::Value>> recordToTuple(const Record& record);
-   Record tupleToRecord(const std::vector<std::unique_ptr<harriet::Value>>& tuple);
+   std::vector<std::unique_ptr<harriet::Value>> recordToTuple(const Record& record) const;
+   Record tupleToRecord(const std::vector<std::unique_ptr<harriet::Value>>& tuple) const;
 
    void setSegmentId(SegmentId sid);
    void optimizePadding();

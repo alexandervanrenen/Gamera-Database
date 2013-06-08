@@ -22,7 +22,7 @@ public:
    SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input, const RelationSchema& schema);
    virtual ~SingleRecordOperator();
 
-   virtual const RelationSchema& getSignatur() const;
+   virtual const RelationSchema& getSignature() const;
 
    virtual void open();
    virtual bool next();

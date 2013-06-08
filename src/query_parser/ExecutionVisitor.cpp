@@ -2,7 +2,11 @@
 #include "Statement.hpp"
 #include "harriet/Expression.hpp"
 #include "schema/RelationSchema.hpp"
-#include "core/TransactionCallbackHandler.hpp"
+#include "schema/SchemaManager.hpp"
+#include "segment_manager/SegmentManager.hpp"
+#include "util/Utility.hpp"
+#include "operator/SingleRecordOperator.hpp"
+#include "operator/InsertOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -11,9 +15,9 @@ namespace dbi {
 
 namespace script {
 
-ExecutionVisitor::ExecutionVisitor(SchemaManager& schemaManager, SegmentManager& segmentManager, bool verbose)
-: schemaManager(schemaManager)
-, segmentManager(segmentManager)
+ExecutionVisitor::ExecutionVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, bool verbose)
+: segmentManager(segmentManager)
+, schemaManager(schemaManager)
 , verbose(verbose)
 {
 }
@@ -52,7 +56,10 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 
    // Add relation
    dbi::RelationSchema schema(createTable.name, move(attributes), move(indexes));
-   transaction.createTable(schema);
+   SegmentId sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
+   schema.setSegmentId(sid);
+   schema.optimizePadding();
+   schemaManager.addRelation(schema);
 }
 
 void ExecutionVisitor::onPostVisit(CreateTableStatement&)
@@ -61,15 +68,15 @@ void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
-   transaction.insertIntoTable(insert.tableName, insert.values);
+   auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
+   RelationSchema& targetSchema = schemaManager.getRelation(insert.tableName);
+   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
+   auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
+   plan->execute();
 }
 
 void ExecutionVisitor::onPostVisit(InsertStatement& insert)
 {
-   auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
-   RelationSchema targetSchema = schemaManager.getRelation(insert.tableName);
-   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
-   insert.plan = util::make_unique<InsertOperator>(move(source), targetSegment);
 }
 
 void ExecutionVisitor::onPreVisit(BlockStatement&)

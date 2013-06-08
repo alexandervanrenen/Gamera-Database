@@ -18,7 +18,7 @@ class RelationSchema;
 class Operator {
 public:
    /// During plan creation
-   virtual const RelationSchema& getSignatur() const = 0;
+   virtual const RelationSchema& getSignature() const = 0;
 
    /// During transaction execution
    virtual void open() = 0;

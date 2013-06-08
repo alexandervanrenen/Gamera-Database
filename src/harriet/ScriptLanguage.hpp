@@ -55,7 +55,8 @@ bool isKeyword(const std::string& str);
 VariableType nameToType(const std::string& name) throw(Exception);
 const std::string typeToName(VariableType type) throw();
 
-uint32_t getLengthOfType(VariableType type);
+uint32_t getLengthOfBinary(VariableType type); // Required bytes for storing
+uint32_t getLengthOfASCII(VariableType type); // Required bytes when printing
 std::unique_ptr<Value> createDefaultValue(VariableType type) throw();
 
 std::unique_ptr<Value> readValue(VariableType type, const char* data) throw();

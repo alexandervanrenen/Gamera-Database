@@ -20,7 +20,7 @@ namespace harriet {
 //---------------------------------------------------------------------------
 void Variable::print(ostream& stream) const
 {
-   stream << identifier << " ";
+   stream << identifier;
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> Variable::evaluate(Environment& environment) const
@@ -38,7 +38,7 @@ unique_ptr<Value> Variable::evaluate(Environment& environment) const
 //---------------------------------------------------------------------------
 void IntegerValue::print(ostream& stream) const
 {
-   stream << result << " ";
+   stream << result;
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> IntegerValue::evaluate() const
@@ -192,7 +192,7 @@ unique_ptr<Value> IntegerValue::computeCast(const Environment& /*env*/, harriet:
 //---------------------------------------------------------------------------
 void FloatValue::print(ostream& stream) const
 {
-   stream << result << " ";
+   stream << result;
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> FloatValue::evaluate() const
@@ -330,7 +330,7 @@ unique_ptr<Value> FloatValue::computeCast(const Environment& /*env*/, harriet::V
 //---------------------------------------------------------------------------
 void BoolValue::print(ostream& stream) const
 {
-   stream << (result?harriet::kTrue:harriet::kFalse) << " ";
+   stream << (result?harriet::kTrue:harriet::kFalse);
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> BoolValue::evaluate() const
@@ -693,7 +693,7 @@ unique_ptr<Value> FunctionOperator::evaluate(Environment& environment) const
 //---------------------------------------------------------------------------
 void FunctionOperator::print(ostream& stream) const
 {
-   stream << " " << functionName << " id:" << functionIdentifier << endl;
+   stream << functionName << " id:" << functionIdentifier << endl;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

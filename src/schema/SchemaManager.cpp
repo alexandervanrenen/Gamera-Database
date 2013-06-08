@@ -47,7 +47,7 @@ void SchemaManager::dropRelation(const string& relationName)
    relations.erase(iter);
 }
 
-RelationSchema& SchemaManager::getRelation(const string& relationName)
+const RelationSchema& SchemaManager::getRelation(const string& relationName) const
 {
    assert(relations.count(relationName)==1);
    return *relations.find(relationName)->second.second;

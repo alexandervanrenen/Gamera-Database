@@ -55,23 +55,6 @@ Result Database::executeQuery(const std::string& query)
       cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;
       return Result();
    }
-
-   // Output players content
-   cout << "printing players content" << endl;
-   cout << "------------------------" << endl;
-   auto& schema = schemaManager->getRelation("players");
-   auto& segment = segmentManager->getSPSegment(schema.getSegmentId());
-   auto recordScan = util::make_unique<RecordScanOperator>(segment);
-   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), schema);
-   tableScan->open();
-   while(tableScan->next()) {
-      auto res = tableScan->getOutput();
-      for(auto& iter : res)
-         cout << *iter << " ";
-      cout << endl;
-   }
-   tableScan->close();
-
    return Result();
 }
 

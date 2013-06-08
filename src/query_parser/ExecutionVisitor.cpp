@@ -7,6 +7,9 @@
 #include "util/Utility.hpp"
 #include "operator/SingleRecordOperator.hpp"
 #include "operator/InsertOperator.hpp"
+#include "operator/PrintOperator.hpp"
+#include "operator/TableScanOperator.hpp"
+#include "operator/RecordScanOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -36,8 +39,17 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
    cout << "end query" << endl;
 }
 
-void ExecutionVisitor::onPreVisit(SelectStatement&)
+void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
+   RelationSchema schema = schemaManager.getRelation(select.sources[0].tableIdentifier);
+   // schema.setAlias(select.sources.alias!=""?select.sources.alias:select.sources.tableIdentifier);
+   auto& segment = segmentManager.getSPSegment(schema.getSegmentId());
+   auto recordScan = util::make_unique<RecordScanOperator>(segment);
+   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), schema);
+   auto print = util::make_unique<PrintOperator>(move(tableScan), cout);
+
+   print->checkTypes();
+   print->execute();
 }
 
 void ExecutionVisitor::onPostVisit(SelectStatement&)
@@ -70,7 +82,7 @@ void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
    auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
 
-   RelationSchema& targetSchema = schemaManager.getRelation(insert.tableName);
+   auto& targetSchema = schemaManager.getRelation(insert.tableName);
    SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
    auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
 

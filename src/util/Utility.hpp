@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 namespace dbi {
 
@@ -34,6 +35,9 @@ std::unique_ptr<T> make_unique(Arg&& ...args)
 {
    return std::unique_ptr<T>(new T(std::forward<Arg>(args)...));
 }
+
+/// Converts the given time in ns into a usable unit depending on its size
+std::string formatTime(std::chrono::nanoseconds ns, uint32_t precision);
 
 class Random;
 

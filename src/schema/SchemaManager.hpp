@@ -22,7 +22,7 @@ public:
     void dropRelation(const std::string& relationName);
 
     // Get information about relations
-    RelationSchema& getRelation(const std::string& relationName);
+    const RelationSchema& getRelation(const std::string& relationName) const;
 
 private:
     /// Used to persist the schema

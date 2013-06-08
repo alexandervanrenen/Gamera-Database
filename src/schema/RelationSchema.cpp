@@ -78,7 +78,7 @@ Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& t
 
    uint32_t tupleSize = 0;
    for(auto& attribute : attributes)
-      tupleSize += getLengthOfType(attribute.type);
+      tupleSize += getLengthOfBinary(attribute.type);
 
    vector<char> data(tupleSize);
    for(uint32_t i=0; i<tuple.size(); i++)
@@ -99,14 +99,14 @@ void RelationSchema::optimizePadding()
    vector<uint32_t> attributeOrder(attributes.size());
    iota(attributeOrder.begin(), attributeOrder.end(), 0);
    sort(attributeOrder.begin(), attributeOrder.end(), [this](uint32_t lhs, uint32_t rhs) {
-      return (util::countSetBits(getLengthOfType(attributes[lhs].type))==1)>(util::countSetBits(getLengthOfType(attributes[rhs].type))==1) || getLengthOfType(attributes[lhs].type)>getLengthOfType(attributes[rhs].type);
+      return (util::countSetBits(getLengthOfBinary(attributes[lhs].type))==1)>(util::countSetBits(getLengthOfBinary(attributes[rhs].type))==1) || getLengthOfBinary(attributes[lhs].type)>getLengthOfBinary(attributes[rhs].type);
    });
 
    // Set offsets
    uint32_t currentOffset = 0;
    for(uint32_t i=0; i<attributeOrder.size(); i++) {
       attributes[attributeOrder[i]].offset = currentOffset;
-      currentOffset += getLengthOfType(attributes[attributeOrder[i]].type);
+      currentOffset += getLengthOfBinary(attributes[attributeOrder[i]].type);
    }
 }
 

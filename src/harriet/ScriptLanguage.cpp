@@ -58,7 +58,7 @@ const string typeToName(VariableType type) throw()
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
-uint32_t getLengthOfType(VariableType type)
+uint32_t getLengthOfBinary(VariableType type)
 {
    switch(type) {
       case VariableType::TInteger:
@@ -71,6 +71,23 @@ uint32_t getLengthOfType(VariableType type)
          return StringValue("").typeSize();
       case VariableType::TVector:
          return VectorValue(Vector3<float>(0,0,0)).typeSize();
+   }
+   throw Exception{"unreachable"};
+}
+//---------------------------------------------------------------------------
+uint32_t getLengthOfASCII(VariableType type)
+{
+   switch(type) {
+      case VariableType::TInteger:
+         return 10;
+      case VariableType::TFloat:
+         return 10;
+      case VariableType::TBool:
+         return 5;
+      case VariableType::TString:
+         throw;
+      case VariableType::TVector:
+         return 3*11;
    }
    throw Exception{"unreachable"};
 }

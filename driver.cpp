@@ -29,7 +29,7 @@ int main(int argc, char** argv)
    if(!FLAGS_restart) {
       cout << "creating swap file .. ";
       cout.flush();
-      if(!dbi::util::createFile(FLAGS_file, FLAGS_discMemory * dbi::kPageSize)) {
+      if(!dbi::util::createFile(FLAGS_swapfile, FLAGS_discMemory * dbi::kPageSize)) {
          cout << "failed" << endl;
          throw;
       }

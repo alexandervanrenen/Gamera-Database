@@ -1,5 +1,4 @@
 #include "segment_manager/Record.hpp"
-#include "segment_manager/SPSegment.hpp"
 #include "schema/RelationSchema.hpp"
 #include "TableScanOperator.hpp"
 #include "RecordScanOperator.hpp"

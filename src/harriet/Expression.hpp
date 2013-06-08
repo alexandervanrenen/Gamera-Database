@@ -64,6 +64,8 @@ class Value : public Expression {
 public:
    virtual harriet::VariableType getResultType() const = 0;
    virtual uint32_t typeSize() const = 0;
+   virtual std::unique_ptr<Value> evaluate(Environment& /*environment*/) const {return evaluate();}
+   virtual std::unique_ptr<Value> evaluate() const = 0;
 
    virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& /*env*/) const {doError("+" , *this, rhs); throw;}
    virtual std::unique_ptr<Value> computeSub(const Value& rhs, const Environment& /*env*/) const {doError("-" , *this, rhs); throw;}
@@ -101,7 +103,7 @@ struct IntegerValue : public Value, GenericAllocator<IntegerValue> {
    using GenericAllocator<IntegerValue>::operator delete;
 
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::unique_ptr<Value> evaluate() const;
    int32_t result;
    IntegerValue(int32_t result) : result(result) {}
    virtual ~IntegerValue(){};
@@ -134,7 +136,7 @@ struct FloatValue : public Value, GenericAllocator<FloatValue> {
    using GenericAllocator<FloatValue>::operator delete;
 
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::unique_ptr<Value> evaluate() const;
    float result;
    FloatValue(float result) : result(result) {}
    virtual ~FloatValue(){};
@@ -165,7 +167,7 @@ struct BoolValue : public Value, GenericAllocator<BoolValue> {
    using GenericAllocator<BoolValue>::operator delete;
 
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::unique_ptr<Value> evaluate() const;
    bool result;
    BoolValue(bool result) : result(result) {}
    virtual ~BoolValue(){};
@@ -188,7 +190,7 @@ struct StringValue : public Value, GenericAllocator<StringValue> {
    using GenericAllocator<StringValue>::operator delete;
 
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::unique_ptr<Value> evaluate() const;
    std::string result;
    StringValue(const std::string& result) : result(result) {}
    virtual ~StringValue(){};
@@ -212,7 +214,7 @@ struct VectorValue : public Value, GenericAllocator<VectorValue> {
    using GenericAllocator<VectorValue>::operator delete;
 
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::unique_ptr<Value> evaluate() const;
    Vector3<float> result;
    VectorValue(const Vector3<float>& result) : result(result) {}
    virtual ~VectorValue(){};

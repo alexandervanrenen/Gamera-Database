@@ -41,7 +41,7 @@ void IntegerValue::print(ostream& stream) const
    stream << result << " ";
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::evaluate(Environment& /*environment*/) const
+unique_ptr<Value> IntegerValue::evaluate() const
 {
    return make_unique<IntegerValue>(result);
 }
@@ -195,7 +195,7 @@ void FloatValue::print(ostream& stream) const
    stream << result << " ";
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::evaluate(Environment& /*environment*/) const
+unique_ptr<Value> FloatValue::evaluate() const
 {
    return make_unique<FloatValue>(result);
 }
@@ -333,7 +333,7 @@ void BoolValue::print(ostream& stream) const
    stream << (result?harriet::kTrue:harriet::kFalse) << " ";
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::evaluate(Environment& /*environment*/) const
+unique_ptr<Value> BoolValue::evaluate() const
 {
    return make_unique<BoolValue>(result);
 }
@@ -392,7 +392,7 @@ void StringValue::print(ostream& stream) const
    stream << "\"" << result << "\" ";
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::evaluate(Environment& /*environment*/) const
+unique_ptr<Value> StringValue::evaluate() const
 {
    return make_unique<StringValue>(result);
 }
@@ -470,7 +470,7 @@ void VectorValue::print(ostream& stream) const
    stream << result;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::evaluate(Environment& /*environment*/) const
+unique_ptr<Value> VectorValue::evaluate() const
 {
    return make_unique<VectorValue>(result);
 }

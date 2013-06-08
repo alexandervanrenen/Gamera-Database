@@ -36,7 +36,6 @@ struct RelationSchema {
    void optimizePadding();
 
    Record marschall() const;
-   void unmarschall();
 
    const SegmentId getSegmentId() const {return sid;}
    const std::string& getName() const {return name;}

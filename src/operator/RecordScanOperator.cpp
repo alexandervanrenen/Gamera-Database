@@ -25,6 +25,11 @@ const RelationSchema& RecordScanOperator::getSignature() const
    throw;
 }
 
+void RecordScanOperator::checkTypes() const throw(harriet::Exception)
+{
+   return;
+}
+
 void RecordScanOperator::open()
 {
    assert(state == kClosed);

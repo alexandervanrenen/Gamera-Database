@@ -22,6 +22,7 @@ public:
    virtual ~TableScanOperator();
 
    virtual const RelationSchema& getSignature() const;
+   virtual void checkTypes() const throw(harriet::Exception);
 
    virtual void open();
    virtual bool next();

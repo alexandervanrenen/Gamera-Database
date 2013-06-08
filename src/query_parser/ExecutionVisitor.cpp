@@ -69,13 +69,16 @@ void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
    auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
+
    RelationSchema& targetSchema = schemaManager.getRelation(insert.tableName);
    SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
    auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
+
+   plan->checkTypes();
    plan->execute();
 }
 
-void ExecutionVisitor::onPostVisit(InsertStatement& insert)
+void ExecutionVisitor::onPostVisit(InsertStatement&)
 {
 }
 

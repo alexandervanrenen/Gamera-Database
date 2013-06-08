@@ -20,6 +20,7 @@ public:
    ~RecordScanOperator();
 
    virtual const RelationSchema& getSignature() const;
+   virtual void checkTypes() const throw(harriet::Exception);
 
    void open();
    bool next();

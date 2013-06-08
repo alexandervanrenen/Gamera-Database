@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
+#include "harriet/ScriptLanguage.hpp"
 #include <utility>
 #include <vector>
 #include <memory>
@@ -17,10 +18,9 @@ class RelationSchema;
 /// Just define interface for all operators
 class Operator {
 public:
-   /// During plan creation
    virtual const RelationSchema& getSignature() const = 0;
+   virtual void checkTypes() const throw(harriet::Exception) = 0;
 
-   /// During transaction execution
    virtual void open() = 0;
    virtual bool next() = 0;
    virtual std::vector<std::unique_ptr<harriet::Value>> getOutput() = 0;

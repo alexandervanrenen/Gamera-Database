@@ -25,6 +25,11 @@ const RelationSchema& TableScanOperator::getSignature() const
    return schema;
 }
 
+void TableScanOperator::checkTypes() const throw(harriet::Exception)
+{
+   return;
+}
+
 void TableScanOperator::open()
 {
    assert(state == kClosed);

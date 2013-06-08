@@ -63,7 +63,7 @@ void PrintVisitor::onPreVisit(InsertStatement& insert)
    out << ");" << endl;
 }
 
-void PrintVisitor::onPostVisit(InsertStatement& insert)
+void PrintVisitor::onPostVisit(InsertStatement&)
 {
 }
 

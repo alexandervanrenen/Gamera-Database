@@ -26,6 +26,11 @@ const RelationSchema& SingleRecordOperator::getSignature() const
    return schema;
 }
 
+void SingleRecordOperator::checkTypes() const throw(harriet::Exception)
+{
+   return;
+}
+
 void SingleRecordOperator::open()
 {
    assert(state == kClosed);

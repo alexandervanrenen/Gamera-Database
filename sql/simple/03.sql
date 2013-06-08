@@ -2,7 +2,7 @@
 create table players (id integer,
                      x float,
                      x float,
-                     glod integer
+                     gold integer
                      );
 
 insert into players values(1, 81.28, 17.29, 3000000);

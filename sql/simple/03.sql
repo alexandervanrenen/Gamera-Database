@@ -1,7 +1,7 @@
 
 create table players (id integer,
                      x float,
-                     x float,
+                     y float,
                      gold integer
                      );
 

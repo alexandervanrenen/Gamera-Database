@@ -3,8 +3,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <iostream>
 
-int main(int argc, char** argv)
+using namespace std;
+
+int main(int, char**)
 {
     //  Socket to talk to clients
     zmq::context_t context(2);
@@ -12,11 +15,15 @@ int main(int argc, char** argv)
     responder.connect("tcp://127.0.0.1:7854");
 
     while(true) {
+        string query = "";
+        getline(cin, query, ';');
+        cin.clear();
+        query = query + ";";
+        responder.send(query.data(), query.size(), 0);
+
         char buffer [10];
-        responder.send("alex", 4, 0);
-        printf("Received Hello\n");
         responder.recv(buffer, 10, 0);
-        sleep(1);
+        cout << buffer << endl;
     }
     return 0;
 }

@@ -18,12 +18,12 @@ PlanGenerationVisitor::~PlanGenerationVisitor()
 {
 }
 
-void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
+void PlanGenerationVisitor::onPreVisit(InsertStatement&)
 {
    // auto source = util::make_unique<SingleRecordOperator>(insert.values, );
 }
 
-void PlanGenerationVisitor::onPostVisit(InsertStatement& insert)
+void PlanGenerationVisitor::onPostVisit(InsertStatement&)
 {
    
 }

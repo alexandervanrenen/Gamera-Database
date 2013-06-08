@@ -43,7 +43,7 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    // Create attributes
    vector<AttributeSchema> attributes;
    for(auto& iter : createTable.attributes)
-      attributes.push_back(dbi::AttributeSchema{iter.name, harriet::nameToType(iter.type), iter.notNull, true});
+      attributes.push_back(dbi::AttributeSchema{iter.name, harriet::nameToType(iter.type), iter.notNull, true, 0});
 
    // Create indexes
    vector<IndexSchema> indexes;

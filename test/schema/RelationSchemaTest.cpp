@@ -6,6 +6,8 @@
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "schema/RelationSchema.hpp"
+#include "harriet/Expression.hpp"
+#include "harriet/Environment.hpp"
 #include "gtest/gtest.h"
 #include <string>
 
@@ -38,9 +40,6 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
 
 TEST(Schema, RelationSchemaMarschalling)
 {
-   const uint32_t kPages = 100;
-   assert(kSwapFilePages >= kPages);
-
    // Create
    vector<dbi::AttributeSchema> attributes;
    attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
@@ -58,6 +57,35 @@ TEST(Schema, RelationSchemaMarschalling)
 
    // Compare
    compare(original, copy);
+}
+
+TEST(Schema, TupleMarschalling)
+{
+   // Create schema
+   vector<dbi::AttributeSchema> attributes;
+   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
+   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true, 0});
+   vector<dbi::IndexSchema> indexes;
+   RelationSchema schema("students", move(attributes), move(indexes));
+   schema.optimizePadding();
+
+   // Create tuple
+   vector<unique_ptr<harriet::Value>> tuple;
+   tuple.push_back(util::make_unique<harriet::IntegerValue>(1337));
+   tuple.push_back(util::make_unique<harriet::FloatValue>(2.3));
+   tuple.push_back(util::make_unique<harriet::BoolValue>(true));
+   tuple.push_back(util::make_unique<harriet::IntegerValue>(3000));
+
+   // Serialize and de-serialize
+   Record record = schema.tupleToRecord(tuple);
+   auto tupleCopy = schema.recordToTuple(record);
+
+   // Compare
+   ASSERT_EQ(tuple.size(), tupleCopy.size());
+   for(uint32_t i=0; i<tuple.size(); i++)
+      ASSERT_TRUE(reinterpret_cast<harriet::BoolValue&>(*tuple[i]->computeEq(*tupleCopy[i], harriet::Environment())).result);
 }
 
 TEST(Schema, SchemaManager)

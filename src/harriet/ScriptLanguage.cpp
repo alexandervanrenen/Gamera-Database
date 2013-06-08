@@ -8,6 +8,7 @@
 #include <cassert>
 #include <istream>
 #include <algorithm>
+#include <cstring>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -87,6 +88,44 @@ unique_ptr<Value> createDefaultValue(VariableType type) throw()
          return make_unique<StringValue>("");
       case VariableType::TVector:
          return make_unique<VectorValue>(Vector3<float>(0,0,0));
+   }
+   throw Exception{"unreachable"};
+}
+//---------------------------------------------------------------------------
+unique_ptr<Value> readValue(VariableType type, const char* data) throw()
+{
+   switch(type) {
+      case VariableType::TInteger:
+         return make_unique<IntegerValue>(*reinterpret_cast<const int32_t*>(data));
+      case VariableType::TFloat:
+         return make_unique<FloatValue>(*reinterpret_cast<const float*>(data));
+      case VariableType::TBool:
+         return make_unique<BoolValue>(*reinterpret_cast<const bool*>(data));
+      case VariableType::TString:
+         throw;
+      case VariableType::TVector:
+         return make_unique<VectorValue>(*reinterpret_cast<const Vector3<float>*>(data));
+   }
+   throw Exception{"unreachable"};
+}
+//---------------------------------------------------------------------------
+void writeValue(const Value& value, char* data) throw()
+{
+   switch(value.getResultType()) {
+      case VariableType::TInteger:
+         memcpy(data, &reinterpret_cast<const IntegerValue&>(value).result, sizeof(int32_t));
+         return;
+      case VariableType::TFloat:
+         memcpy(data, &reinterpret_cast<const FloatValue&>(value).result, sizeof(float));
+         return;
+      case VariableType::TBool:
+         memcpy(data, &reinterpret_cast<const BoolValue&>(value).result, sizeof(bool));
+         return;
+      case VariableType::TString:
+         throw;
+      case VariableType::TVector:
+         memcpy(data, &reinterpret_cast<const VectorValue&>(value).result, sizeof(Vector3<float>));
+         return;
    }
    throw Exception{"unreachable"};
 }

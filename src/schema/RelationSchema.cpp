@@ -2,6 +2,7 @@
 #include "util/BinarySerializer.hpp"
 #include "harriet/Expression.hpp"
 #include "util/Math.hpp"
+#include "util/Utility.hpp"
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -61,15 +62,28 @@ RelationSchema::RelationSchema(const vector<unique_ptr<harriet::Value>>& values)
       attributes.push_back(AttributeSchema{"", iter->getResultType(), true, true, 0});
 }
 
-vector<unique_ptr<harriet::Value>> RelationSchema::getTuplefromRecord(const Record&)
+vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& record)
 {
-
-   throw;
+   vector<unique_ptr<harriet::Value>> result;
+   result.reserve(attributes.size());
+   for(auto& attribute : attributes)
+      result.push_back(harriet::readValue(attribute.type, record.data()+attribute.offset));
+   return result;
 }
 
-Record RelationSchema::getRecordFromTuple(const vector<unique_ptr<harriet::Value>>&)
+Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& tuple)
 {
-   throw;
+   assert(attributes.size()==tuple.size());
+
+   uint32_t tupleSize = 0;
+   for(auto& attribute : attributes)
+      tupleSize += getLengthOfType(attribute.type);
+
+   vector<char> data(tupleSize);
+   for(uint32_t i=0; i<tuple.size(); i++)
+      harriet::writeValue(*tuple[i], data.data()+attributes[i].offset);
+
+   return Record(data);
 }
 
 void RelationSchema::setSegmentId(SegmentId sidIn)

@@ -58,6 +58,9 @@ const std::string typeToName(VariableType type) throw();
 uint32_t getLengthOfType(VariableType type);
 std::unique_ptr<Value> createDefaultValue(VariableType type) throw();
 
+std::unique_ptr<Value> readValue(VariableType type, const char* data) throw();
+void writeValue(const Value& value, char* data) throw();
+
 bool isImplicitCastPossible(VariableType from, VariableType to) throw();
 std::unique_ptr<Expression> createCast(std::unique_ptr<Expression> expression, harriet::VariableType resultType);
 

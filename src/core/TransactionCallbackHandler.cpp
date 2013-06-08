@@ -21,7 +21,7 @@ void TransactionCallbackHandler::createTable(RelationSchema& schema)
    schemaManager.addRelation(schema);
 }
 
-void TransactionCallbackHandler::insertIntoTable(string& tableName, vector<unique_ptr<harriet::Value>>& values)
+void TransactionCallbackHandler::insertIntoTable(string& tableName, vector<unique_ptr<harriet::Value>>&)
 {
    RelationSchema& relationSchema = schemaManager.getRelation(tableName);
 

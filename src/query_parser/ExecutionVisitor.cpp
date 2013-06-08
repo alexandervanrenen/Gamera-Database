@@ -10,6 +10,7 @@
 #include "operator/PrintOperator.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "operator/RecordScanOperator.hpp"
+#include "operator/ProjectionOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -47,7 +48,8 @@ void ExecutionVisitor::onPreVisit(SelectStatement& select)
 
    auto recordScan = util::make_unique<RecordScanOperator>(segment);
    auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), sourceSchema, alias);
-   auto print = util::make_unique<PrintOperator>(move(tableScan), cout);
+   auto projection = util::make_unique<ProjectionOperator>(move(tableScan), select.selectors);
+   auto print = util::make_unique<PrintOperator>(move(projection), cout);
 
    print->dump(cout);
    print->checkTypes();

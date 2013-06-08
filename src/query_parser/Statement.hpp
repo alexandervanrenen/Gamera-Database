@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Visitor.hpp"
+#include "schema/Common.hpp"
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -13,25 +14,6 @@ namespace harriet {
 namespace dbi {
 
 namespace script {
-
-/// In "select s.name from Students s;" the term "s.name" is a ColumnIdentifier.
-struct ColumnIdentifier {
-   std::string tableIdentifier;
-   std::string columnIdentifier;
-};
-
-/// In "select s.name from Students s;" the term "Students s" is a TableAccess.
-struct TableAccess {
-   std::string tableIdentifier;
-   std::string alias;
-};
-
-// In "create table Students(id integer not null)" the term "id integer not null" as an AttributeDeclaration.
-struct AttributeDeclaration {
-   std::string name;
-   std::string type;
-   bool notNull;
-};
 
 /// 
 struct Statement {

@@ -3,19 +3,18 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "schema/Signature.hpp"
+#include "schema/Common.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
 
 namespace dbi {
 
-class RecordScanOperator;
-
-/// Interprets the records provided by a RecordScanOperator
-class TableScanOperator : public Operator {
+/// 
+class ProjectionOperator : public Operator {
 public:
-   TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema, const std::string& alias);
-   virtual ~TableScanOperator();
+   ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<ColumnIdentifier>& columns);
+   virtual ~ProjectionOperator();
 
    virtual const Signature& getSignature() const;
    virtual void checkTypes() const throw(harriet::Exception);
@@ -27,10 +26,8 @@ public:
    virtual void close();
 
 private:
-   std::unique_ptr<RecordScanOperator> scanner;
+   std::unique_ptr<Operator> source;
    OperatorState state;
-   const RelationSchema& schema;
-   const Signature signature;
 };
 
 }

@@ -7,7 +7,7 @@
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
-#include "operator/TableScanOperator.hpp"
+#include "operator/RecordScanOperator.hpp"
 #include "util/Random.hpp"
 #include "segment_manager/SlottedPage.hpp"
 #include <array>
@@ -103,7 +103,7 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    segment.remove(tid4);
 
    // Check that page is empty
-   TableScanOperator scanner(segment);
+   RecordScanOperator scanner(segment);
    scanner.open();
    ASSERT_TRUE(!scanner.next());
    scanner.close();
@@ -192,10 +192,10 @@ TEST(SPSegment, Randomized)
          // Do consistency check
          else if(operation<=99 || i==kIterations-1 || i==0) {
             // Do scan empty
-            dbi::TableScanOperator scanner(*segment);
+            dbi::RecordScanOperator scanner(*segment);
             scanner.open();
             while(scanner.next()) {
-               const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getOutput();
+               const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getRecord();
                ASSERT_TRUE(reference.count(record.first) > 0);
                ASSERT_EQ(string(record.second.data(), record.second.size()), reference.find(record.first)->second);
             }

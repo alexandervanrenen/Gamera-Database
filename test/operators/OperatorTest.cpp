@@ -6,7 +6,7 @@
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
-#include "operator/TableScanOperator.hpp"
+#include "operator/RecordScanOperator.hpp"
 #include "util/Random.hpp"
 #include <array>
 #include <fstream>
@@ -25,7 +25,7 @@ TEST(Operator, TableScanEmpty)
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Do scan empty
-   dbi::TableScanOperator scanner(segment);
+   dbi::RecordScanOperator scanner(segment);
    scanner.open();
    ASSERT_TRUE(!scanner.next());
    scanner.close();
@@ -44,7 +44,7 @@ TEST(Operator, TableScan)
    dbi::SPSegment& segment = segmentManager.getSPSegment(id);
 
    // Insert some values
-   std::unordered_map<dbi::TupleId, dbi::Record> records; // hit chance for each entry 26^32 .. drunken alex says: "lets risk it :D"
+   std::unordered_map<dbi::TupleId, dbi::Record> records; // hit chance for each entry 26^32 .. lets risk it :D
    for(uint32_t i = 0; i < 100; i++) {
       std::string data = dbi::util::randomWord(ranny, 8, 64);
       dbi::TupleId id = segment.insert(dbi::Record(data));
@@ -52,25 +52,13 @@ TEST(Operator, TableScan)
    }
 
    // Do scan empty
-   dbi::TableScanOperator scanner(segment);
+   dbi::RecordScanOperator scanner(segment);
    scanner.open();
    while(scanner.next()) {
-      const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getOutput();
+      const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getRecord();
       ASSERT_TRUE(records.count(record.first) > 0);
       ASSERT_TRUE(record.second == records.find(record.first)->second);
       records.erase(record.first);
    }
    scanner.close();
 }
-
-
-   // TableScanOperator scanner(segment);
-   // scanner.open();
-   // while(scanner.next()) {
-   //    const pair<TupleId, Record>& record = scanner.getOutput();
-   //    ASSERT_TRUE(record.first == tid1 || record.first == tid2);
-   //    if(record.first == tid1)
-   //       ASSERT_TRUE(record.second == bigRecord3); else
-   //       ASSERT_TRUE(record.second == bigRecord2);
-   // }
-   // scanner.close();

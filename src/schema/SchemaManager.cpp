@@ -1,7 +1,7 @@
 #include "SchemaManager.hpp"
 #include "RelationSchema.hpp"
 #include "segment_manager/SPSegment.hpp"
-#include "operator/TableScanOperator.hpp"
+#include "operator/RecordScanOperator.hpp"
 #include "util/Utility.hpp"
 #include <iostream>
 
@@ -12,10 +12,10 @@ namespace dbi {
 SchemaManager::SchemaManager(SPSegment& storage)
 : storage(storage)
 {
-   dbi::TableScanOperator scanner(storage);
+   dbi::RecordScanOperator scanner(storage);
    scanner.open();
    while(scanner.next()) {
-      const pair<TupleId, Record>& entry = scanner.getOutput();
+      const pair<TupleId, Record>& entry = scanner.getRecord();
       auto relation = util::make_unique<RelationSchema>();
       relation->unmarschall(entry.second);
       string name = relation->name;

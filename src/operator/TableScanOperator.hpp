@@ -4,6 +4,7 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "segment_manager/PageIdIterator.hpp"
+#include "schema/RelationSchema.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -12,28 +13,25 @@ namespace dbi {
 
 class SPSegment;
 class BufferManager;
+class RecordScanOperator;
 
 /// Scan over a SPSegment
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(SPSegment& input);
+   TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema);
+   virtual ~TableScanOperator();
 
-   void open();
+   virtual const RelationSchema& getSignatur() const;
 
-   bool next();
-
-   const std::pair<TupleId, Record>& getOutput();
-
-   void close();
-
-   ~TableScanOperator();
+   virtual void open();
+   virtual bool next();
+   virtual const std::vector<std::unique_ptr<harriet::Value>> getOutput();
+   virtual void close();
 
 private:
-   SPSegment& segment;
-   PageIdIterator nextPage;
-   std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
-   uint32_t positionInCurrentPage;
+   std::unique_ptr<RecordScanOperator> scanner;
    OperatorState state;
+   const RelationSchema schema;
 };
 
 }

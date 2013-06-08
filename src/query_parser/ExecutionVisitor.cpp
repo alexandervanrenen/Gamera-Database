@@ -55,6 +55,7 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 
 void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 {
+
 }
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)

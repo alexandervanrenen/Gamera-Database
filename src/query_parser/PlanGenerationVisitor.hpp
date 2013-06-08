@@ -6,13 +6,14 @@
 namespace dbi {
 
 class SchemaManager;
+class SegmentManager;
 
 namespace script {
 
 /// 
 class PlanGenerationVisitor : public Visitor {
 public:
-   PlanGenerationVisitor(SchemaManager& schemaManager, bool verbose = false);
+   PlanGenerationVisitor(SchemaManager& schemaManager, SegmentManager& segmentManager, bool verbose = false);
    virtual ~PlanGenerationVisitor();
 
    virtual void onPreVisit(InsertStatement& insert);
@@ -20,6 +21,7 @@ public:
 
 private:
    SchemaManager& schemaManager;
+   SegmentManager& segmentManager;
    bool verbose;
 };
 

@@ -9,6 +9,7 @@
 #include "query_parser/PrintVisitor.hpp"
 #include "query_parser/CodeGenerationVisitor.hpp"
 #include "query_parser/ExecutionVisitor.hpp"
+#include "query_parser/PlanGenerationVisitor.hpp"
 #include "schema/SchemaManager.hpp"
 #include "util/DynamicLinker.hpp"
 #include "TransactionCallbackHandler.hpp"
@@ -46,6 +47,10 @@ Result Database::executeQuery(const std::string& query)
       // Print script
       script::PrintVisitor printy(cout);
       root->acceptVisitor(printy);
+
+      // Generate plan
+      script::PlanGenerationVisitor plany(*schemaManager, *segmentManager);
+      root->acceptVisitor(plany);
 
       // Interpret script
       TransactionCallbackHandler handler(*segmentManager, *schemaManager);

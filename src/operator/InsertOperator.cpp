@@ -7,10 +7,9 @@ using namespace std;
 
 namespace dbi {
 
-InsertOperator::InsertOperator(const RelationSchema& schema, unique_ptr<Operator> source, SPSegment& drain)
-: schema(schema)
-, source(move(source))
-, drain(drain)
+InsertOperator::InsertOperator(unique_ptr<Operator> source, SPSegment& target)
+: source(move(source))
+, target(target)
 {
 }
 

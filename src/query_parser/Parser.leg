@@ -39,7 +39,7 @@ struct Value {
 # define YYSTYPE struct Value
 
 namespace {
-unique_ptr<Statement> result;
+unique_ptr<RootStatement> result;
 istringstream input;
 static int lineNumber= 0;
 static int columnNumber= 0;
@@ -56,17 +56,15 @@ static int columnNumber= 0;
 %}
 
 # --------------------------------------------------------------------------------------------------------------
-start = s:Statement                                        { result = util::make_unique<RootStatement>(util::make_unique<BlockStatement>(move(s.statements))); }
+start = - a:GlobalSingle                                   { a.statements.push_back(move(a.statement)); }
+      ( - s:GlobalSingle                                   { a.statements.push_back(move(s.statement)); }
+      )*                                                   { result = util::make_unique<RootStatement>(move(a.statements)); }
       | < . >                                              { throw 2; }
+GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
+             | - c:CreateTableStatement                    { $$ = move(c); }
+             | - i:InsertStatement                         { $$ = move(i); }
 # --------------------------------------------------------------------------------------------------------------
-Statement = - a:Single                                     { a.statements.push_back(move(a.statement)); }
-          ( - s:Single                                     { a.statements.push_back(move(s.statement)); }
-          )*                                               { $$ = move(a); }
-Single = SELECT - p:Projection - FROM - t:Tables - SEM     { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec)); }
-       | CREATE - TABLE - id:ID - l:Layout - SEM           { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
-       | INSERT - INTO - id:ID - VALUES - v:Values - SEM   { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
-       | "{" - s:Statement - "}"                           { $$.statement = util::make_unique<BlockStatement>(move(s.statements)); }
-# --------------------------------------------------------------------------------------------------------------
+SelectStatement = SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec)); }
 Projection = s:SelectorName                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
            (- COMMA - i:SelectorName                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
            )*                                              { $$ = move(s); }
@@ -78,11 +76,13 @@ Tables = t:TableName                                       { t.tableAccessVec.pu
 TableName = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
 # --------------------------------------------------------------------------------------------------------------
+CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
        )* CLOSE                                            { $$ = move(a); }
 Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.str, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
+InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
 Values = OPEN - a:VALUE                                    { a.valueVec.push_back(move(a.value)); }
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* CLOSE                                            { $$ = move(a); }
@@ -121,9 +121,11 @@ namespace dbi {
 
 namespace script {
 
+namespace {
 mutex parserGuard; // Sorry only one parsing at a time ..
+}
 
-unique_ptr<Statement> parse(const string& query) throw(ParserException)
+unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
 {
   unique_lock<mutex> l(parserGuard);
 

@@ -8,7 +8,7 @@ namespace dbi {
 
 namespace script {
 
-class Statement;
+class RootStatement;
 
 struct ParserException : public std::exception {
    ParserException(const std::string& message, uint32_t line, uint32_t column) : message(message), line(line), column(column) {}
@@ -19,7 +19,7 @@ struct ParserException : public std::exception {
    virtual const char* what() const throw() {return (message + " (line: " + std::to_string(line) + "; column: " + std::to_string(column) + ")").c_str();}
 };
 
-std::unique_ptr<Statement> parse(const std::string& query) throw(ParserException);
+std::unique_ptr<RootStatement> parse(const std::string& query) throw(ParserException);
 }
 
 }

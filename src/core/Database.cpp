@@ -41,15 +41,16 @@ Result Database::executeQuery(const std::string& query)
 {
    try {
       // Parse query
-      unique_ptr<script::Statement> root = script::parse(query);
+      auto roots = script::parse(query);
+      for(auto& root : roots->statements) {
+         // Print script
+         script::PrintVisitor printy(cout);
+         root->acceptVisitor(printy);
 
-      // Print script
-      script::PrintVisitor printy(cout);
-      root->acceptVisitor(printy);
-
-      // Interpret script
-      script::ExecutionVisitor inty(*segmentManager, *schemaManager);
-      root->acceptVisitor(inty);
+         // Interpret script
+         script::ExecutionVisitor inty(*segmentManager, *schemaManager);
+         root->acceptVisitor(inty);
+      }
    } catch(script::ParserException e) {
       cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;
       return Result();

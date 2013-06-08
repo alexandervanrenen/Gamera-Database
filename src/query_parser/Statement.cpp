@@ -12,6 +12,18 @@ Statement::~Statement()
 {
 }
 
+bool Statement::isLocal() const
+{
+   Type t = getType();
+   return t==Type::kSelectStatement || t==Type::kInsertStatement || t==Type::kBlockStatement;
+}
+
+bool Statement::isGlobal() const
+{
+   Type t = getType();
+   return t==Type::kSelectStatement || t==Type::kCreateTableStatement || t==Type::kInsertStatement;
+}
+
 SelectStatement::SelectStatement(vector<ColumnIdentifier>&& selectors, vector<TableAccess>&& sources)
 : selectors(move(selectors))
 , sources(move(sources))
@@ -51,6 +63,9 @@ void InsertStatement::acceptVisitor(Visitor& visitor)
 BlockStatement::BlockStatement(vector<unique_ptr<Statement>> statements)
 : statements(move(statements))
 {
+   for(auto& statement : statements)
+      if(!statement->isLocal())
+         throw "non local statement in local scope";
 }
 
 void BlockStatement::acceptVisitor(Visitor& visitor)
@@ -61,15 +76,19 @@ void BlockStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-RootStatement::RootStatement(unique_ptr<BlockStatement> statement)
-: statement(move(statement))
+RootStatement::RootStatement(vector<unique_ptr<Statement>> statements)
+: statements(move(statements))
 {
+   for(auto& statement : statements)
+      if(!statement->isGlobal())
+         throw "non global statement in global scope";
 }
 
 void RootStatement::acceptVisitor(Visitor& visitor)
 {
    visitor.onPreVisit(*this);
-   statement->acceptVisitor(visitor);
+   for(auto& statement : statements)
+      statement->acceptVisitor(visitor);
    visitor.onPostVisit(*this);
 }
 

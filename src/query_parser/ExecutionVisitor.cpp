@@ -62,7 +62,7 @@ void ExecutionVisitor::onPreVisit(InsertStatement& insert)
    transaction.insertIntoTable(insert.tableName, insert.values);
 }
 
-void ExecutionVisitor::onPostVisit(InsertStatement& insert)
+void ExecutionVisitor::onPostVisit(InsertStatement&)
 {
 }
 

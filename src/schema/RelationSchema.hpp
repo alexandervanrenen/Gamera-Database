@@ -5,6 +5,7 @@
 #include "harriet/ScriptLanguage.hpp"
 #include <vector>
 #include <string>
+#include <ios>
 
 namespace dbi {
 
@@ -13,6 +14,7 @@ struct AttributeSchema {
    harriet::VariableType type;
    bool notNull;
    bool primaryKey;
+   uint16_t offset;
 };
 
 struct IndexSchema {
@@ -27,8 +29,8 @@ struct RelationSchema {
    RelationSchema(const Record& record); // Load schema from raw record
    RelationSchema(const std::vector<std::unique_ptr<harriet::Value>>& values); // Deduce schema from an expression in a script
 
-   std::vector<harriet::Value> getTuplefromRecord(const Record& record);
-   Record getRecordFromTuple(const std::vector<harriet::Value>& tuple);
+   std::vector<std::unique_ptr<harriet::Value>> getTuplefromRecord(const Record& record);
+   Record getRecordFromTuple(const std::vector<std::unique_ptr<harriet::Value>>& tuple);
 
    void setSegmentId(SegmentId sid);
    void optimizePadding();
@@ -40,6 +42,8 @@ struct RelationSchema {
    const std::string& getName() const {return name;}
    const std::vector<AttributeSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}
+
+   void dump(std::ostream& os) const;
 
 private:
    SegmentId sid;

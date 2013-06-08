@@ -24,6 +24,7 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
       ASSERT_EQ(lhs.getAttributes()[i].type, rhs.getAttributes()[i].type);
       ASSERT_EQ(lhs.getAttributes()[i].notNull, rhs.getAttributes()[i].notNull);
       ASSERT_EQ(lhs.getAttributes()[i].primaryKey, rhs.getAttributes()[i].primaryKey);
+      ASSERT_EQ(lhs.getAttributes()[i].offset, rhs.getAttributes()[i].offset);
    }
 
    // Check indexes
@@ -42,13 +43,14 @@ TEST(Schema, RelationSchemaMarschalling)
 
    // Create
    vector<dbi::AttributeSchema> attributes;
-   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
-   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true});
-   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true});
-   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true});
+   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
+   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true, 0});
    vector<dbi::IndexSchema> indexes;
    RelationSchema original("students", move(attributes), move(indexes));
    original.setSegmentId(SegmentId(8128));
+   original.optimizePadding();
 
    // Serialize and de-serialize
    Record r = original.marschall();
@@ -67,13 +69,13 @@ TEST(Schema, SchemaManager)
    dbi::SegmentManager segmentManager(bufferManager, true);
 
    vector<dbi::AttributeSchema> attributes1;
-   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
+   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
    vector<dbi::IndexSchema> indexes1;
    RelationSchema schema1("students", move(attributes1), move(indexes1));
    schema1.setSegmentId(SegmentId(8128));
 
    vector<dbi::AttributeSchema> attributes2;
-   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true});
+   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true, 0});
    vector<dbi::IndexSchema> indexes2;
    RelationSchema schema2("listens_to", move(attributes2), move(indexes2));
    schema2.setSegmentId(SegmentId(1729));

@@ -1,8 +1,10 @@
 #include "RelationSchema.hpp"
 #include "util/BinarySerializer.hpp"
 #include "harriet/Expression.hpp"
+#include "util/Math.hpp"
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -37,6 +39,7 @@ RelationSchema::RelationSchema(const Record& record)
       util::readBinary(iter.type, in);
       util::readBinary(iter.notNull, in);
       util::readBinary(iter.primaryKey, in);
+      util::readBinary(iter.offset, in);
    }
 
    // De-serialize its indexes
@@ -55,28 +58,41 @@ RelationSchema::RelationSchema(const vector<unique_ptr<harriet::Value>>& values)
 : sid(kInvalidSegmentId)
 {
    for(auto& iter : values)
-      attributes.push_back(AttributeSchema{"", iter->getResultType(), true, true});
+      attributes.push_back(AttributeSchema{"", iter->getResultType(), true, true, 0});
 }
 
-vector<harriet::Value> RelationSchema::getTuplefromRecord(const Record& record)
+vector<unique_ptr<harriet::Value>> RelationSchema::getTuplefromRecord(const Record&)
 {
+
    throw;
 }
 
-Record RelationSchema::getRecordFromTuple(const vector<harriet::Value>& tuple)
+Record RelationSchema::getRecordFromTuple(const vector<unique_ptr<harriet::Value>>&)
 {
    throw;
 }
 
 void RelationSchema::setSegmentId(SegmentId sidIn)
 {
-   assert(sid==kInvalidSegmentId);
+   assert(sid==kInvalidSegmentId && sidIn!=kInvalidSegmentId);
    sid = sidIn;
 }
 
 void RelationSchema::optimizePadding()
 {
-   throw;
+   // First long power of two values, then the rest
+   vector<uint32_t> attributeOrder(attributes.size());
+   iota(attributeOrder.begin(), attributeOrder.end(), 0);
+   sort(attributeOrder.begin(), attributeOrder.end(), [this](uint32_t lhs, uint32_t rhs) {
+      return (util::countSetBits(getLengthOfType(attributes[lhs].type))==1)>(util::countSetBits(getLengthOfType(attributes[rhs].type))==1) || getLengthOfType(attributes[lhs].type)>getLengthOfType(attributes[rhs].type);
+   });
+
+   // Set offsets
+   uint32_t currentOffset = 0;
+   for(uint32_t i=0; i<attributeOrder.size(); i++) {
+      attributes[attributeOrder[i]].offset = currentOffset;
+      currentOffset += getLengthOfType(attributes[attributeOrder[i]].type);
+   }
 }
 
 Record RelationSchema::marschall() const
@@ -93,6 +109,7 @@ Record RelationSchema::marschall() const
       util::writeBinary(out, iter.type);
       util::writeBinary(out, iter.notNull);
       util::writeBinary(out, iter.primaryKey);
+      util::writeBinary(out, iter.offset);
    }
 
    // Serialize its indexes
@@ -104,6 +121,16 @@ Record RelationSchema::marschall() const
    }
 
    return Record(out.str());
+}
+
+void RelationSchema::dump(ostream& os) const
+{
+   os << "name: " << name << endl;
+   os << "sid: " << sid << endl;
+   for(auto& attribute : attributes)
+      os << attribute.name << " " << harriet::typeToName(attribute.type) << " " << attribute.notNull << " " << attribute.primaryKey << " " << attribute.offset << endl;
+   for(auto& index : indexes)
+      os << index.sid << " " << index.indexedAttribute << " " << index.indexType << endl;
 }
 
 }

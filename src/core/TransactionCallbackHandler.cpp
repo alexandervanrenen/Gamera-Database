@@ -17,7 +17,7 @@ TransactionCallbackHandler::TransactionCallbackHandler(SegmentManager& segmentMa
 
 void TransactionCallbackHandler::createTable(RelationSchema& schema)
 {
-   schema.sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
+   schema.setSegmentId(segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation));
    schemaManager.addRelation(schema);
 }
 
@@ -25,7 +25,7 @@ void TransactionCallbackHandler::insertIntoTable(string& tableName, vector<uniqu
 {
    RelationSchema& relationSchema = schemaManager.getRelation(tableName);
 
-   cout << "inserting into " << relationSchema.name << endl;
+   cout << "inserting into " << relationSchema.getName() << endl;
 }
 
 }

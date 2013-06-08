@@ -22,17 +22,30 @@ struct IndexSchema {
 };
 
 struct RelationSchema {
+   RelationSchema(); // Default constructor
+   RelationSchema(const std::string& name, std::vector<AttributeSchema>&& attributes, std::vector<IndexSchema>&& indexes); // Create a new schema from a create table statement
+   RelationSchema(const Record& record); // Load schema from raw record
+   RelationSchema(const std::vector<std::unique_ptr<harriet::Value>>& values); // Deduce schema from an expression in a script
+
+   std::vector<harriet::Value> getTuplefromRecord(const Record& record);
+   Record getRecordFromTuple(const std::vector<harriet::Value>& tuple);
+
+   void setSegmentId(SegmentId sid);
+   void optimizePadding();
+
+   Record marschall() const;
+   void unmarschall();
+
+   const SegmentId getSegmentId() const {return sid;}
+   const std::string& getName() const {return name;}
+   const std::vector<AttributeSchema>& getAttributes() const {return attributes;}
+   const std::vector<IndexSchema>& getIndexes() const {return indexes;}
+
+private:
    SegmentId sid;
    std::string name;
    std::vector<AttributeSchema> attributes;
    std::vector<IndexSchema> indexes;
-
-   const AttributeSchema& getAttribute(const std::string& variableName) const;
-
-   Record tupleToRecord() const;
-
-   Record marschall() const;
-   void unmarschall(const Record& record);
 };
 
 }

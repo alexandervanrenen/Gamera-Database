@@ -40,10 +40,16 @@ void ExecutionVisitor::onPostVisit(SelectStatement&)
 
 void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 {
-   dbi::RelationSchema schema;
-   schema.name = createTable.name;
+   // Create attributes
+   vector<AttributeSchema> attributes;
    for(auto& iter : createTable.attributes)
-      schema.attributes.push_back(dbi::AttributeSchema{iter.name, harriet::nameToType(iter.type), iter.notNull, true});
+      attributes.push_back(dbi::AttributeSchema{iter.name, harriet::nameToType(iter.type), iter.notNull, true});
+
+   // Create indexes
+   vector<IndexSchema> indexes;
+
+   // Add relation
+   dbi::RelationSchema schema(createTable.name, move(attributes), move(indexes));
    transaction.createTable(schema);
 }
 

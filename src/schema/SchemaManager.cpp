@@ -16,9 +16,8 @@ SchemaManager::SchemaManager(SPSegment& storage)
    scanner.open();
    while(scanner.next()) {
       const pair<TupleId, Record>& entry = scanner.getRecord();
-      auto relation = util::make_unique<RelationSchema>();
-      relation->unmarschall(entry.second);
-      string name = relation->name;
+      auto relation = util::make_unique<RelationSchema>(entry.second);
+      string name = relation->getName();
       relations.insert(make_pair(name, make_pair(entry.first, move(relation))));
    }
    scanner.close();
@@ -26,15 +25,13 @@ SchemaManager::SchemaManager(SPSegment& storage)
 
 SchemaManager::~SchemaManager()
 {
-   for(auto& iter : relations)
-      cout << iter.second.second->name << endl;
 }
 
 void SchemaManager::addRelation(RelationSchema& schema)
 {
-   assert(relations.count(schema.name)==0);
+   assert(relations.count(schema.getName())==0);
    TupleId tid = storage.insert(schema.marschall());
-   relations.insert(make_pair(schema.name, make_pair(tid, util::make_unique<RelationSchema>(schema))));
+   relations.insert(make_pair(schema.getName(), make_pair(tid, util::make_unique<RelationSchema>(schema))));
 }
 
 bool SchemaManager::hasRelation(const string& relationName) const

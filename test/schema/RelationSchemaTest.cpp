@@ -14,24 +14,24 @@ using namespace dbi;
 
 void compare(const RelationSchema& lhs, const RelationSchema& rhs)
 {
-   ASSERT_EQ(lhs.name, rhs.name);
-   ASSERT_EQ(lhs.sid, rhs.sid);
+   ASSERT_EQ(lhs.getName(), rhs.getName());
+   ASSERT_EQ(lhs.getSegmentId(), rhs.getSegmentId());
 
    // Check attributes
-   ASSERT_EQ(lhs.attributes.size(), rhs.attributes.size());
-   for(uint32_t i=0; i<lhs.attributes.size(); i++) {
-      ASSERT_EQ(lhs.attributes[i].name, rhs.attributes[i].name);
-      ASSERT_EQ(lhs.attributes[i].type, rhs.attributes[i].type);
-      ASSERT_EQ(lhs.attributes[i].notNull, rhs.attributes[i].notNull);
-      ASSERT_EQ(lhs.attributes[i].primaryKey, rhs.attributes[i].primaryKey);
+   ASSERT_EQ(lhs.getAttributes().size(), rhs.getAttributes().size());
+   for(uint32_t i=0; i<lhs.getAttributes().size(); i++) {
+      ASSERT_EQ(lhs.getAttributes()[i].name, rhs.getAttributes()[i].name);
+      ASSERT_EQ(lhs.getAttributes()[i].type, rhs.getAttributes()[i].type);
+      ASSERT_EQ(lhs.getAttributes()[i].notNull, rhs.getAttributes()[i].notNull);
+      ASSERT_EQ(lhs.getAttributes()[i].primaryKey, rhs.getAttributes()[i].primaryKey);
    }
 
    // Check indexes
-   ASSERT_EQ(lhs.indexes.size(), rhs.indexes.size());
-   for(uint32_t i=0; i<lhs.indexes.size(); i++) {
-      ASSERT_EQ(lhs.indexes[i].sid, rhs.indexes[i].sid);
-      ASSERT_EQ(lhs.indexes[i].indexedAttribute, rhs.indexes[i].indexedAttribute);
-      ASSERT_EQ(lhs.indexes[i].indexType, rhs.indexes[i].indexType);
+   ASSERT_EQ(lhs.getIndexes().size(), rhs.getIndexes().size());
+   for(uint32_t i=0; i<lhs.getIndexes().size(); i++) {
+      ASSERT_EQ(lhs.getIndexes()[i].sid, rhs.getIndexes()[i].sid);
+      ASSERT_EQ(lhs.getIndexes()[i].indexedAttribute, rhs.getIndexes()[i].indexedAttribute);
+      ASSERT_EQ(lhs.getIndexes()[i].indexType, rhs.getIndexes()[i].indexType);
    }
 }
 
@@ -41,18 +41,18 @@ TEST(Schema, RelationSchemaMarschalling)
    assert(kSwapFilePages >= kPages);
 
    // Create
-   RelationSchema original;
-   original.name = "students";
-   original.sid = SegmentId(8128);
-   original.attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
-   original.attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true});
-   original.attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true});
-   original.attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true});
+   vector<dbi::AttributeSchema> attributes;
+   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
+   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true});
+   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true});
+   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true});
+   vector<dbi::IndexSchema> indexes;
+   RelationSchema original("students", move(attributes), move(indexes));
+   original.setSegmentId(SegmentId(8128));
 
    // Serialize and de-serialize
    Record r = original.marschall();
-   RelationSchema copy;
-   copy.unmarschall(r);
+   RelationSchema copy(r);
 
    // Compare
    compare(original, copy);
@@ -66,15 +66,17 @@ TEST(Schema, SchemaManager)
    dbi::BufferManager bufferManager(kSwapFileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
 
-   RelationSchema schema1;
-   schema1.name = "students";
-   schema1.sid = SegmentId(8128);
-   schema1.attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
+   vector<dbi::AttributeSchema> attributes1;
+   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false});
+   vector<dbi::IndexSchema> indexes1;
+   RelationSchema schema1("students", move(attributes1), move(indexes1));
+   schema1.setSegmentId(SegmentId(8128));
 
-   RelationSchema schema2;
-   schema2.name = "listens_to";
-   schema2.sid = SegmentId(1729);
-   schema2.attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true});
+   vector<dbi::AttributeSchema> attributes2;
+   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true});
+   vector<dbi::IndexSchema> indexes2;
+   RelationSchema schema2("listens_to", move(attributes2), move(indexes2));
+   schema2.setSegmentId(SegmentId(1729));
 
    // Set up schema manager and add two relations
    {

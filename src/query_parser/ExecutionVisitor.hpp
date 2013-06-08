@@ -5,14 +5,15 @@
 
 namespace dbi {
 
-class TransactionCallbackHandler;
+class SchemaManager;
+class SegmentManager;
 
 namespace script {
 
 /// 
 class ExecutionVisitor : public Visitor {
 public:
-   ExecutionVisitor(TransactionCallbackHandler& transaction);
+   ExecutionVisitor(SchemaManager& schemaManager, SegmentManager& segmentManager, bool verbose = false);
    virtual ~ExecutionVisitor();
 
    virtual void onPreVisit(RootStatement& root);
@@ -27,8 +28,9 @@ public:
    virtual void onPostVisit(BlockStatement& block);
 
 private:
-   uint32_t indention;
-   TransactionCallbackHandler& transaction;
+   SchemaManager& schemaManager;
+   SegmentManager& segmentManager;
+   bool verbose;
 };
 
 }

@@ -11,8 +11,10 @@ namespace dbi {
 
 namespace script {
 
-ExecutionVisitor::ExecutionVisitor(TransactionCallbackHandler& transaction)
-: transaction(transaction)
+ExecutionVisitor::ExecutionVisitor(SchemaManager& schemaManager, SegmentManager& segmentManager, bool verbose)
+: schemaManager(schemaManager)
+, segmentManager(segmentManager)
+, verbose(verbose)
 {
 }
 
@@ -55,7 +57,6 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 
 void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 {
-
 }
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
@@ -63,8 +64,12 @@ void ExecutionVisitor::onPreVisit(InsertStatement& insert)
    transaction.insertIntoTable(insert.tableName, insert.values);
 }
 
-void ExecutionVisitor::onPostVisit(InsertStatement&)
+void ExecutionVisitor::onPostVisit(InsertStatement& insert)
 {
+   auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
+   RelationSchema targetSchema = schemaManager.getRelation(insert.tableName);
+   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
+   insert.plan = util::make_unique<InsertOperator>(move(source), targetSegment);
 }
 
 void ExecutionVisitor::onPreVisit(BlockStatement&)

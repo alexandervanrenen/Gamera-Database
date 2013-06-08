@@ -23,7 +23,7 @@ public:
    /// During transaction execution
    virtual void open() = 0;
    virtual bool next() = 0;
-   virtual const std::vector<std::unique_ptr<harriet::Value>> getOutput() = 0;
+   virtual std::vector<std::unique_ptr<harriet::Value>> getOutput() = 0;
    virtual void close() = 0;
 
    virtual ~Operator();

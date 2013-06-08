@@ -61,7 +61,7 @@ bool RecordScanOperator::next()
    return positionInCurrentPage < recordsInCurrentPage.size();
 }
 
-const vector<unique_ptr<harriet::Value>> RecordScanOperator::getOutput()
+vector<unique_ptr<harriet::Value>> RecordScanOperator::getOutput()
 {
    throw;
 }

@@ -8,12 +8,13 @@ using namespace std;
 
 namespace dbi {
 
-SingleRecordOperator::SingleRecordOperator(std::vector<std::unique_ptr<harriet::Value>>&& values, const RelationSchema& schema)
-: values(move(values))
-, state(kClosed)
+SingleRecordOperator::SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input, const RelationSchema& schema)
+: state(kClosed)
 , hasNext(false)
 , schema(schema)
 {
+   for(auto& value : input)
+      values.push_back(value->evaluate());
 }
 
 SingleRecordOperator::~SingleRecordOperator()
@@ -39,7 +40,7 @@ bool SingleRecordOperator::next()
    return hasNext;
 }
 
-const vector<unique_ptr<harriet::Value>> SingleRecordOperator::getOutput()
+vector<unique_ptr<harriet::Value>> SingleRecordOperator::getOutput()
 {
    vector<unique_ptr<harriet::Value>> result;
    for(auto& value : values)

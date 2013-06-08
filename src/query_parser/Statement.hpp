@@ -12,6 +12,8 @@ namespace harriet {
 
 namespace dbi {
 
+class InsertOperator;
+
 namespace script {
 
 /// In "select s.name from Students s;" the term "s.name" is a ColumnIdentifier.
@@ -66,9 +68,11 @@ struct CreateTableStatement : public Statement {
 struct InsertStatement : public Statement {
 
    InsertStatement(const std::string& tableName, std::vector<std::unique_ptr<harriet::Value>>&& values);
+   ~InsertStatement();
 
    std::string tableName;
    std::vector<std::unique_ptr<harriet::Value>> values;
+   std::unique_ptr<InsertOperator> plan;
 
    virtual void acceptVisitor(Visitor& visitor);
 };

@@ -37,7 +37,7 @@ bool TableScanOperator::next()
    return scanner->next();
 }
 
-const vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
+vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
 {
    cout << "almost there" << endl;
    throw;

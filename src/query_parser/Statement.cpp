@@ -1,6 +1,7 @@
 #include "Statement.hpp"
 #include "Visitor.hpp"
 #include "harriet/Expression.hpp"
+#include "operator/InsertOperator.hpp"
 
 using namespace std;
 
@@ -39,6 +40,10 @@ void CreateTableStatement::acceptVisitor(Visitor& visitor)
 InsertStatement::InsertStatement(const string& tableName, vector<unique_ptr<harriet::Value>>&& values)
 : tableName(tableName)
 , values(move(values))
+{
+}
+
+InsertStatement::~InsertStatement()
 {
 }
 

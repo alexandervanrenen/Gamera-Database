@@ -25,7 +25,7 @@ public:
 
    virtual void open();
    virtual bool next();
-   virtual const std::vector<std::unique_ptr<harriet::Value>> getOutput();
+   virtual std::vector<std::unique_ptr<harriet::Value>> getOutput();
    virtual void close();
 
 private:

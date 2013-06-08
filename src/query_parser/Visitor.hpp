@@ -15,16 +15,16 @@ class Visitor {
 public:
    virtual ~Visitor();
 
-   virtual void onPreVisit(RootStatement& root) = 0;
-   virtual void onPostVisit(RootStatement& root) = 0;
-   virtual void onPreVisit(SelectStatement& select) = 0;
-   virtual void onPostVisit(SelectStatement& select) = 0;
-   virtual void onPreVisit(CreateTableStatement& createTable) = 0;
-   virtual void onPostVisit(CreateTableStatement& createTable) = 0;
-   virtual void onPreVisit(InsertStatement& insert) = 0;
-   virtual void onPostVisit(InsertStatement& insert) = 0;
-   virtual void onPreVisit(BlockStatement& block) = 0;
-   virtual void onPostVisit(BlockStatement& block) = 0;
+   virtual void onPreVisit(RootStatement&) {};
+   virtual void onPostVisit(RootStatement&) {};
+   virtual void onPreVisit(SelectStatement&) {};
+   virtual void onPostVisit(SelectStatement&) {};
+   virtual void onPreVisit(CreateTableStatement&) {};
+   virtual void onPostVisit(CreateTableStatement&) {};
+   virtual void onPreVisit(InsertStatement&) {};
+   virtual void onPostVisit(InsertStatement&) {};
+   virtual void onPreVisit(BlockStatement&) {};
+   virtual void onPostVisit(BlockStatement&) {};
 };
 
 }

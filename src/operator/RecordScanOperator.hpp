@@ -23,7 +23,7 @@ public:
 
    void open();
    bool next();
-   const std::vector<std::unique_ptr<harriet::Value>> getOutput(); // Not supported .. not sure if this class is really an operator ..
+   std::vector<std::unique_ptr<harriet::Value>> getOutput(); // Not supported .. not sure if this class is really an operator ..
    const std::pair<TupleId, Record>& getRecord();
    void close();
 

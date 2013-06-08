@@ -39,26 +39,20 @@ std::function<Signature> cast(void* f)
 
 Result Database::executeQuery(const std::string& query)
 {
-   string fileName = "bin/gen/test";
    try {
       // Parse query
       unique_ptr<script::Statement> root = script::parse(query);
 
-      // Generate code
-      ofstream out((fileName + ".cpp").c_str());
-      TransactionCallbackHandler handler(*segmentManager, *schemaManager);
-      script::ExecutionVisitor printy(handler);
+      // Print script
+      script::PrintVisitor printy(cout);
       root->acceptVisitor(printy);
+
+      // Interpret script
+      TransactionCallbackHandler handler(*segmentManager, *schemaManager);
+      script::ExecutionVisitor inty(handler);
+      root->acceptVisitor(inty);
+
       return Result();
-
-      // // Compile code
-      // util::DynamicLinker linker;
-      // linker.compile(fileName, "-g3 -O0 -Isrc/");
-      // auto function = linker.getFunction<void(TransactionCallbackHandler&)>("entry");
-
-      // // Run the code
-      // TransactionCallbackHandler handler(*segmentManager, *schemaManager);
-      // function(handler);
 
    } catch(script::ParserException e) {
       cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;

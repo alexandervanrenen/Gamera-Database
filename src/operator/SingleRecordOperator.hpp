@@ -4,7 +4,7 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "segment_manager/PageIdIterator.hpp"
-#include "schema/RelationSchema.hpp"
+#include "schema/Signature.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -19,11 +19,12 @@ class RecordScanOperator;
 /// Its used for a static input for the insert operator (e.g. insert into Students values(26120,"Fichte",10);)
 class SingleRecordOperator : public Operator {
 public:
-   SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input, const RelationSchema& schema);
+   SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input);
    virtual ~SingleRecordOperator();
 
-   virtual const RelationSchema& getSignature() const;
+   virtual const Signature& getSignature() const;
    virtual void checkTypes() const throw(harriet::Exception);
+   virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
    virtual bool next();
@@ -34,7 +35,7 @@ private:
    std::vector<std::unique_ptr<harriet::Value>> values;
    OperatorState state;
    bool hasNext;
-   const RelationSchema schema;
+   const Signature signature;
 };
 
 }

@@ -43,9 +43,9 @@ Result Database::executeQuery(const std::string& query)
       // Parse query
       auto roots = script::parse(query);
       for(auto& root : roots->statements) {
-         // Print script
-         script::PrintVisitor printy(cout);
-         root->acceptVisitor(printy);
+         // // Print script
+         // script::PrintVisitor printy(cout);
+         // root->acceptVisitor(printy);
 
          // Interpret script
          script::ExecutionVisitor inty(*segmentManager, *schemaManager);

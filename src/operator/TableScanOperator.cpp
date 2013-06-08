@@ -9,10 +9,11 @@ using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema)
+TableScanOperator::TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema, const string& alias)
 : scanner(move(scanner))
 , state(kClosed)
 , schema(schema)
+, signature(schema, alias)
 {
 }
 
@@ -20,14 +21,19 @@ TableScanOperator::~TableScanOperator()
 {
 }
 
-const RelationSchema& TableScanOperator::getSignature() const
+const Signature& TableScanOperator::getSignature() const
 {
-   return schema;
+   return signature;
 }
 
 void TableScanOperator::checkTypes() const throw(harriet::Exception)
 {
    return;
+}
+
+void TableScanOperator::dump(ostream& os, uint32_t lvl) const
+{
+   os << "|" << string(lvl, '.') << "TableScan " << schema.getName() << endl;
 }
 
 void TableScanOperator::open()

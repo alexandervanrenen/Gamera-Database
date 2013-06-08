@@ -4,6 +4,7 @@
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
 #include "RecordScanOperator.hpp"
+#include "schema/Signature.hpp"
 #include <iostream>
 #include <iomanip>
 #include <chrono>
@@ -26,23 +27,29 @@ void PrintOperator::checkTypes() const throw(harriet::Exception)
 {
    // Check if everything below works out
    source->checkTypes();
- }
+}
+
+void PrintOperator::dump(ostream& os) const
+{
+   os << "Print" << endl;
+   source->dump(os, 3);
+}
 
 void PrintOperator::execute()
 {
    // Calculate column widths
    uint32_t totalWidth = 1;
    vector<uint32_t> columnWidths;
-   auto& schema = source->getSignature();
-   for(auto& iter : schema.getAttributes()) {
+   auto& signature = source->getSignature();
+   for(auto& iter : signature.getAttributes()) {
       columnWidths.push_back(max(static_cast<uint32_t>(iter.name.size()), harriet::getLengthOfASCII(iter.type)));
       totalWidth += columnWidths.back() + 3;
    }
 
    // Print header
    out << setfill(' ') << left << string(totalWidth, '-') << endl << "| ";
-   for(uint32_t i=0; i<schema.getAttributes().size(); i++)
-      out << setw(columnWidths[i]) << schema.getAttributes()[i].name << " | ";
+   for(uint32_t i=0; i<signature.getAttributes().size(); i++)
+      out << setw(columnWidths[i]) << signature.getAttributes()[i].name << " | ";
    out << endl << string(totalWidth, '-') << endl;
 
    // Print content
@@ -52,7 +59,7 @@ void PrintOperator::execute()
    while(source->next()) {
       auto result = source->getOutput();
       out << "| ";
-      for(uint32_t i=0; i<schema.getAttributes().size(); i++)
+      for(uint32_t i=0; i<signature.getAttributes().size(); i++)
          out << setw(columnWidths[i]) << *result[i] << " | ";
       out << endl;
       tupleCount++;

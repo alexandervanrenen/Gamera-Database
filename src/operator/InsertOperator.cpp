@@ -2,6 +2,7 @@
 #include "Operator.hpp"
 #include "harriet/Expression.hpp"
 #include "segment_manager/SPSegment.hpp"
+#include "schema/Signature.hpp"
 #include <iostream>
 
 using namespace std;
@@ -17,6 +18,12 @@ InsertOperator::InsertOperator(unique_ptr<Operator> source, SPSegment& target, c
 
 InsertOperator::~InsertOperator()
 {
+}
+
+void InsertOperator::dump(ostream& os) const
+{
+   os << "Insert " << targetSchema.getName() << endl;
+   source->dump(os, 3);
 }
 
 void InsertOperator::checkTypes() const throw(harriet::Exception)

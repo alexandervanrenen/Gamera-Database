@@ -20,7 +20,7 @@ RecordScanOperator::~RecordScanOperator()
 {
 }
 
-const RelationSchema& RecordScanOperator::getSignature() const
+const Signature& RecordScanOperator::getSignature() const
 {
    throw;
 }
@@ -28,6 +28,11 @@ const RelationSchema& RecordScanOperator::getSignature() const
 void RecordScanOperator::checkTypes() const throw(harriet::Exception)
 {
    return;
+}
+
+void RecordScanOperator::dump(ostream&, uint32_t) const
+{
+   throw;
 }
 
 void RecordScanOperator::open()

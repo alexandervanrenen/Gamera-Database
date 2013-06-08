@@ -8,10 +8,10 @@ using namespace std;
 
 namespace dbi {
 
-SingleRecordOperator::SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input, const RelationSchema& schema)
+SingleRecordOperator::SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input)
 : state(kClosed)
 , hasNext(false)
-, schema(schema)
+, signature(input)
 {
    for(auto& value : input)
       values.push_back(value->evaluate());
@@ -21,14 +21,19 @@ SingleRecordOperator::~SingleRecordOperator()
 {
 }
 
-const RelationSchema& SingleRecordOperator::getSignature() const
+const Signature& SingleRecordOperator::getSignature() const
 {
-   return schema;
+   return signature;
 }
 
 void SingleRecordOperator::checkTypes() const throw(harriet::Exception)
 {
    return;
+}
+
+void SingleRecordOperator::dump(ostream& os, uint32_t lvl) const
+{
+   cout << '|' << string(lvl, '.') << "Single Record" << endl;
 }
 
 void SingleRecordOperator::open()

@@ -55,13 +55,6 @@ RelationSchema::RelationSchema(const Record& record)
    assert(in.good());
 }
 
-RelationSchema::RelationSchema(const vector<unique_ptr<harriet::Value>>& values)
-: sid(kInvalidSegmentId)
-{
-   for(auto& iter : values)
-      attributes.push_back(AttributeSchema{"", iter->getResultType(), true, true, 0});
-}
-
 vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& record) const
 {
    vector<unique_ptr<harriet::Value>> result;

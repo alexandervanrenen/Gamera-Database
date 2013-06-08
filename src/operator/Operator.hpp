@@ -13,13 +13,14 @@ namespace harriet {
 namespace dbi {
 
 class Record;
-class RelationSchema;
+class Signature;
 
 /// Just define interface for all operators
 class Operator {
 public:
-   virtual const RelationSchema& getSignature() const = 0;
+   virtual const Signature& getSignature() const = 0;
    virtual void checkTypes() const throw(harriet::Exception) = 0;
+   virtual void dump(std::ostream& os, uint32_t lvl) const = 0;
 
    virtual void open() = 0;
    virtual bool next() = 0;

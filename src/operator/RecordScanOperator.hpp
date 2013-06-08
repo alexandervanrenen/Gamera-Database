@@ -13,20 +13,21 @@ namespace dbi {
 class SPSegment;
 class BufferManager;
 
-/// Scan over a SPSegment
+/// Scan over a SPSegment with raw records
 class RecordScanOperator : public Operator {
 public:
    RecordScanOperator(SPSegment& input);
-   ~RecordScanOperator();
+   virtual ~RecordScanOperator();
 
-   virtual const RelationSchema& getSignature() const;
+   virtual const Signature& getSignature() const;
    virtual void checkTypes() const throw(harriet::Exception);
+   virtual void dump(std::ostream& os, uint32_t lvl) const;
 
-   void open();
-   bool next();
-   std::vector<std::unique_ptr<harriet::Value>> getOutput(); // Not supported .. not sure if this class is really an operator ..
-   const std::pair<TupleId, Record>& getRecord();
-   void close();
+   virtual void open();
+   virtual bool next();
+   virtual std::vector<std::unique_ptr<harriet::Value>> getOutput(); // Not supported .. not sure if this class is really an operator ..
+   virtual const std::pair<TupleId, Record>& getRecord();
+   virtual void close();
 
 private:
    SPSegment& segment;

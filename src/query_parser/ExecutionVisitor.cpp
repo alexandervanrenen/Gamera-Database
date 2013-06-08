@@ -41,13 +41,15 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   RelationSchema schema = schemaManager.getRelation(select.sources[0].tableIdentifier);
-   // schema.setAlias(select.sources.alias!=""?select.sources.alias:select.sources.tableIdentifier);
-   auto& segment = segmentManager.getSPSegment(schema.getSegmentId());
+   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableIdentifier);
+   string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
+   auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+
    auto recordScan = util::make_unique<RecordScanOperator>(segment);
-   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), schema);
+   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), sourceSchema, alias);
    auto print = util::make_unique<PrintOperator>(move(tableScan), cout);
 
+   print->dump(cout);
    print->checkTypes();
    print->execute();
 }
@@ -80,12 +82,13 @@ void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
-   auto source = util::make_unique<SingleRecordOperator>(insert.values, RelationSchema(insert.values));
+   auto source = util::make_unique<SingleRecordOperator>(insert.values);
 
    auto& targetSchema = schemaManager.getRelation(insert.tableName);
    SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
    auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
 
+   plan->dump(cout);
    plan->checkTypes();
    plan->execute();
 }

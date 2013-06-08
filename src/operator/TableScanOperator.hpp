@@ -1,10 +1,8 @@
 #pragma once
 
-#include "common/Config.hpp"
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "segment_manager/PageIdIterator.hpp"
-#include "schema/RelationSchema.hpp"
+#include "schema/Signature.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -15,14 +13,15 @@ class SPSegment;
 class BufferManager;
 class RecordScanOperator;
 
-/// Scan over a SPSegment
+/// Interprets the records provided by a RecordScanOperator
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema);
+   TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema, const std::string& alias);
    virtual ~TableScanOperator();
 
-   virtual const RelationSchema& getSignature() const;
+   virtual const Signature& getSignature() const;
    virtual void checkTypes() const throw(harriet::Exception);
+   virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
    virtual bool next();
@@ -32,7 +31,8 @@ public:
 private:
    std::unique_ptr<RecordScanOperator> scanner;
    OperatorState state;
-   const RelationSchema schema;
+   const RelationSchema& schema;
+   const Signature signature;
 };
 
 }

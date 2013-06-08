@@ -21,6 +21,7 @@ public:
    virtual ~PrintOperator();
 
    void checkTypes() const throw(harriet::Exception);
+   virtual void dump(std::ostream& os) const;
 
    void execute();
 

@@ -19,6 +19,7 @@ class InsertOperator {
 public:
    InsertOperator(std::unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema);
    virtual ~InsertOperator();
+   virtual void dump(std::ostream& os) const;
 
    void checkTypes() const throw(harriet::Exception);
 

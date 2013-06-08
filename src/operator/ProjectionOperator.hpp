@@ -13,7 +13,7 @@ namespace dbi {
 /// 
 class ProjectionOperator : public Operator {
 public:
-   ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<ColumnIdentifier>& columns);
+   ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<ColumnIdentifier>& projectedAttributes);
    virtual ~ProjectionOperator();
 
    virtual const Signature& getSignature() const;
@@ -28,6 +28,9 @@ public:
 private:
    std::unique_ptr<Operator> source;
    OperatorState state;
+   const std::vector<ColumnIdentifier> projectedAttributes;
+   std::vector<uint32_t> projection;
+   Signature signature;
 };
 
 }

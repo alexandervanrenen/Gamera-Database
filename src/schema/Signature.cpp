@@ -5,6 +5,10 @@ using namespace std;
 
 namespace dbi {
 
+Signature::Signature()
+{
+}
+
 Signature::Signature(const RelationSchema& relationSchema, const string& alias)
 {
    attributes.reserve(relationSchema.getAttributes().size());
@@ -18,9 +22,54 @@ Signature::Signature(const vector<unique_ptr<harriet::Value>>& values)
       attributes.push_back(AttributeSignature{"", "", true, true, iter->getResultType()});
 }
 
+Signature Signature::createProjectionSignature(const vector<ColumnIdentifier>& target) const
+{
+   vector<uint32_t> projection = createProjection(target);
+   Signature result;
+   for(uint32_t i=0; i<projection.size(); i++) {
+      result.attributes.push_back(attributes[projection[i]]);
+      result.attributes.back().name = target[i].columnIdentifier;
+      result.attributes.back().alias = target[i].tableIdentifier;
+   }
+   return result;
+}
+
+vector<uint32_t> Signature::createProjection(const vector<ColumnIdentifier>& target) const
+{
+   vector<uint32_t> result;
+   for(auto& iter : target)
+      result.push_back(getAttribute(iter.tableIdentifier, iter.columnIdentifier));
+   return result;
+}
+
 const vector<AttributeSignature>& Signature::getAttributes() const
 {
    return attributes;
+}
+
+uint32_t Signature::getAttribute(const string& alias, const string& name) const
+{
+   uint32_t resultIndex = attributes.size(); // invalid index
+
+   // Try to find a matching identifier
+   if(alias != "") {
+      for(uint32_t i=0; i<attributes.size(); i++)
+         if(attributes[i].name==name && alias==attributes[i].alias)
+            if(resultIndex==attributes.size())
+               resultIndex = i; else
+               throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+   } else {
+      for(uint32_t i=0; i<attributes.size(); i++)
+         if(attributes[i].name==name)
+            if(resultIndex==attributes.size())
+               resultIndex = i; else
+               throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+   }
+
+   if(resultIndex != attributes.size())
+      return resultIndex;
+
+   throw harriet::Exception{"unknown identifier: '" + alias + "." + name + "'"};
 }
 
 }

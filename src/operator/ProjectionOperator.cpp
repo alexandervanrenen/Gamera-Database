@@ -6,9 +6,11 @@ using namespace std;
 
 namespace dbi {
 
-ProjectionOperator::ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<ColumnIdentifier>& columns)
+ProjectionOperator::ProjectionOperator(std::unique_ptr<Operator> source, const vector<ColumnIdentifier>& projectedAttributes)
 : source(move(source))
 , state(kClosed)
+, projectedAttributes(projectedAttributes)
+, signature(this->source->getSignature().createProjectionSignature(projectedAttributes))
 {
 }
 
@@ -18,7 +20,7 @@ ProjectionOperator::~ProjectionOperator()
 
 const Signature& ProjectionOperator::getSignature() const
 {
-   return source->getSignature();
+   return signature;
 }
 
 void ProjectionOperator::checkTypes() const throw(harriet::Exception)
@@ -35,6 +37,7 @@ void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
 void ProjectionOperator::open()
 {
    assert(state == kClosed);
+   projection = source->getSignature().createProjection(projectedAttributes);
    source->open();
    state = kOpen;
 }
@@ -47,7 +50,11 @@ bool ProjectionOperator::next()
 
 vector<unique_ptr<harriet::Value>> ProjectionOperator::getOutput()
 {
-   return source->getOutput();
+   auto tuple = source->getOutput();
+   vector<unique_ptr<harriet::Value>> result;
+   for(auto iter : projection)
+      result.push_back(tuple[iter]->evaluate());
+   return result;
 }
 
 void ProjectionOperator::close()

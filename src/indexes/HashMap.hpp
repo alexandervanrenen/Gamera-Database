@@ -151,8 +151,15 @@ BufferFrame& HashMap<Key, Value>::getBucket(const HashMapMetaPage& meta, const K
 }
 
 template<class Key, class Value>
-void HashMap<Key, Value>::doLinearGrow(const HashMapMetaPage&)
+void HashMap<Key, Value>::doLinearGrow(const HashMapMetaPage& meta)
 {
+   // Get more pages if no more free ones are available
+   if(segment.numPages() < meta.nextFreePageInternalPageId)
+      segment.grow()
+
+   // Grow directory
+   metaPage.addDirectoryPage();
+
    std::cout << "doing grow.." << std::endl;
    throw;
 }

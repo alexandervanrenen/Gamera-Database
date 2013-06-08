@@ -18,17 +18,12 @@ HashMapSegment::HashMapSegment(SegmentId id, SegmentInventory& segmentInventory,
       // Set up meta page
       auto& metaBf = fixInternalPage(0, kExclusive);
       auto& metaPage = reinterpret_cast<HashMapMetaPage&>(*metaBf.data());
-      metaPage.nextFreePageInternalPageId = 4;
-      metaPage.numRelevantBits = 2;
-      metaPage.directoryPageCount = 0;
-      metaPage.next = 0;
-      metaPage.size = 2;
-      metaPage.entries = 0;
-      metaPage.addDirectoryPage(translateInternalToGlobalPageId(1));
+      PageId firstDirectoryPage = translateInternalToGlobalPageId(2)
+      metaPage.initialize(Extent(firstDirectoryPage, PageId(firstDirectoryPage.toInteger()+1)));
       unfixPage(metaBf, kDirty);
 
       // Set up directory
-      auto& directoryBf = fixInternalPage(1, kExclusive);
+      auto& directoryBf = fixGlobalPage(firstDirectoryPage, kExclusive);
       auto& directoryPage = reinterpret_cast<DirectoryPage&>(*directoryBf.data());
       directoryPage[0] = translateInternalToGlobalPageId(2);
       directoryPage[1] = translateInternalToGlobalPageId(3);
@@ -44,6 +39,7 @@ HashMapSegment::HashMapSegment(SegmentId id, SegmentInventory& segmentInventory,
       auto& secondBucketPage = reinterpret_cast<HashMapBucketPage<int,int>&>(*secondBucketBf.data());
       secondBucketPage.initialize();
       unfixPage(secondBucketBf, kDirty);
+
    } else {
       // Restart
       throw;

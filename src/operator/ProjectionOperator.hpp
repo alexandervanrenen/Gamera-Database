@@ -2,7 +2,7 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "schema/Signature.hpp"
+#include "signature/ProjectionSignature.hpp"
 #include "schema/Common.hpp"
 #include <array>
 #include <cstdint>
@@ -28,9 +28,7 @@ public:
 private:
    std::unique_ptr<Operator> source;
    OperatorState state;
-   const std::vector<ColumnIdentifier> projectedAttributes;
-   std::vector<uint32_t> projection;
-   Signature signature;
+   ProjectionSignature signature;
 };
 
 }

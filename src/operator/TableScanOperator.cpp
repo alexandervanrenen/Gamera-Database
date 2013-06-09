@@ -14,7 +14,7 @@ namespace dbi {
 TableScanOperator::TableScanOperator(SPSegment& source, const RelationSchema& underlyingSchema, const string& alias)
 : source(source)
 , underlyingSchema(underlyingSchema)
-, suppliedSignature(underlyingSchema, alias)
+, signature(underlyingSchema, alias)
 , state(kClosed)
 , nextPage(source.endPageId())
 , positionInCurrentPage(0)
@@ -27,7 +27,7 @@ TableScanOperator::~TableScanOperator()
 
 const Signature& TableScanOperator::getSignature() const
 {
-   return suppliedSignature;
+   return signature;
 }
 
 void TableScanOperator::checkTypes() const throw(harriet::Exception)
@@ -38,7 +38,7 @@ void TableScanOperator::checkTypes() const throw(harriet::Exception)
 void TableScanOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "TableScan " << underlyingSchema.getName() << " [";
-   suppliedSignature.dump(os);
+   signature.dump(os);
    os << "]" << endl;
 }
 

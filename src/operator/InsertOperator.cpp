@@ -2,7 +2,7 @@
 #include "Operator.hpp"
 #include "harriet/Expression.hpp"
 #include "segment_manager/SPSegment.hpp"
-#include "schema/Signature.hpp"
+#include "signature/Signature.hpp"
 #include <iostream>
 
 using namespace std;

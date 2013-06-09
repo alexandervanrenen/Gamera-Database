@@ -2,7 +2,7 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "schema/Signature.hpp"
+#include "signature/TableScanSignature.hpp"
 #include "segment_manager/PageIdIterator.hpp"
 #include <array>
 #include <cstdint>
@@ -30,7 +30,7 @@ public:
 private:
    SPSegment& source;
    const RelationSchema& underlyingSchema;
-   const Signature suppliedSignature;
+   const TableScanSignature signature;
 
    OperatorState state;
    PageIdIterator nextPage;

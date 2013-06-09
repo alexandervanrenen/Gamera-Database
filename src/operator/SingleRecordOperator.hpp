@@ -2,7 +2,7 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "schema/Signature.hpp"
+#include "signature/SingleRecordSignature.hpp"
 #include <memory>
 
 namespace dbi {
@@ -30,7 +30,7 @@ private:
    std::vector<std::unique_ptr<harriet::Value>> values;
    OperatorState state;
    bool hasNext;
-   const Signature signature;
+   const SingleRecordSignature signature;
 };
 
 }

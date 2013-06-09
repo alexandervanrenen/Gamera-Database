@@ -31,7 +31,9 @@ void SingleRecordOperator::checkTypes() const throw(harriet::Exception)
 
 void SingleRecordOperator::dump(ostream& os, uint32_t lvl) const
 {
-   cout << '|' << string(lvl, '.') << "Single Record" << endl;
+   os << '|' << string(lvl, '.') << "Single Record " << "[";
+   signature.dump(os);
+   os << "]" << endl;
 }
 
 void SingleRecordOperator::open()

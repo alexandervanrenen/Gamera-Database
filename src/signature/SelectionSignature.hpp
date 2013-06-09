@@ -19,6 +19,11 @@ private:
       uint32_t position; // Position in the tuple
    };
    std::vector<VariableMapping> variableMapping;
+
+   enum struct Type : uint8_t {TConstant, TColumnAndConstant, TColumnAndColumn, TComplex};
+   Type type;
+
+   std::vector<VariableMapping> getFreeVariables(const harriet::Expression& expression) const;
 };
 
 }

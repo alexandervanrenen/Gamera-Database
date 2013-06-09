@@ -28,8 +28,8 @@ Signature Signature::createProjectionSignature(const vector<ColumnIdentifier>& t
    Signature result;
    for(uint32_t i=0; i<projection.size(); i++) {
       result.attributes.push_back(attributes[projection[i]]);
-      result.attributes.back().name = target[i].columnIdentifier;
-      result.attributes.back().alias = target[i].tableIdentifier;
+      result.attributes.back().name = attributes[projection[i]].name;
+      result.attributes.back().alias = attributes[projection[i]].alias;
    }
    return result;
 }
@@ -47,6 +47,12 @@ const vector<AttributeSignature>& Signature::getAttributes() const
    return attributes;
 }
 
+void Signature::dump(std::ostream& os) const
+{
+   for(uint32_t i=0; i<attributes.size(); i++)
+      os << attributes[i].alias << "." << attributes[i].name << (i+1!=attributes.size()?" | ":"");
+}
+
 uint32_t Signature::getAttribute(const string& alias, const string& name) const
 {
    uint32_t resultIndex = attributes.size(); // invalid index
@@ -54,16 +60,18 @@ uint32_t Signature::getAttribute(const string& alias, const string& name) const
    // Try to find a matching identifier
    if(alias != "") {
       for(uint32_t i=0; i<attributes.size(); i++)
-         if(attributes[i].name==name && alias==attributes[i].alias)
+         if(attributes[i].name==name && alias==attributes[i].alias) {
             if(resultIndex==attributes.size())
                resultIndex = i; else
                throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+         }
    } else {
       for(uint32_t i=0; i<attributes.size(); i++)
-         if(attributes[i].name==name)
+         if(attributes[i].name==name) {
             if(resultIndex==attributes.size())
                resultIndex = i; else
                throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+         }
    }
 
    if(resultIndex != attributes.size())

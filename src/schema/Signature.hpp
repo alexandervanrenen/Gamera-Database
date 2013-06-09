@@ -18,17 +18,27 @@ struct AttributeSignature {
 
 class Signature {
 public:
+   // Empty signature
    Signature();
-   Signature(const RelationSchema& relationSchema, const std::string& alias); // Create named variables from a table scan
-   Signature(const std::vector<std::unique_ptr<harriet::Value>>& values); // Deduce schema from an expression in a script
-
+   // Create named variables from a TableScanOperator
+   Signature(const RelationSchema& relationSchema, const std::string& alias);
+   // Deduce schema from an expression in a script. For the SingleRecordOperator
+   Signature(const std::vector<std::unique_ptr<harriet::Value>>& values);
+   /// For ProjectionOperator
    Signature createProjectionSignature(const std::vector<ColumnIdentifier>& target) const;
    std::vector<uint32_t> createProjection(const std::vector<ColumnIdentifier>& target) const;
 
+   /// Access the signatures attributes
    const std::vector<AttributeSignature>& getAttributes() const;
 
+   /// Dump all attributes to os
+   void dump(std::ostream& os) const;
+
 private:
+   /// Finds the best matching attribute with given alias.name. throws when ambiguous or unknown
    uint32_t getAttribute(const std::string& alias, const std::string& name) const;
+
+   /// A signature consists of attributes
    std::vector<AttributeSignature> attributes;
 };
 

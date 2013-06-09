@@ -37,7 +37,9 @@ void TableScanOperator::checkTypes() const throw(harriet::Exception)
 
 void TableScanOperator::dump(ostream& os, uint32_t lvl) const
 {
-   os << "|" << string(lvl, '.') << "TableScan " << underlyingSchema.getName() << endl;
+   os << "|" << string(lvl, '.') << "TableScan " << underlyingSchema.getName() << " [";
+   suppliedSignature.dump(os);
+   os << "]" << endl;
 }
 
 void TableScanOperator::open()

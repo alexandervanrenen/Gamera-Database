@@ -45,13 +45,17 @@ void SelectionOperator::open()
 bool SelectionOperator::next()
 {
    assert(state == kOpen);
-   return source->next();
+   while(source->next()) {
+      tuple = source->getOutput();
+      if(signature.fullfillsPredicates(tuple))
+         return true;
+   }
+   return false;
 }
 
 vector<unique_ptr<harriet::Value>> SelectionOperator::getOutput()
 {
-   auto tuple = source->getOutput();
-   return tuple;
+   return move(tuple);
 }
 
 void SelectionOperator::close()

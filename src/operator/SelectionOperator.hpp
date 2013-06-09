@@ -28,6 +28,7 @@ private:
    std::unique_ptr<Operator> source;
    OperatorState state;
    SelectionSignature signature;
+   std::vector<std::unique_ptr<harriet::Value>> tuple;
 };
 
 }

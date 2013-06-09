@@ -39,9 +39,9 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
       out << "    " << iter.tableIdentifier << " " << iter.alias << endl;
    out << "where " << endl;
    for(auto& iter : select.predicates) {
+      out << "    ";
       iter->print(cout);
-      harriet::Environment env;
-      cout << *iter->evaluate(env) << endl;
+      out << endl;
    }
    out << ";" << endl;
 }

@@ -12,7 +12,7 @@ namespace dbi {
 /// 
 class SelectionOperator : public Operator {
 public:
-   SelectionOperator(std::unique_ptr<Operator> source, const Predicate& predicate);
+   SelectionOperator(std::unique_ptr<Operator> source, std::unique_ptr<harriet::Expression> expression);
    virtual ~SelectionOperator();
 
    virtual const Signature& getSignature() const;

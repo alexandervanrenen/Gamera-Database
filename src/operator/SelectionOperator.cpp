@@ -6,10 +6,10 @@ using namespace std;
 
 namespace dbi {
 
-SelectionOperator::SelectionOperator(std::unique_ptr<Operator> source, const Predicate& predicate)
+SelectionOperator::SelectionOperator(std::unique_ptr<Operator> source, unique_ptr<harriet::Expression> expression)
 : source(move(source))
 , state(kClosed)
-, signature(this->source->getSignature(), predicate)
+, signature(this->source->getSignature(), move(expression))
 {
 }
 

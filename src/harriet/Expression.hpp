@@ -18,6 +18,7 @@ namespace harriet {
 //---------------------------------------------------------------------------
 class Environment;
 class Value;
+class Variable;
 //---------------------------------------------------------------------------
 enum struct ExpressionType : uint8_t {TValue, TVariable, TUnaryOperator, TBinaryOperator, TOpeningPharentesis, TClosingPharentesis, TFunctionOperator};
 enum struct Associativity : uint8_t {TLeft, TRight};
@@ -27,6 +28,7 @@ public:
    virtual void print(std::ostream& stream) const = 0;
 
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const = 0;
+   virtual std::vector<const Variable*> getAllVariables() const = 0;
 
    virtual ~Expression(){};
 
@@ -51,6 +53,7 @@ public:
    virtual ~Variable(){};
    virtual void print(std::ostream& stream) const;
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::vector<const Variable*> getAllVariables() const {return {{this}};}
    const std::string& getIdentifier() const {return identifier;}
 
 protected:
@@ -66,6 +69,7 @@ public:
    virtual uint32_t typeSize() const = 0;
    virtual std::unique_ptr<Value> evaluate(Environment& /*environment*/) const {return evaluate();}
    virtual std::unique_ptr<Value> evaluate() const = 0;
+   virtual std::vector<const Variable*> getAllVariables() const {return std::vector<const Variable*>();};
 
    virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const {doError("+" , *this, rhs); throw;}
    virtual std::unique_ptr<Value> computeSub(const Value& rhs) const {doError("-" , *this, rhs); throw;}
@@ -235,6 +239,7 @@ struct VectorValue : public Value, GenericAllocator<VectorValue> {
 };
 //---------------------------------------------------------------------------
 class UnaryOperator : public Expression {
+   virtual std::vector<const Variable*> getAllVariables() const {return child->getAllVariables();}
    virtual void print(std::ostream& stream) const;
 public:
    virtual void addChild(std::unique_ptr<Expression> child);
@@ -298,6 +303,7 @@ class VectorCast : public CastOperator {
 class BinaryOperator : public Expression {
 public:
    virtual ~BinaryOperator(){}
+   virtual std::vector<const Variable*> getAllVariables() const {auto l=lhs->getAllVariables(); auto r=rhs->getAllVariables(); l.insert(l.end(), r.begin(), r.end()); return l;}
 protected:
    virtual void print(std::ostream& stream) const;
    virtual void addChildren(std::unique_ptr<Expression> lhsChild, std::unique_ptr<Expression> rhsChild);

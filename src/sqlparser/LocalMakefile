@@ -1,2 +1,0 @@
-src_sqlparser_files :=  src/sqlparser/Schema.o   \
-						src/sqlparser/Parser.o

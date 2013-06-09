@@ -1,7 +1,6 @@
 #include "SelectionSignature.hpp"
 #include "schema/Common.hpp"
 #include "harriet/Expression.hpp"
-#include "harriet/Environment.hpp"
 
 using namespace std;
 
@@ -13,11 +12,14 @@ SelectionSignature::SelectionSignature(const Signature& source, const Predicate&
    rhs = source.getAttributeIndex(predicate.rhs.tableIdentifier, predicate.rhs.columnIdentifier);
 
    predicates.push_back(predicate);
+
+   for(auto& attribute : source.getAttributes())
+      attributes.push_back(attribute);
 }
 
 bool SelectionSignature::fullfillsPredicates(const vector<unique_ptr<harriet::Value>>& tuple)
 {
-   return reinterpret_cast<harriet::BoolValue&>(*tuple[lhs]->computeEq(*tuple[rhs], harriet::Environment())).result;
+   return reinterpret_cast<harriet::BoolValue&>(*tuple[lhs]->computeEq(*tuple[rhs])).result;
 }
 
 }

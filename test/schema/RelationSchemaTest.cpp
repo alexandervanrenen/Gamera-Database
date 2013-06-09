@@ -7,7 +7,6 @@
 #include "segment_manager/SPSegment.hpp"
 #include "schema/RelationSchema.hpp"
 #include "harriet/Expression.hpp"
-#include "harriet/Environment.hpp"
 #include "gtest/gtest.h"
 #include <string>
 
@@ -86,7 +85,7 @@ TEST(Schema, TupleMarschalling)
    // Compare
    ASSERT_EQ(tuple.size(), tupleCopy.size());
    for(uint32_t i=0; i<tuple.size(); i++)
-      ASSERT_TRUE(reinterpret_cast<harriet::BoolValue&>(*tuple[i]->computeEq(*tupleCopy[i], harriet::Environment())).result);
+      ASSERT_TRUE(reinterpret_cast<harriet::BoolValue&>(*tuple[i]->computeEq(*tupleCopy[i])).result);
 }
 
 TEST(Schema, SchemaManager)

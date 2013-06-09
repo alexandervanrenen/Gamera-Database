@@ -19,7 +19,7 @@ SelectionOperator::~SelectionOperator()
 
 const Signature& SelectionOperator::getSignature() const
 {
-   return source->getSignature();
+   return signature;
 }
 
 void SelectionOperator::checkTypes() const throw(harriet::Exception)

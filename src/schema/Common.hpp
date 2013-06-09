@@ -23,4 +23,11 @@ struct AttributeDeclaration {
    bool notNull;
 };
 
+/// In "select * from Students where id = 5;" the term "id = 5" is a Predicate.
+struct Predicate {
+   ColumnIdentifier lhs;
+   std::string op;
+   ColumnIdentifier rhs;
+};
+
 }

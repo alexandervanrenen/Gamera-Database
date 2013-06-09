@@ -24,10 +24,12 @@ struct Value {
    ColumnIdentifier columnIdentifier;
    TableAccess tableAccess;
    AttributeDeclaration attributeDeclaration;
+   Predicate predicate;
 
    vector<AttributeDeclaration> attributeDeclarationVec;
    vector<TableAccess> tableAccessVec;
    vector<ColumnIdentifier> columnIdentifierVec;
+   vector<Predicate> predicateVec;
 
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
@@ -64,17 +66,22 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - c:CreateTableStatement                    { $$ = move(c); }
              | - i:InsertStatement                         { $$ = move(i); }
 # --------------------------------------------------------------------------------------------------------------
-SelectStatement = SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec)); }
-Projection = s:SelectorName                                { s.columnIdentifierVec.push_back(s.columnIdentifier); }
-           (- COMMA - i:SelectorName                       { s.columnIdentifierVec.push_back(i.columnIdentifier); }
+SelectStatement = SELECT - p:Projection - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), move(c.predicateVec)); }
+                | SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), move(p.predicateVec)); }
+Projection = s:ColumnIdentifier                            { s.columnIdentifierVec.push_back(s.columnIdentifier); }
+           (- COMMA - i:ColumnIdentifier                   { s.columnIdentifierVec.push_back(i.columnIdentifier); }
            )*                                              { $$ = move(s); }
-SelectorName = tid:ID POINT cid:ID                         { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
-             | cid:ID                                      { $$.columnIdentifier = ColumnIdentifier{"", cid.str}; }
+ColumnIdentifier = tid:ID POINT cid:ID                     { $$.columnIdentifier = ColumnIdentifier{tid.str, cid.str}; }
+                 | cid:ID                                  { $$.columnIdentifier = ColumnIdentifier{"", cid.str}; }
 Tables = t:TableName                                       { t.tableAccessVec.push_back(t.tableAccess); }
        (- COMMA - i:TableName                              { t.tableAccessVec.push_back(i.tableAccess); }
        )*                                                  { $$ = move(t);}
 TableName = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
+Predicates = p:Predicate                                   { p.predicateVec.push_back(p.predicate); }
+           (- Conjunction - i:Predicate                    { p.predicateVec.push_back(i.predicate); }
+           )*                                              { $$ = move(p);}
+Predicate = lhs:ColumnIdentifier - c:ComparisonOperator - rhs:ColumnIdentifier { $$.predicate = Predicate{lhs.columnIdentifier, c.str, rhs.columnIdentifier} }
 # --------------------------------------------------------------------------------------------------------------
 CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
@@ -94,6 +101,8 @@ VALUE = v:INTEGER                                          { $$.value = move(v.v
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }
+ComparisonOperator = "=="                                  { $$.str = "=="; }
+Conjunction = "and"                                        { $$.str = "and" }
 # --------------------------------------------------------------------------------------------------------------
 ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str = string(yytext); }
 INTEGER = < [0-9]+ > !'.'                                  { $$.value = util::make_unique<harriet::IntegerValue>(harriet::to_number<int32_t>(yytext)); }
@@ -112,6 +121,7 @@ TABLE = "table"                                            { }
 INSERT = "insert"                                          { }
 INTO = "into"                                              { }
 VALUES = "values"                                          { }
+WHERE = "where"                                            { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

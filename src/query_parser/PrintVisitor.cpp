@@ -32,11 +32,14 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
 {
    out << "select " << endl;
    for(auto& iter : select.selectors)
-      out << "    " << iter.tableIdentifier << " " << iter.columnIdentifier << endl;
+      out << "    " << iter.tableIdentifier << "." << iter.columnIdentifier << endl;
    out << "from " << endl;
    for(auto& iter : select.sources)
       out << "    " << iter.tableIdentifier << " " << iter.alias << endl;
-   out << ");" << endl;
+   out << "where " << endl;
+   for(auto iter : select.predicates)
+      out << "    " << iter.lhs.tableIdentifier << "." << iter.lhs.columnIdentifier << " " << iter.op << " "  << iter.rhs.tableIdentifier << "." << iter.rhs.columnIdentifier << endl;
+   out << ";" << endl;
 }
 
 void PrintVisitor::onPostVisit(SelectStatement&)

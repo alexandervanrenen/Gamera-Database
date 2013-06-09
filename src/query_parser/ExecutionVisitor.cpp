@@ -10,6 +10,7 @@
 #include "operator/PrintOperator.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "operator/ProjectionOperator.hpp"
+#include "operator/SelectionOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -46,10 +47,15 @@ void ExecutionVisitor::onPreVisit(SelectStatement& select)
    auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
 
    auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
-   auto projection = util::make_unique<ProjectionOperator>(move(tableScan), select.selectors);
+   unique_ptr<Operator> last = move(tableScan);
+   for(auto& predicate : select.predicates)
+      last = util::make_unique<SelectionOperator>(move(last), predicate);
+
+   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selectors);
    auto print = util::make_unique<PrintOperator>(move(projection), cout);
 
    print->dump(cout);
+   cout << endl;
    print->checkTypes();
    print->execute();
 }
@@ -89,6 +95,7 @@ void ExecutionVisitor::onPreVisit(InsertStatement& insert)
    auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
 
    plan->dump(cout);
+   cout << endl;
    plan->checkTypes();
    plan->execute();
 }

@@ -58,7 +58,7 @@ static int columnNumber= 0;
 # --------------------------------------------------------------------------------------------------------------
 start = - a:GlobalSingle                                   { a.statements.push_back(move(a.statement)); }
       ( - s:GlobalSingle                                   { a.statements.push_back(move(s.statement)); }
-      )*                                                   { result = util::make_unique<RootStatement>(move(a.statements)); }
+      )* -                                                 { result = util::make_unique<RootStatement>(move(a.statements)); }
       | < . >                                              { throw 2; }
 GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - c:CreateTableStatement                    { $$ = move(c); }

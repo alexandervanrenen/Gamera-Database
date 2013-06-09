@@ -323,6 +323,7 @@ class ArithmeticOperator : public BinaryOperator {
 //---------------------------------------------------------------------------
 class PlusOperator : public ArithmeticOperator {
 public:
+   PlusOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~PlusOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -333,6 +334,7 @@ protected:
 //---------------------------------------------------------------------------
 class MinusOperator : public ArithmeticOperator {
 public:
+   MinusOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~MinusOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -343,6 +345,7 @@ protected:
 //---------------------------------------------------------------------------
 class MultiplicationOperator : public ArithmeticOperator {
 public:
+   MultiplicationOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~MultiplicationOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -353,6 +356,7 @@ protected:
 //---------------------------------------------------------------------------
 class DivisionOperator : public ArithmeticOperator {
 public:
+   DivisionOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~DivisionOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -451,6 +455,7 @@ protected:
 //---------------------------------------------------------------------------
 class EqualOperator : public ComparisonOperator {
 public:
+   EqualOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~EqualOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;

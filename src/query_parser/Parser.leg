@@ -24,18 +24,19 @@ struct Value {
    ColumnIdentifier columnIdentifier;
    TableAccess tableAccess;
    AttributeDeclaration attributeDeclaration;
-   Predicate predicate;
 
    vector<AttributeDeclaration> attributeDeclarationVec;
    vector<TableAccess> tableAccessVec;
    vector<ColumnIdentifier> columnIdentifierVec;
-   vector<Predicate> predicateVec;
 
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
 
    unique_ptr<harriet::Value> value;
    vector<unique_ptr<harriet::Value>> valueVec;
+
+   unique_ptr<harriet::Expression> expression;
+   vector<unique_ptr<harriet::Expression>> expressionVec;
 };
 
 # define YYSTYPE struct Value
@@ -66,8 +67,8 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - c:CreateTableStatement                    { $$ = move(c); }
              | - i:InsertStatement                         { $$ = move(i); }
 # --------------------------------------------------------------------------------------------------------------
-SelectStatement = SELECT - p:Projection - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), move(c.predicateVec)); }
-                | SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), move(p.predicateVec)); }
+SelectStatement = SELECT - p:Projection - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), move(c.expressionVec)); }
+                | SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnIdentifierVec), move(t.tableAccessVec), vector<unique_ptr<harriet::Expression>>()); }
 Projection = s:ColumnIdentifier                            { s.columnIdentifierVec.push_back(s.columnIdentifier); }
            (- COMMA - i:ColumnIdentifier                   { s.columnIdentifierVec.push_back(i.columnIdentifier); }
            )*                                              { $$ = move(s); }
@@ -78,10 +79,10 @@ Tables = t:TableName                                       { t.tableAccessVec.pu
        )*                                                  { $$ = move(t);}
 TableName = tid:ID ' ' alias:ID                            { $$.tableAccess = TableAccess{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableAccess = TableAccess{tid.str, ""}; }
-Predicates = p:Predicate                                   { p.predicateVec.push_back(p.predicate); }
-           (- Conjunction - i:Predicate                    { p.predicateVec.push_back(i.predicate); }
-           )*                                              { $$ = move(p);}
-Predicate = lhs:ColumnIdentifier - c:ComparisonOperator - rhs:ColumnIdentifier { $$.predicate = Predicate{lhs.columnIdentifier, c.str, rhs.columnIdentifier} }
+Predicates = p:Predicate                                   { p.expressionVec.push_back(move(p.expression)); }
+           (- AND - i:Predicate                            { p.expressionVec.push_back(move(i.expression)); }
+           )*                                              { $$.expressionVec = move(p.expressionVec); }
+Predicate = b:Bool                                         { $$.expression = move(b.expression); }
 # --------------------------------------------------------------------------------------------------------------
 CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
@@ -94,6 +95,25 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* CLOSE                                            { $$ = move(a); }
 # --------------------------------------------------------------------------------------------------------------
+Expression = b:Bool                                        { $$.expression = move(b.expression); }
+           | s:Sum                                         { $$.expression = move(s.expression); }
+Bool = t:TRUE                                              { $$.expression = move(t.value); }
+     | f:FALSE                                             { $$.expression = move(f.value); }
+     | b:Sum                                               { }
+     ( - EQ - i:Sum                                        { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(i.expression)); }
+     )+                                                    { $$.expression = move(b.expression); }
+Sum = p:Product                                            { }
+    ( - PLUS - i:Product                                   { p.expression = util::make_unique<harriet::PlusOperator>(move(p.expression), move(i.expression)); }
+    | - MINUS - i:Product                                  { p.expression = util::make_unique<harriet::MinusOperator>(move(p.expression), move(i.expression)); }
+    )*                                                     { $$.expression = move(p.expression); }
+Product = v:Factor                                         { }
+        ( - TIMES - i:Product                              { v.expression = util::make_unique<harriet::MultiplicationOperator>(move(v.expression), move(i.expression)); }
+        | - DIVIDE - i:Product                             { v.expression = util::make_unique<harriet::DivisionOperator>(move(v.expression), move(i.expression)); }
+        )*                                                 { $$.expression = move(v.expression); }
+Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
+       | v:VALUE                                           { $$.expression = move(v.value); }
+       | c:ColumnIdentifier                                { $$.expression = util::make_unique<harriet::Variable>(c.columnIdentifier.tableIdentifier + "." + c.columnIdentifier.columnIdentifier); }
+# --------------------------------------------------------------------------------------------------------------
 TYPE = "integer"                                           { $$.str = string("integer"); }
      | "float"                                             { $$.str = string("float"); }
 VALUE = v:INTEGER                                          { $$.value = move(v.value); }
@@ -101,10 +121,8 @@ VALUE = v:INTEGER                                          { $$.value = move(v.v
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }
-ComparisonOperator = "=="                                  { $$.str = "=="; }
-Conjunction = "and"                                        { $$.str = "and" }
 # --------------------------------------------------------------------------------------------------------------
-ID = < [a-z|A-Z][a-z|A-Z|0-9|_]* >                         { $$.str = string(yytext); }
+ID = !KEYWORDS < [a-z|A-Z][a-z|A-Z|0-9|_]* >               { $$.str = string(yytext); }
 INTEGER = < [0-9]+ > !'.'                                  { $$.value = util::make_unique<harriet::IntegerValue>(harriet::to_number<int32_t>(yytext)); }
 FLOAT = < [0-9]*'.'[0-9]+ >                                { $$.value = util::make_unique<harriet::FloatValue>(harriet::to_number<float>(yytext)); }
 - = (' '|'\n'|'\t')*                                       { }
@@ -113,7 +131,12 @@ POINT = "."                                                { }
 SEM = ';'                                                  { }
 OPEN = '('                                                 { }
 CLOSE = ')'                                                { }
+PLUS = '+'                                                 { }
+MINUS = '-'                                                { }
+TIMES = '*'                                                { }
+DIVIDE = '/'                                               { }
 # --------------------------------------------------------------------------------------------------------------
+KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE { }
 SELECT = "select"                                          { }
 FROM = "from"                                              { }
 CREATE = "create"                                          { }
@@ -122,6 +145,10 @@ INSERT = "insert"                                          { }
 INTO = "into"                                              { }
 VALUES = "values"                                          { }
 WHERE = "where"                                            { }
+EQ = "=="                                                  { }
+TRUE = "true"                                              { }
+FALSE = "false"                                            { }
+AND = "and"                                                { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

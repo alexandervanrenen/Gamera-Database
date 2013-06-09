@@ -1,6 +1,11 @@
 #pragma once
 
 #include <string>
+#include <memory>
+
+namespace harriet {
+   class Value;
+}
 
 namespace dbi {
 
@@ -23,11 +28,13 @@ struct AttributeDeclaration {
    bool notNull;
 };
 
-/// In "select * from Students where id = 5;" the term "id = 5" is a Predicate.
+/// In "select * from Students where id == 5;" the term "id == 5" is a Predicate.
 struct Predicate {
-   ColumnIdentifier lhs;
+   ColumnIdentifier lhs; // Either a ColumnIdentifier or a Value
+   std::unique_ptr<harriet::Value> lhsValue;
    std::string op;
-   ColumnIdentifier rhs;
+   ColumnIdentifier rhs; // Either a ColumnIdentifier or a Value
+   std::unique_ptr<harriet::Value> rhsValue;
 };
 
 }

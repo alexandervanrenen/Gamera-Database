@@ -42,22 +42,22 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableIdentifier);
-   string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
-   auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+   // RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableIdentifier);
+   // string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
+   // auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
 
-   auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
-   unique_ptr<Operator> last = move(tableScan);
-   for(auto& predicate : select.predicates)
-      last = util::make_unique<SelectionOperator>(move(last), predicate);
+   // auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
+   // unique_ptr<Operator> last = move(tableScan);
+   // for(auto& predicate : select.predicates)
+   //    last = util::make_unique<SelectionOperator>(move(last), predicate);
 
-   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selectors);
-   auto print = util::make_unique<PrintOperator>(move(projection), cout);
+   // auto projection = util::make_unique<ProjectionOperator>(move(last), select.selectors);
+   // auto print = util::make_unique<PrintOperator>(move(projection), cout);
 
-   print->dump(cout);
-   cout << endl;
-   print->checkTypes();
-   print->execute();
+   // print->dump(cout);
+   // cout << endl;
+   // print->checkTypes();
+   // print->execute();
 }
 
 void ExecutionVisitor::onPostVisit(SelectStatement&)

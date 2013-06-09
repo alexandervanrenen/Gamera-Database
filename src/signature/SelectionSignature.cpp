@@ -11,7 +11,7 @@ SelectionSignature::SelectionSignature(const Signature& source, const Predicate&
    lhs = source.getAttributeIndex(predicate.lhs.tableIdentifier, predicate.lhs.columnIdentifier);
    rhs = source.getAttributeIndex(predicate.rhs.tableIdentifier, predicate.rhs.columnIdentifier);
 
-   predicates.push_back(predicate);
+   // predicates.push_back(predicate);
 
    for(auto& attribute : source.getAttributes())
       attributes.push_back(attribute);

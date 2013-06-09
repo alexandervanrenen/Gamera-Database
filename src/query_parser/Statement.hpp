@@ -9,6 +9,7 @@
 
 namespace harriet {
    class Value;
+   class Expression;
 }
 
 namespace dbi {
@@ -30,11 +31,11 @@ struct Statement {
 /// 
 struct SelectStatement : public Statement {
 
-   SelectStatement(std::vector<ColumnIdentifier>&& selectors, std::vector<TableAccess>&& sources, std::vector<Predicate>&& predicates);
+   SelectStatement(std::vector<ColumnIdentifier>&& selectors, std::vector<TableAccess>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& predicates);
 
    std::vector<ColumnIdentifier> selectors;
    std::vector<TableAccess> sources;
-   std::vector<Predicate> predicates;
+   std::vector<std::unique_ptr<harriet::Expression>> predicates;
 
    virtual Statement::Type getType() const {return Statement::Type::kSelectStatement;}
 

@@ -7,7 +7,6 @@
 #include "segment_manager/SPSegment.hpp"
 #include "gtest/gtest.h"
 #include "segment_manager/Record.hpp"
-#include "operator/RecordScanOperator.hpp"
 #include "util/Random.hpp"
 #include "segment_manager/SlottedPage.hpp"
 #include <array>
@@ -103,10 +102,8 @@ TEST(SPSegment, SPSegmentManyPageUpdate)
    segment.remove(tid4);
 
    // Check that page is empty
-   RecordScanOperator scanner(segment);
-   scanner.open();
-   ASSERT_TRUE(!scanner.next());
-   scanner.close();
+   for(auto iter=segment.beginPageId(); iter!=segment.endPageId(); iter++)
+      ASSERT_TRUE(segment.getAllRecordsOfPage(*iter).size() == 0);
 }
 
 TEST(SPSegment, Randomized)
@@ -192,17 +189,17 @@ TEST(SPSegment, Randomized)
          // Do consistency check
          else if(operation<=99 || i==kIterations-1 || i==0) {
             // Do scan empty
-            dbi::RecordScanOperator scanner(*segment);
-            scanner.open();
-            while(scanner.next()) {
-               const std::pair<dbi::TupleId, dbi::Record>& record = scanner.getRecord();
-               ASSERT_TRUE(reference.count(record.first) > 0);
-               ASSERT_EQ(string(record.second.data(), record.second.size()), reference.find(record.first)->second);
+            for(auto iter=segment->beginPageId(); iter!=segment->endPageId(); iter++) {
+               auto records = segment->getAllRecordsOfPage(*iter);
+               for(auto& record : records) {
+                  ASSERT_TRUE(reference.count(record.first) > 0);
+                  ASSERT_EQ(string(record.second.data(), record.second.size()), reference.find(record.first)->second);
+               }
             }
-            scanner.close();
          }
       }
 
+      // Sum up for debugging
       uint64_t sum = 0;
       for(auto iter=segment->beginPageId(); iter!=segment->endPageId(); iter++) {
          auto& bf = bufferManager.fixPage(*iter, kShared);

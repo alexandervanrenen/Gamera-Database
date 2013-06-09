@@ -1,6 +1,4 @@
 #include "SingleRecordOperator.hpp"
-#include "segment_manager/Record.hpp"
-#include "schema/RelationSchema.hpp"
 #include "harriet/Expression.hpp"
 #include <iostream>
 

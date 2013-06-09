@@ -9,7 +9,6 @@
 #include "operator/InsertOperator.hpp"
 #include "operator/PrintOperator.hpp"
 #include "operator/TableScanOperator.hpp"
-#include "operator/RecordScanOperator.hpp"
 #include "operator/ProjectionOperator.hpp"
 #include <sstream>
 
@@ -46,8 +45,7 @@ void ExecutionVisitor::onPreVisit(SelectStatement& select)
    string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
    auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
 
-   auto recordScan = util::make_unique<RecordScanOperator>(segment);
-   auto tableScan = util::make_unique<TableScanOperator>(move(recordScan), sourceSchema, alias);
+   auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
    auto projection = util::make_unique<ProjectionOperator>(move(tableScan), select.selectors);
    auto print = util::make_unique<PrintOperator>(move(projection), cout);
 

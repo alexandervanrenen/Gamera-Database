@@ -1,19 +1,14 @@
 #pragma once
 
-#include "common/Config.hpp"
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "segment_manager/PageIdIterator.hpp"
 #include "schema/Signature.hpp"
-#include <array>
-#include <cstdint>
 #include <memory>
 
 namespace dbi {
 
 class SPSegment;
 class BufferManager;
-class RecordScanOperator;
 
 /// Supplies one tuple, which was specified in the SQL script
 /// Its used for a static input for the insert operator (e.g. insert into Students values(26120,"Fichte",10);)

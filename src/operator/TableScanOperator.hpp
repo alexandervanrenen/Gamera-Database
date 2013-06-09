@@ -3,18 +3,19 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "schema/Signature.hpp"
+#include "segment_manager/PageIdIterator.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
 
 namespace dbi {
 
-class RecordScanOperator;
+class SPSegment;
 
 /// Interprets the records provided by a RecordScanOperator
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema, const std::string& alias);
+   TableScanOperator(SPSegment& source, const RelationSchema& underlyingSchema, const std::string& alias);
    virtual ~TableScanOperator();
 
    virtual const Signature& getSignature() const;
@@ -27,10 +28,14 @@ public:
    virtual void close();
 
 private:
-   std::unique_ptr<RecordScanOperator> scanner;
+   SPSegment& source;
+   const RelationSchema& underlyingSchema;
+   const Signature suppliedSignature;
+
    OperatorState state;
-   const RelationSchema& schema;
-   const Signature signature;
+   PageIdIterator nextPage;
+   std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
+   uint32_t positionInCurrentPage;
 };
 
 }

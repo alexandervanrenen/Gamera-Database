@@ -1,19 +1,23 @@
 #include "segment_manager/Record.hpp"
 #include "schema/RelationSchema.hpp"
 #include "TableScanOperator.hpp"
-#include "RecordScanOperator.hpp"
 #include "harriet/Expression.hpp"
+#include "segment_manager/Record.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include "schema/RelationSchema.hpp"
 #include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(std::unique_ptr<RecordScanOperator> scanner, const RelationSchema& schema, const string& alias)
-: scanner(move(scanner))
+TableScanOperator::TableScanOperator(SPSegment& source, const RelationSchema& underlyingSchema, const string& alias)
+: source(source)
+, underlyingSchema(underlyingSchema)
+, suppliedSignature(underlyingSchema, alias)
 , state(kClosed)
-, schema(schema)
-, signature(schema, alias)
+, nextPage(source.endPageId())
+, positionInCurrentPage(0)
 {
 }
 
@@ -23,7 +27,7 @@ TableScanOperator::~TableScanOperator()
 
 const Signature& TableScanOperator::getSignature() const
 {
-   return signature;
+   return suppliedSignature;
 }
 
 void TableScanOperator::checkTypes() const throw(harriet::Exception)
@@ -33,32 +37,54 @@ void TableScanOperator::checkTypes() const throw(harriet::Exception)
 
 void TableScanOperator::dump(ostream& os, uint32_t lvl) const
 {
-   os << "|" << string(lvl, '.') << "TableScan " << schema.getName() << endl;
+   os << "|" << string(lvl, '.') << "TableScan " << underlyingSchema.getName() << endl;
 }
 
 void TableScanOperator::open()
 {
    assert(state == kClosed);
-   scanner->open();
    state = kOpen;
+
+   // Initialize
+   nextPage = source.beginPageId();
+   positionInCurrentPage = 0; // next will load the data
+   assert(recordsInCurrentPage.size() == 0);
 }
 
 bool TableScanOperator::next()
 {
    assert(state == kOpen);
-   return scanner->next();
+
+   // Check if end is reached
+   if(positionInCurrentPage == recordsInCurrentPage.size() && nextPage == source.endPageId())
+      return false;
+
+   // Current page has more elements
+   positionInCurrentPage++;
+   if(positionInCurrentPage < recordsInCurrentPage.size()) {
+      return true;
+   }
+
+   // Find next page
+   while(positionInCurrentPage >= recordsInCurrentPage.size() && nextPage != source.endPageId()) {
+      recordsInCurrentPage = source.getAllRecordsOfPage(*nextPage);
+      positionInCurrentPage = 0;
+      ++nextPage;
+   }
+
+   // Return if a page was found
+   return positionInCurrentPage < recordsInCurrentPage.size();
 }
 
 vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
 {
-   auto& record = scanner->getRecord();
-   return schema.recordToTuple(record.second);
+   assert(positionInCurrentPage < recordsInCurrentPage.size());
+   return underlyingSchema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
 }
 
 void TableScanOperator::close()
 {
    assert(state == kOpen);
-   scanner->close();
    state = kClosed;
 }
 

@@ -3,7 +3,6 @@
 #include "harriet/Expression.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
-#include "RecordScanOperator.hpp"
 #include "schema/Signature.hpp"
 #include <iostream>
 #include <iomanip>

@@ -69,6 +69,7 @@ TEST(Schema, TupleMarschalling)
    attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true, 0});
    vector<dbi::IndexSchema> indexes;
    RelationSchema schema("students", move(attributes), move(indexes));
+   schema.setSegmentId(SegmentId(123));
    schema.optimizePadding();
 
    // Create tuple

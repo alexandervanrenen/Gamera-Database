@@ -9,7 +9,6 @@
 #include "query_parser/PrintVisitor.hpp"
 #include "query_parser/ExecutionVisitor.hpp"
 #include "schema/SchemaManager.hpp"
-#include "operator/RecordScanOperator.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "harriet/Expression.hpp"
 #include <iostream>

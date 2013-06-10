@@ -11,6 +11,7 @@
 #include "operator/TableScanOperator.hpp"
 #include "operator/ProjectionOperator.hpp"
 #include "operator/SelectionOperator.hpp"
+#include "operator/CrossProductOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -42,15 +43,24 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableName);
-   string alias = select.sources[0].tableQualifier!=""?select.sources[0].tableQualifier:select.sources[0].tableName;
-   auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+   // Cross-Product it with all other input relations
+   unique_ptr<Operator> tableAccess;
+   for(uint32_t i=0; i<select.sources.size(); i++) {
+      const RelationSchema& sourceSchema = schemaManager.getRelation(select.sources[i].tableName);
+      string tableQualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
+      auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+      auto nextLevel = util::make_unique<TableScanOperator>(segment, sourceSchema, tableQualifier);
+      if(i==0)
+         tableAccess = move(nextLevel); else
+         tableAccess = util::make_unique<CrossProductOperator>(move(tableAccess), move(nextLevel));
+   }
 
-   auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
-   unique_ptr<Operator> last = move(tableScan);
+   // Create selections
+   unique_ptr<Operator> last = move(tableAccess);
    for(auto& predicate : select.predicates)
       last = util::make_unique<SelectionOperator>(move(last), move(predicate));
 
+   // Create projections
    auto projection = util::make_unique<ProjectionOperator>(move(last), select.selections);
    auto print = util::make_unique<PrintOperator>(move(projection), cout);
 

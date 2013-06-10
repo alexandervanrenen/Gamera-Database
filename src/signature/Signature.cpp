@@ -12,8 +12,10 @@ const vector<AttributeSignature>& Signature::getAttributes() const
 
 void Signature::dump(std::ostream& os) const
 {
+   os << "[ ";
    for(uint32_t i=0; i<attributes.size(); i++)
       os << attributes[i].alias << "." << attributes[i].name << (i+1!=attributes.size()?" | ":"");
+   os << " ]";
 }
 
 bool Signature::hasAttribute(const string& alias, const string& name) const
@@ -22,6 +24,7 @@ bool Signature::hasAttribute(const string& alias, const string& name) const
    for(uint32_t i=0; i<attributes.size(); i++)
       if(attributes[i].name==name && (alias.size()==0 || alias==attributes[i].alias))
          return true;
+   return false;
 }
 
 uint32_t Signature::getAttributeIndex(const string& alias, const string& name) const

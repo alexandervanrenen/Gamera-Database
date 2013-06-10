@@ -3,6 +3,7 @@
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -91,6 +92,12 @@ bool SelectionSignature::fullfillsPredicates(const vector<unique_ptr<harriet::Va
    return reinterpret_cast<harriet::BoolValue&>(*result).result;
 }
 
+void SelectionSignature::dump(ostream& os) const
+{
+   Signature::dump(os);
+   os << " opt: " << (int)type;
+}
+
 vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables(const harriet::Expression& expression) const
 {
    vector<VariableMapping> result;
@@ -105,6 +112,8 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
          throw harriet::Exception{"unknown identifier: '" + iter->getIdentifier() + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
       }
    }
+   sort(result.begin(), result.end(), [](const VariableMapping& lhs, const VariableMapping& rhs){return lhs.name<rhs.name;});
+   result.erase(unique(result.begin(), result.end(), [](const VariableMapping& lhs, const VariableMapping& rhs){return lhs.name==rhs.name;}), result.end());
    return result;
 }
 

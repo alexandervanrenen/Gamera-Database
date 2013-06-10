@@ -29,9 +29,9 @@ void ProjectionOperator::checkTypes() const throw(harriet::Exception)
 
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
 {
-   os << "|" << string(lvl, '.') << "Projection [";
+   os << "|" << string(lvl, '.') << "Projection ";
    signature.dump(os);
-   os << "]" << endl;
+   os << endl;
    source->dump(os, lvl+3);
 }
 

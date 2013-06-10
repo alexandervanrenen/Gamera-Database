@@ -12,6 +12,8 @@ public:
 
    bool fullfillsPredicates(const std::vector<std::unique_ptr<harriet::Value>>& tuple);
 
+   virtual void dump(std::ostream& os) const;
+
 private:
    std::unique_ptr<harriet::Expression> selectionCondition;
 

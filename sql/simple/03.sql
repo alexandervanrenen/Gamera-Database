@@ -10,4 +10,4 @@ insert into players values(2, 22.22, 22.22, 500);
 insert into players values(3, 232.6, 45.765, 100);
 insert into players values(4, 80.0, 45.765, 20);
 
-select id, gold from players p where 3 == id;
+select id, gold from players p where 2 == id;

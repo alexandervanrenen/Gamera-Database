@@ -9,17 +9,6 @@ using namespace std;
 
 namespace dbi {
 
-namespace {
-   ColumnReference toColumnIdentifier(const string& str)
-   {
-      ColumnReference id;
-      size_t splitPos = str.find('.');
-      id.tableQalifier = str.substr(0, splitPos);
-      id.columnName = (splitPos==string::npos?"":str.substr(splitPos+1, str.size()));
-      return id;
-   }
-}
-
 SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<harriet::Expression> expression)
 {
    // The input variables are all forwarded to the next operator
@@ -120,7 +109,7 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
    vector<VariableMapping> result;
    vector<const harriet::Variable*> freeVariables = expression.getAllVariables();
    for(auto iter : freeVariables) {
-      ColumnReference c = toColumnIdentifier(iter->getIdentifier());
+      ColumnReference c(iter->getIdentifier());
       if(hasAttribute(c.tableQalifier, c.columnName)) {
          result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQalifier, c.columnName)});
       } else {

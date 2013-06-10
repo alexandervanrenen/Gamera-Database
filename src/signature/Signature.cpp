@@ -16,6 +16,14 @@ void Signature::dump(std::ostream& os) const
       os << attributes[i].alias << "." << attributes[i].name << (i+1!=attributes.size()?" | ":"");
 }
 
+bool Signature::hasAttribute(const string& alias, const string& name) const
+{
+   // Try to find any matching identifier
+   for(uint32_t i=0; i<attributes.size(); i++)
+      if(attributes[i].name==name && (alias.size()==0 || alias==attributes[i].alias))
+         return true;
+}
+
 uint32_t Signature::getAttributeIndex(const string& alias, const string& name) const
 {
    uint32_t resultIndex = attributes.size(); // invalid index

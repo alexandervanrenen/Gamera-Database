@@ -1,6 +1,7 @@
 #include "PrintVisitor.hpp"
 #include "Statement.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Environment.hpp"
 #include <sstream>
 
 using namespace std;
@@ -32,11 +33,17 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
 {
    out << "select " << endl;
    for(auto& iter : select.selectors)
-      out << "    " << iter.tableIdentifier << " " << iter.columnIdentifier << endl;
+      out << "    " << iter.tableIdentifier << "." << iter.columnIdentifier << endl;
    out << "from " << endl;
    for(auto& iter : select.sources)
       out << "    " << iter.tableIdentifier << " " << iter.alias << endl;
-   out << ");" << endl;
+   out << "where " << endl;
+   for(auto& iter : select.predicates) {
+      out << "    ";
+      iter->print(cout);
+      out << endl;
+   }
+   out << ";" << endl;
 }
 
 void PrintVisitor::onPostVisit(SelectStatement&)

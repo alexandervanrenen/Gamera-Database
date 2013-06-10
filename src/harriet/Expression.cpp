@@ -46,7 +46,7 @@ unique_ptr<Value> IntegerValue::evaluate() const
    return make_unique<IntegerValue>(result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeAdd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeAdd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result + reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -56,7 +56,7 @@ unique_ptr<Value> IntegerValue::computeAdd(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeSub(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeSub(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result - reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -66,7 +66,7 @@ unique_ptr<Value> IntegerValue::computeSub(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeMul(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeMul(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result * reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -76,7 +76,7 @@ unique_ptr<Value> IntegerValue::computeMul(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeDiv(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeDiv(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result / reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -86,7 +86,7 @@ unique_ptr<Value> IntegerValue::computeDiv(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeMod(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeMod(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: if(reinterpret_cast<const IntegerValue*>(&rhs)->result==0) return make_unique<IntegerValue>(0); else return make_unique<IntegerValue>(this->result % reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -94,7 +94,7 @@ unique_ptr<Value> IntegerValue::computeMod(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeExp(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeExp(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(static_cast<int32_t>(pow(this->result, reinterpret_cast<const IntegerValue*>(&rhs)->result)));
@@ -103,7 +103,7 @@ unique_ptr<Value> IntegerValue::computeExp(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeAnd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeAnd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result & reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -111,7 +111,7 @@ unique_ptr<Value> IntegerValue::computeAnd(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeOr (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeOr (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result | reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -119,7 +119,7 @@ unique_ptr<Value> IntegerValue::computeOr (const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeGt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeGt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result > reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -128,7 +128,7 @@ unique_ptr<Value> IntegerValue::computeGt (const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeLt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeLt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result < reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -137,7 +137,7 @@ unique_ptr<Value> IntegerValue::computeLt (const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeGeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeGeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result >= reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -146,7 +146,7 @@ unique_ptr<Value> IntegerValue::computeGeq(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeLeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeLeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result >= reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -155,7 +155,7 @@ unique_ptr<Value> IntegerValue::computeLeq(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeEq (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result == reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -164,7 +164,7 @@ unique_ptr<Value> IntegerValue::computeEq (const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeNeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeNeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result != reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -173,12 +173,12 @@ unique_ptr<Value> IntegerValue::computeNeq(const Value& rhs, const Environment& 
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeInv(const Environment& /*env*/) const
+unique_ptr<Value> IntegerValue::computeInv() const
 {
                                                    return make_unique<IntegerValue>(-this->result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> IntegerValue::computeCast(const Environment& /*env*/, harriet::VariableType resultType) const
+unique_ptr<Value> IntegerValue::computeCast(harriet::VariableType resultType) const
 {
    switch(resultType) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
@@ -200,7 +200,7 @@ unique_ptr<Value> FloatValue::evaluate() const
    return make_unique<FloatValue>(result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeAdd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeAdd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<FloatValue>(this->result + reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -210,7 +210,7 @@ unique_ptr<Value> FloatValue::computeAdd(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeSub(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeSub(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<FloatValue>(this->result - reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -220,7 +220,7 @@ unique_ptr<Value> FloatValue::computeSub(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeMul(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeMul(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<FloatValue>(this->result * reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -230,7 +230,7 @@ unique_ptr<Value> FloatValue::computeMul(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeDiv(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeDiv(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<FloatValue>(this->result / reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -240,7 +240,7 @@ unique_ptr<Value> FloatValue::computeDiv(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeMod(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeMod(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<FloatValue>(static_cast<int32_t>(this->result) % reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -248,7 +248,7 @@ unique_ptr<Value> FloatValue::computeMod(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeExp(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeExp(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(static_cast<float>(pow(this->result, reinterpret_cast<const IntegerValue*>(&rhs)->result)));
@@ -257,7 +257,7 @@ unique_ptr<Value> FloatValue::computeExp(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeGt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeGt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result > reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -266,7 +266,7 @@ unique_ptr<Value> FloatValue::computeGt (const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeLt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeLt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result < reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -275,7 +275,7 @@ unique_ptr<Value> FloatValue::computeLt (const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeGeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeGeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result >= reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -284,7 +284,7 @@ unique_ptr<Value> FloatValue::computeGeq(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeLeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeLeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result >= reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -293,7 +293,7 @@ unique_ptr<Value> FloatValue::computeLeq(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeEq (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result == reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -302,7 +302,7 @@ unique_ptr<Value> FloatValue::computeEq (const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeNeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeNeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<BoolValue>(this->result != reinterpret_cast<const IntegerValue*>(&rhs)->result);
@@ -311,12 +311,12 @@ unique_ptr<Value> FloatValue::computeNeq(const Value& rhs, const Environment& /*
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeInv(const Environment& /*env*/) const
+unique_ptr<Value> FloatValue::computeInv() const
 {
                                                    return make_unique<FloatValue>(-this->result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FloatValue::computeCast(const Environment& /*env*/, harriet::VariableType resultType) const
+unique_ptr<Value> FloatValue::computeCast(harriet::VariableType resultType) const
 {
    switch(resultType) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
@@ -338,7 +338,7 @@ unique_ptr<Value> BoolValue::evaluate() const
    return make_unique<BoolValue>(result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeAnd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> BoolValue::computeAnd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result & reinterpret_cast<const BoolValue*>(&rhs)->result);
@@ -346,7 +346,7 @@ unique_ptr<Value> BoolValue::computeAnd(const Value& rhs, const Environment& /*e
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeOr (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> BoolValue::computeOr (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result | reinterpret_cast<const BoolValue*>(&rhs)->result);
@@ -354,7 +354,7 @@ unique_ptr<Value> BoolValue::computeOr (const Value& rhs, const Environment& /*e
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeEq (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> BoolValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result == reinterpret_cast<const BoolValue*>(&rhs)->result);
@@ -362,7 +362,7 @@ unique_ptr<Value> BoolValue::computeEq (const Value& rhs, const Environment& /*e
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeNeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> BoolValue::computeNeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result != reinterpret_cast<const BoolValue*>(&rhs)->result);
@@ -370,12 +370,12 @@ unique_ptr<Value> BoolValue::computeNeq(const Value& rhs, const Environment& /*e
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeNot(const Environment& /*env*/) const
+unique_ptr<Value> BoolValue::computeNot() const
 {
                                                    return make_unique<BoolValue>(!this->result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> BoolValue::computeCast(const Environment& /*env*/, harriet::VariableType resultType) const
+unique_ptr<Value> BoolValue::computeCast(harriet::VariableType resultType) const
 {
    switch(resultType) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
@@ -397,7 +397,7 @@ unique_ptr<Value> StringValue::evaluate() const
    return make_unique<StringValue>(result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeAdd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeAdd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<StringValue>(this->result + reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -405,7 +405,7 @@ unique_ptr<Value> StringValue::computeAdd(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeGt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeGt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result > reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -413,7 +413,7 @@ unique_ptr<Value> StringValue::computeGt (const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeLt (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeLt (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result < reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -421,7 +421,7 @@ unique_ptr<Value> StringValue::computeLt (const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeGeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeGeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result >= reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -429,7 +429,7 @@ unique_ptr<Value> StringValue::computeGeq(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeLeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeLeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result <= reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -437,7 +437,7 @@ unique_ptr<Value> StringValue::computeLeq(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeEq (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result == reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -445,7 +445,7 @@ unique_ptr<Value> StringValue::computeEq (const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeNeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> StringValue::computeNeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result != reinterpret_cast<const StringValue*>(&rhs)->result);
@@ -453,7 +453,7 @@ unique_ptr<Value> StringValue::computeNeq(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeCast(const Environment& /*env*/, harriet::VariableType resultType) const
+unique_ptr<Value> StringValue::computeCast(harriet::VariableType resultType) const
 {
    switch(resultType) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(to_number<int32_t>(this->result));
@@ -475,7 +475,7 @@ unique_ptr<Value> VectorValue::evaluate() const
    return make_unique<VectorValue>(result);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeAdd(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeAdd(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<VectorValue>(Vector3<float>(this->result).add(reinterpret_cast<const IntegerValue*>(&rhs)->result));
@@ -485,7 +485,7 @@ unique_ptr<Value> VectorValue::computeAdd(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeSub(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeSub(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<VectorValue>(Vector3<float>(this->result).sub(reinterpret_cast<const IntegerValue*>(&rhs)->result));
@@ -495,7 +495,7 @@ unique_ptr<Value> VectorValue::computeSub(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeMul(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeMul(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<VectorValue>(Vector3<float>(this->result).mul(reinterpret_cast<const IntegerValue*>(&rhs)->result));
@@ -504,7 +504,7 @@ unique_ptr<Value> VectorValue::computeMul(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeDiv(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeDiv(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TInteger: return make_unique<VectorValue>(Vector3<float>(this->result).div(reinterpret_cast<const IntegerValue*>(&rhs)->result));
@@ -513,7 +513,7 @@ unique_ptr<Value> VectorValue::computeDiv(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeEq (const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TVector:  return make_unique<BoolValue>(this->result == reinterpret_cast<const VectorValue*>(&rhs)->result);
@@ -521,7 +521,7 @@ unique_ptr<Value> VectorValue::computeEq (const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeNeq(const Value& rhs, const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeNeq(const Value& rhs) const
 {
    switch(rhs.getResultType()) {
       case harriet::VariableType::TVector:  return make_unique<BoolValue>(this->result != reinterpret_cast<const VectorValue*>(&rhs)->result);
@@ -529,12 +529,12 @@ unique_ptr<Value> VectorValue::computeNeq(const Value& rhs, const Environment& /
    }
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeInv(const Environment& /*env*/) const
+unique_ptr<Value> VectorValue::computeInv() const
 {
                                                    return make_unique<VectorValue>(Vector3<float>(this->result).inverse());
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VectorValue::computeCast(const Environment& /*env*/, harriet::VariableType resultType) const
+unique_ptr<Value> VectorValue::computeCast(harriet::VariableType resultType) const
 {
    switch(resultType) {
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result.x);
@@ -560,17 +560,17 @@ void UnaryOperator::addChild(unique_ptr<Expression> child)
 //---------------------------------------------------------------------------
 unique_ptr<Value> UnaryMinusOperator::evaluate(Environment& environment) const
 {
-   return child->evaluate(environment)->computeInv(environment);
+   return child->evaluate(environment)->computeInv();
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> NotOperator::evaluate(Environment& environment) const
 {
-   return child->evaluate(environment)->computeNot(environment);
+   return child->evaluate(environment)->computeNot();
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> CastOperator::evaluate(Environment& environment) const
 {
-   return child->evaluate(environment)->computeCast(environment, getCastType());
+   return child->evaluate(environment)->computeCast(getCastType());
 }
 //---------------------------------------------------------------------------
 void BinaryOperator::addChildren(unique_ptr<Expression> lhsChild, unique_ptr<Expression> rhsChild)
@@ -600,72 +600,72 @@ unique_ptr<Value> AssignmentOperator::evaluate(Environment& environment) const
 //---------------------------------------------------------------------------
 unique_ptr<Value> PlusOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeAdd(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeAdd(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> MinusOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeSub(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeSub(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> MultiplicationOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeMul(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeMul(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> DivisionOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeDiv(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeDiv(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> ModuloOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeMod(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeMod(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> ExponentiationOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeExp(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeExp(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> AndOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeAnd(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeAnd(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> OrOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeOr (*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeOr (*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> GreaterOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeGt (*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeGt (*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> LessOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeLt (*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeLt (*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> GreaterEqualOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeGeq(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeGeq(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> LessEqualOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeLeq(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeLeq(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> EqualOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeEq(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeEq(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> NotEqualOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeNeq(*rhs->evaluate(environment), environment);
+   return lhs->evaluate(environment)->computeNeq(*rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 FunctionOperator::FunctionOperator(const string& functionName, uint32_t functionIdentifier, vector<unique_ptr<Expression>>& arguments)

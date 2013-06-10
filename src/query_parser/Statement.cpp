@@ -24,9 +24,10 @@ bool Statement::isGlobal() const
    return t==Type::kSelectStatement || t==Type::kCreateTableStatement || t==Type::kInsertStatement;
 }
 
-SelectStatement::SelectStatement(vector<ColumnIdentifier>&& selectors, vector<TableAccess>&& sources)
+SelectStatement::SelectStatement(vector<ColumnIdentifier>&& selectors, vector<TableAccess>&& sources, vector<unique_ptr<harriet::Expression>>&& predicates)
 : selectors(move(selectors))
 , sources(move(sources))
+, predicates(move(predicates))
 {
 }
 

@@ -6,6 +6,8 @@ create table players (id integer,
                      );
 
 insert into players values(1, 81.28, 17.29, 3000000);
-insert into players values(2, 21.28, 32.29, 2);
+insert into players values(2, 22.22, 22.22, 500);
+insert into players values(3, 232.6, 45.765, 100);
+insert into players values(4, 80.0, 45.765, 20);
 
-select gold, s.id from players s;
+select id, gold from players p where gold*id == x;

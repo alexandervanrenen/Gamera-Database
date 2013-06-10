@@ -22,6 +22,8 @@ public:
    /// Dump all attributes to os
    void dump(std::ostream& os) const;
 
+   /// Checks if there is a match (can be an ambiguous one)
+   bool hasAttribute(const std::string& alias, const std::string& name) const;
    /// Finds the best matching attribute with given alias.name. throws when ambiguous or unknown
    uint32_t getAttributeIndex(const std::string& alias, const std::string& name) const;
 

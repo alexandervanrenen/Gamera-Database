@@ -18,6 +18,7 @@ namespace harriet {
 //---------------------------------------------------------------------------
 class Environment;
 class Value;
+class Variable;
 //---------------------------------------------------------------------------
 enum struct ExpressionType : uint8_t {TValue, TVariable, TUnaryOperator, TBinaryOperator, TOpeningPharentesis, TClosingPharentesis, TFunctionOperator};
 enum struct Associativity : uint8_t {TLeft, TRight};
@@ -27,6 +28,7 @@ public:
    virtual void print(std::ostream& stream) const = 0;
 
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const = 0;
+   virtual std::vector<const Variable*> getAllVariables() const = 0;
 
    virtual ~Expression(){};
 
@@ -51,6 +53,7 @@ public:
    virtual ~Variable(){};
    virtual void print(std::ostream& stream) const;
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual std::vector<const Variable*> getAllVariables() const {return {{this}};}
    const std::string& getIdentifier() const {return identifier;}
 
 protected:
@@ -66,26 +69,27 @@ public:
    virtual uint32_t typeSize() const = 0;
    virtual std::unique_ptr<Value> evaluate(Environment& /*environment*/) const {return evaluate();}
    virtual std::unique_ptr<Value> evaluate() const = 0;
+   virtual std::vector<const Variable*> getAllVariables() const {return std::vector<const Variable*>();};
 
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& /*env*/) const {doError("+" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeSub(const Value& rhs, const Environment& /*env*/) const {doError("-" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeMul(const Value& rhs, const Environment& /*env*/) const {doError("*" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeDiv(const Value& rhs, const Environment& /*env*/) const {doError("/" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeMod(const Value& rhs, const Environment& /*env*/) const {doError("%" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeExp(const Value& rhs, const Environment& /*env*/) const {doError("^" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeAnd(const Value& rhs, const Environment& /*env*/) const {doError("&" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeOr (const Value& rhs, const Environment& /*env*/) const {doError("|" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeGt (const Value& rhs, const Environment& /*env*/) const {doError(">" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeLt (const Value& rhs, const Environment& /*env*/) const {doError("<" , *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeGeq(const Value& rhs, const Environment& /*env*/) const {doError(">=", *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeLeq(const Value& rhs, const Environment& /*env*/) const {doError("<=", *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& /*env*/) const {doError("==", *this, rhs); throw;}
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& /*env*/) const {doError("!=", *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const {doError("+" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeSub(const Value& rhs) const {doError("-" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeMul(const Value& rhs) const {doError("*" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeDiv(const Value& rhs) const {doError("/" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeMod(const Value& rhs) const {doError("%" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeExp(const Value& rhs) const {doError("^" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeAnd(const Value& rhs) const {doError("&" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeOr (const Value& rhs) const {doError("|" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeGt (const Value& rhs) const {doError(">" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeLt (const Value& rhs) const {doError("<" , *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeGeq(const Value& rhs) const {doError(">=", *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeLeq(const Value& rhs) const {doError("<=", *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const {doError("==", *this, rhs); throw;}
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const {doError("!=", *this, rhs); throw;}
 
-   virtual std::unique_ptr<Value> computeInv(const Environment& /*env*/) const {doError("-", *this); throw;}
-   virtual std::unique_ptr<Value> computeNot(const Environment& /*env*/) const {doError("!", *this); throw;}
+   virtual std::unique_ptr<Value> computeInv() const {doError("-", *this); throw;}
+   virtual std::unique_ptr<Value> computeNot() const {doError("!", *this); throw;}
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& /*env*/, harriet::VariableType resultType) const {throw harriet::Exception{"unable to cast '" + harriet::typeToName(getResultType()) + "' to '" +  harriet::typeToName(resultType) + "'"};} // TODO: remove environment parameter
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const {throw harriet::Exception{"unable to cast '" + harriet::typeToName(getResultType()) + "' to '" +  harriet::typeToName(resultType) + "'"};} // TODO: remove environment parameter
 
    friend std::ostream& operator<< (std::ostream& os, const Value& value) {value.print(os); return os;}
 
@@ -111,24 +115,24 @@ struct IntegerValue : public Value, GenericAllocator<IntegerValue> {
    virtual harriet::VariableType getResultType() const {return harriet::VariableType::TInteger;}
    virtual uint32_t typeSize() const {return sizeof(int32_t);}
 
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeSub(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeMul(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeDiv(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeMod(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeExp(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeAnd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeOr (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& env) const;
+   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeSub(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeMul(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeDiv(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeMod(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeExp(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeAnd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeOr (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
-   virtual std::unique_ptr<Value> computeInv(const Environment& env) const;
+   virtual std::unique_ptr<Value> computeInv() const;
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& env, harriet::VariableType resultType) const;
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
 struct FloatValue : public Value, GenericAllocator<FloatValue> {
@@ -144,22 +148,22 @@ struct FloatValue : public Value, GenericAllocator<FloatValue> {
    virtual harriet::VariableType getResultType() const {return harriet::VariableType::TFloat;}
    virtual uint32_t typeSize() const {return sizeof(float);}
 
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeSub(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeMul(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeDiv(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeMod(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeExp(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& env) const;
+   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeSub(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeMul(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeDiv(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeMod(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeExp(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
-   virtual std::unique_ptr<Value> computeInv(const Environment& env) const;
+   virtual std::unique_ptr<Value> computeInv() const;
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& env, harriet::VariableType resultType) const;
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
 struct BoolValue : public Value, GenericAllocator<BoolValue> {
@@ -175,14 +179,14 @@ struct BoolValue : public Value, GenericAllocator<BoolValue> {
    virtual harriet::VariableType getResultType() const {return harriet::VariableType::TBool;}
    virtual uint32_t typeSize() const {return sizeof(bool);}
 
-   virtual std::unique_ptr<Value> computeAnd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeOr (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& env) const;
+   virtual std::unique_ptr<Value> computeAnd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeOr (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
-   virtual std::unique_ptr<Value> computeNot(const Environment& env) const;
+   virtual std::unique_ptr<Value> computeNot() const;
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& env, harriet::VariableType resultType) const;
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
 struct StringValue : public Value, GenericAllocator<StringValue> {
@@ -198,15 +202,15 @@ struct StringValue : public Value, GenericAllocator<StringValue> {
    virtual harriet::VariableType getResultType() const {return harriet::VariableType::TString;}
    virtual uint32_t typeSize() const {throw;}
 
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLt (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeGeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeLeq(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& env) const;
+   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLt (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeGeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeLeq(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& env, harriet::VariableType resultType) const;
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
 struct VectorValue : public Value, GenericAllocator<VectorValue> {
@@ -222,19 +226,20 @@ struct VectorValue : public Value, GenericAllocator<VectorValue> {
    virtual harriet::VariableType getResultType() const {return harriet::VariableType::TVector;}
    virtual uint32_t typeSize() const {return sizeof(Vector3<float>);}
 
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeSub(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeMul(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeDiv(const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs, const Environment& env) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs, const Environment& env) const;
+   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeSub(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeMul(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeDiv(const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
+   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
-   virtual std::unique_ptr<Value> computeInv(const Environment& env) const;
+   virtual std::unique_ptr<Value> computeInv() const;
 
-   virtual std::unique_ptr<Value> computeCast(const Environment& env, harriet::VariableType resultType) const;
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
 class UnaryOperator : public Expression {
+   virtual std::vector<const Variable*> getAllVariables() const {return child->getAllVariables();}
    virtual void print(std::ostream& stream) const;
 public:
    virtual void addChild(std::unique_ptr<Expression> child);
@@ -298,6 +303,7 @@ class VectorCast : public CastOperator {
 class BinaryOperator : public Expression {
 public:
    virtual ~BinaryOperator(){}
+   virtual std::vector<const Variable*> getAllVariables() const {auto l=lhs->getAllVariables(); auto r=rhs->getAllVariables(); l.insert(l.end(), r.begin(), r.end()); return l;}
 protected:
    virtual void print(std::ostream& stream) const;
    virtual void addChildren(std::unique_ptr<Expression> lhsChild, std::unique_ptr<Expression> rhsChild);
@@ -323,6 +329,7 @@ class ArithmeticOperator : public BinaryOperator {
 //---------------------------------------------------------------------------
 class PlusOperator : public ArithmeticOperator {
 public:
+   PlusOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~PlusOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -333,6 +340,7 @@ protected:
 //---------------------------------------------------------------------------
 class MinusOperator : public ArithmeticOperator {
 public:
+   MinusOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~MinusOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -343,6 +351,7 @@ protected:
 //---------------------------------------------------------------------------
 class MultiplicationOperator : public ArithmeticOperator {
 public:
+   MultiplicationOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~MultiplicationOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -353,6 +362,7 @@ protected:
 //---------------------------------------------------------------------------
 class DivisionOperator : public ArithmeticOperator {
 public:
+   DivisionOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~DivisionOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
@@ -451,6 +461,7 @@ protected:
 //---------------------------------------------------------------------------
 class EqualOperator : public ComparisonOperator {
 public:
+   EqualOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~EqualOperator(){}
 protected:
    virtual std::unique_ptr<Value> evaluate(Environment& environment) const;

@@ -8,6 +8,6 @@ create table players (id integer,
 insert into players values(1, 81.28, 17.29, 3000000);
 insert into players values(2, 22.22, 22.22, 500);
 insert into players values(3, 232.6, 45.765, 100);
-insert into players values(4, 80.0, 45.765, 20);
+insert into players values(4, 80.0, 45.765, 4);
 
-select id, gold from players p where 2 == id;
+select id, gold from players p where gold == id;

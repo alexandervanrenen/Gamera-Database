@@ -49,26 +49,39 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
       return;
    }
 
-   // Optimize -- variable with constant. an expression with a single column access (s.a == 3)
+   // Optimize -- column-reference with constant. an expression with a single column access (s.a == 3)
    if(variableMapping.size()==1 && expression->isLogicOperator()) {
       // Acquire the constant subtree of the expression
       auto& rootOperator = reinterpret_cast<harriet::LogicOperator&>(*expression.get());
       unique_ptr<harriet::Expression>* constantSubTree = &rootOperator.lhs;
-      unique_ptr<harriet::Expression>* variableSubTree = &rootOperator.rhs;
+      unique_ptr<harriet::Expression>* columnRefSubTree = &rootOperator.rhs;
       if(getFreeVariables(**constantSubTree).size() != 0)
-         swap(constantSubTree, variableSubTree);
+         swap(constantSubTree, columnRefSubTree);
 
       // Evaluate the constant subtree and replace it with the computed result
       harriet::Environment env; // Empty environment for now
       (*constantSubTree) = (*constantSubTree)->evaluate(env);
 
       // This optimization only works if the variable subtree is a singe variable
-      if((*variableSubTree)->getExpressionType() == harriet::ExpressionType::TVariable) {
+      if((*columnRefSubTree)->getExpressionType() == harriet::ExpressionType::TVariable) {
          selectionCondition = move(*constantSubTree);
          type = Type::kOneColumn;
       } else {
          selectionCondition = move(expression);
          type = Type::kComplex;
+      }
+      return;
+   }
+
+   // Optimize -- column-reference with column-reference
+   if(variableMapping.size()==2 && expression->isLogicOperator()) {
+      // Optimization only works if both children of the operator are variables => direct comparison
+      auto& rootOperator = reinterpret_cast<harriet::LogicOperator&>(*expression.get());
+      if(rootOperator.lhs->getExpressionType()==harriet::ExpressionType::TVariable && rootOperator.rhs->getExpressionType()==harriet::ExpressionType::TVariable) {
+         type = Type::kTwoColumn;
+      } else {
+         type = Type::kComplex;
+         selectionCondition = move(expression);
       }
       return;
    }
@@ -80,12 +93,16 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
 bool SelectionSignature::fullfillsPredicates(const vector<unique_ptr<harriet::Value>>& tuple)
 {
    harriet::Environment env;
-   if(type == Type::kConstant) // => Constant
+   if(type == Type::kConstant) // => Constant Value
       return reinterpret_cast<harriet::BoolValue&>(*selectionCondition->evaluate(env)).result;
 
-   if(type == Type::kOneColumn) // => Constant
+   if(type == Type::kOneColumn) // => a = 3
       return reinterpret_cast<harriet::BoolValue&>(*tuple[variableMapping[0].position]->computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition))).result;
 
+   if(type == Type::kTwoColumn) // => a = b
+      return reinterpret_cast<harriet::BoolValue&>(*tuple[variableMapping[0].position]->computeEq(*tuple[variableMapping[1].position])).result;
+
+   // => something wired
    for(auto& iter : variableMapping)
       env.add(iter.name, tuple[iter.position]->evaluate());
    auto result = selectionCondition->evaluate(env);

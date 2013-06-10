@@ -52,7 +52,7 @@ void ExecutionVisitor::onPreVisit(SelectStatement& select)
       auto nextLevel = util::make_unique<TableScanOperator>(segment, sourceSchema, tableQualifier);
       if(i==0)
          tableAccess = move(nextLevel); else
-         tableAccess = util::make_unique<CrossProductOperator>(move(tableAccess), move(nextLevel));
+         tableAccess = util::make_unique<CrossProductOperator>(move(nextLevel), move(tableAccess));
    }
 
    // Create selections
@@ -85,11 +85,11 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    vector<IndexSchema> indexes;
 
    // Add relation
-   dbi::RelationSchema schema(createTable.tableName, move(attributes), move(indexes));
+   auto schema = util::make_unique<RelationSchema>(createTable.tableName, move(attributes), move(indexes));
    SegmentId sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
-   schema.setSegmentId(sid);
-   schema.optimizePadding();
-   schemaManager.addRelation(schema);
+   schema->setSegmentId(sid);
+   schema->optimizePadding();
+   schemaManager.addRelation(move(schema));
 }
 
 void ExecutionVisitor::onPostVisit(CreateTableStatement&)

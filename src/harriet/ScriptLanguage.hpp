@@ -23,7 +23,6 @@ const std::string kCastName = "cast";
 const std::string kVariableInteger = "integer";
 const std::string kVariableFloat = "float";
 const std::string kVariableBool = "bool";
-const std::string kVariableString = "string";
 const std::string kVariableVector = "vector";
 
 /// boolean values
@@ -31,7 +30,7 @@ const std::string kTrue = "true";
 const std::string kFalse = "false";
 
 /// variable types
-enum struct VariableType : uint8_t {TInteger, TFloat, TBool, TString, TVector};
+enum struct VariableType : uint8_t {TInteger, TFloat, TBool, TVector};
 
 /// exceptions
 struct Exception : public std::exception {
@@ -42,10 +41,9 @@ struct Exception : public std::exception {
 };
 
 /// all keywords
-const std::array<std::string, 5>keywords = {{ kVariableInteger,
+const std::array<std::string, 4 >keywords = {{ kVariableInteger,
                                                kVariableFloat,
                                                kVariableBool,
-                                               kVariableString,
                                                kVariableVector
                                        }};
 

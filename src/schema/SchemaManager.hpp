@@ -17,7 +17,7 @@ public:
     ~SchemaManager();
 
     // Manage Relations
-    void addRelation(RelationSchema& relationShema);
+    void addRelation(std::unique_ptr<RelationSchema> relationShema);
     bool hasRelation(const std::string& relationName) const;
     void dropRelation(const std::string& relationName);
 

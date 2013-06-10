@@ -20,7 +20,7 @@ class Environment;
 class Value;
 class Variable;
 //---------------------------------------------------------------------------
-enum struct ExpressionType : uint8_t {TVariable, TIntegerValue, TFloatValue, TBoolValue, TStringValue, TVectorValue, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TStringCast, TVectorCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
+enum struct ExpressionType : uint8_t {TVariable, TIntegerValue, TFloatValue, TBoolValue, TVectorValue, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TVectorCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
 //---------------------------------------------------------------------------
 class Expression {
 public:
@@ -176,31 +176,6 @@ struct BoolValue : public Value, GenericAllocator<BoolValue> {
    virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };
 //---------------------------------------------------------------------------
-struct StringValue : public Value, GenericAllocator<StringValue> {
-   using GenericAllocator<StringValue>::operator new;
-   using GenericAllocator<StringValue>::operator delete;
-
-   virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate() const;
-   std::string result;
-   StringValue(const std::string& result) : result(result) {}
-   virtual ~StringValue(){};
-   virtual ExpressionType getExpressionType() const {return ExpressionType::TStringValue;}
-
-   virtual harriet::VariableType getResultType() const {return harriet::VariableType::TString;}
-   virtual uint32_t typeSize() const {throw;}
-
-   virtual std::unique_ptr<Value> computeAdd(const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeGt (const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeLt (const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeGeq(const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeLeq(const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
-   virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
-
-   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
-};
-//---------------------------------------------------------------------------
 struct VectorValue : public Value, GenericAllocator<VectorValue> {
    using GenericAllocator<VectorValue>::operator new;
    using GenericAllocator<VectorValue>::operator delete;
@@ -277,15 +252,9 @@ class BoolCast : public CastOperator {
    virtual const std::string getSign() const {return "cast<bool>";}
 };
 //---------------------------------------------------------------------------
-class StringCast : public CastOperator {
-   virtual ExpressionType getExpressionType() const {return ExpressionType::TStringCast;}
-   virtual harriet::VariableType getCastType() const {return harriet::VariableType::TString;}
-   virtual const std::string getSign() const {return "cast<string>";}
-};
-//---------------------------------------------------------------------------
 class VectorCast : public CastOperator {
    virtual ExpressionType getExpressionType() const {return ExpressionType::TVectorCast;}
-   virtual harriet::VariableType getCastType() const {return harriet::VariableType::TString;}
+   virtual harriet::VariableType getCastType() const {return harriet::VariableType::TVector;}
    virtual const std::string getSign() const {return "cast<vector>";}
 };
 //---------------------------------------------------------------------------

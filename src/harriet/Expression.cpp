@@ -36,7 +36,6 @@ unique_ptr<Value> Variable::evaluate(Environment& environment) const
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(reinterpret_cast<const IntegerValue&>(result).result);
       case harriet::VariableType::TFloat:   return make_unique<FloatValue>(reinterpret_cast<const FloatValue&>(result).result);
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(reinterpret_cast<const BoolValue&>(result).result);
-      case harriet::VariableType::TString:  return make_unique<StringValue>(reinterpret_cast<const StringValue&>(result).result);
       case harriet::VariableType::TVector:  return make_unique<VectorValue>(reinterpret_cast<const VectorValue&>(result).result);
       default:                                     throw;
    }
@@ -190,7 +189,6 @@ unique_ptr<Value> IntegerValue::computeCast(harriet::VariableType resultType) co
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
       case harriet::VariableType::TFloat:   return make_unique<FloatValue>(this->result);
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result!=0);
-      case harriet::VariableType::TString:  return make_unique<StringValue>(to_string(this->result));
       case harriet::VariableType::TVector:  return make_unique<VectorValue>(Vector3<float>(this->result, this->result, this->result));
       default:                                     throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
    }
@@ -328,7 +326,6 @@ unique_ptr<Value> FloatValue::computeCast(harriet::VariableType resultType) cons
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
       case harriet::VariableType::TFloat:   return make_unique<FloatValue>(this->result);
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result!=0);
-      case harriet::VariableType::TString:  return make_unique<StringValue>(to_string(this->result));
       case harriet::VariableType::TVector:  return make_unique<VectorValue>(Vector3<float>(this->result, this->result, this->result));
       default: throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
    }
@@ -387,86 +384,7 @@ unique_ptr<Value> BoolValue::computeCast(harriet::VariableType resultType) const
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result);
       case harriet::VariableType::TFloat:   return make_unique<FloatValue>(this->result);
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result);
-      case harriet::VariableType::TString:  return make_unique<StringValue>(this->result?harriet::kTrue:harriet::kFalse);
       case harriet::VariableType::TVector:  return make_unique<VectorValue>(Vector3<float>(this->result, this->result, this->result));
-      default:                                     throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
-   }
-}
-//---------------------------------------------------------------------------
-void StringValue::print(ostream& stream) const
-{
-   stream << "\"" << result << "\" ";
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::evaluate() const
-{
-   return make_unique<StringValue>(result);
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeAdd(const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<StringValue>(this->result + reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '+'"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeGt (const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result > reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '>'"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeLt (const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result < reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '<'"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeGeq(const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result >= reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '>='"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeLeq(const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result <= reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '<='"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeEq (const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result == reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '=='"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeNeq(const Value& rhs) const
-{
-   switch(rhs.getResultType()) {
-      case harriet::VariableType::TString:    return make_unique<BoolValue>(this->result != reinterpret_cast<const StringValue*>(&rhs)->result);
-      default:                                       throw harriet::Exception{"invalid input for binary operator '!='"};
-   }
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> StringValue::computeCast(harriet::VariableType resultType) const
-{
-   switch(resultType) {
-      case harriet::VariableType::TInteger: return make_unique<IntegerValue>(to_number<int32_t>(this->result));
-      case harriet::VariableType::TFloat:   return make_unique<FloatValue>(to_number<float>(this->result));
-      case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result==harriet::kTrue || this->result=="0");
-      case harriet::VariableType::TString:  return make_unique<StringValue>(this->result);
-      case harriet::VariableType::TVector:  {auto v=make_unique<VectorValue>(Vector3<float>(0)); istringstream is(this->result); is >> v->result; return ::move(v);}
       default:                                     throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
    }
 }
@@ -546,7 +464,6 @@ unique_ptr<Value> VectorValue::computeCast(harriet::VariableType resultType) con
       case harriet::VariableType::TInteger: return make_unique<IntegerValue>(this->result.x);
       case harriet::VariableType::TFloat:   return make_unique<FloatValue>(this->result.x);
       case harriet::VariableType::TBool:    return make_unique<BoolValue>(this->result.x!=0);
-      case harriet::VariableType::TString:  return make_unique<StringValue>(this->result.toString());
       case harriet::VariableType::TVector:  return make_unique<VectorValue>(this->result);
       default:                                     throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
    }

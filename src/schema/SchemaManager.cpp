@@ -26,11 +26,12 @@ SchemaManager::~SchemaManager()
 {
 }
 
-void SchemaManager::addRelation(RelationSchema& schema)
+void SchemaManager::addRelation(unique_ptr<RelationSchema> schema)
 {
-   assert(relations.count(schema.getName())==0);
-   TupleId tid = storage.insert(schema.marschall());
-   relations.insert(make_pair(schema.getName(), make_pair(tid, util::make_unique<RelationSchema>(schema))));
+   assert(relations.count(schema->getName())==0);
+   TupleId tid = storage.insert(schema->marschall());
+   string tableName = schema->getName();
+   relations.insert(make_pair(tableName, make_pair(tid, move(schema))));
 }
 
 bool SchemaManager::hasRelation(const string& relationName) const

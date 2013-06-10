@@ -32,11 +32,11 @@ void PrintVisitor::onPostVisit(RootStatement&)
 void PrintVisitor::onPreVisit(SelectStatement& select)
 {
    out << "select " << endl;
-   for(auto& iter : select.selectors)
-      out << "    " << iter.tableIdentifier << "." << iter.columnIdentifier << endl;
+   for(auto& iter : select.selections)
+      out << "    " << iter.tableQalifier << "." << iter.columnName << endl;
    out << "from " << endl;
    for(auto& iter : select.sources)
-      out << "    " << iter.tableIdentifier << " " << iter.alias << endl;
+      out << "    " << iter.tableName << " " << iter.tableQualifier << endl;
    out << "where " << endl;
    for(auto& iter : select.predicates) {
       out << "    ";
@@ -52,7 +52,7 @@ void PrintVisitor::onPostVisit(SelectStatement&)
 
 void PrintVisitor::onPreVisit(CreateTableStatement& createTable)
 {
-   out << "create table " << createTable.name << " (" << endl;
+   out << "create table " << createTable.tableName << " (" << endl;
    for(auto& iter : createTable.attributes)
       out << iter.name << " " << iter.type << " " << (iter.notNull?"not null":"null") << endl;
    out << ");" << endl;

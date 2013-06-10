@@ -42,8 +42,8 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableIdentifier);
-   string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
+   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableName);
+   string alias = select.sources[0].tableQualifier!=""?select.sources[0].tableQualifier:select.sources[0].tableName;
    auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
 
    auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
@@ -51,7 +51,7 @@ void ExecutionVisitor::onPreVisit(SelectStatement& select)
    for(auto& predicate : select.predicates)
       last = util::make_unique<SelectionOperator>(move(last), move(predicate));
 
-   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selectors);
+   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selections);
    auto print = util::make_unique<PrintOperator>(move(projection), cout);
 
    print->dump(cout);
@@ -75,7 +75,7 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    vector<IndexSchema> indexes;
 
    // Add relation
-   dbi::RelationSchema schema(createTable.name, move(attributes), move(indexes));
+   dbi::RelationSchema schema(createTable.tableName, move(attributes), move(indexes));
    SegmentId sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
    schema.setSegmentId(sid);
    schema.optimizePadding();

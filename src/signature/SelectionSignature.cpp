@@ -10,12 +10,12 @@ using namespace std;
 namespace dbi {
 
 namespace {
-   ColumnIdentifier toColumnIdentifier(const string& str)
+   ColumnReference toColumnIdentifier(const string& str)
    {
-      ColumnIdentifier id;
+      ColumnReference id;
       size_t splitPos = str.find('.');
-      id.tableIdentifier = str.substr(0, splitPos);
-      id.columnIdentifier = (splitPos==string::npos?"":str.substr(splitPos+1, str.size()));
+      id.tableQalifier = str.substr(0, splitPos);
+      id.columnName = (splitPos==string::npos?"":str.substr(splitPos+1, str.size()));
       return id;
    }
 }
@@ -120,9 +120,9 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
    vector<VariableMapping> result;
    vector<const harriet::Variable*> freeVariables = expression.getAllVariables();
    for(auto iter : freeVariables) {
-      ColumnIdentifier c = toColumnIdentifier(iter->getIdentifier());
-      if(hasAttribute(c.tableIdentifier, c.columnIdentifier)) {
-         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableIdentifier, c.columnIdentifier)});
+      ColumnReference c = toColumnIdentifier(iter->getIdentifier());
+      if(hasAttribute(c.tableQalifier, c.columnName)) {
+         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQalifier, c.columnName)});
       } else {
          ostringstream os;
          dump(os);

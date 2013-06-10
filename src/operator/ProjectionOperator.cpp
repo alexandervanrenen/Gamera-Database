@@ -6,7 +6,7 @@ using namespace std;
 
 namespace dbi {
 
-ProjectionOperator::ProjectionOperator(std::unique_ptr<Operator> source, const vector<ColumnIdentifier>& projectedAttributes)
+ProjectionOperator::ProjectionOperator(std::unique_ptr<Operator> source, const vector<ColumnReference>& projectedAttributes)
 : source(move(source))
 , state(kClosed)
 , signature(this->source->getSignature(), projectedAttributes)

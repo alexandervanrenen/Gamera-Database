@@ -32,6 +32,9 @@ public:
    virtual ExpressionType getExpressionType() const = 0;
 
    virtual ~Expression(){};
+
+   /// Type Categories
+   bool isLogicOperator() const;
 };
 //---------------------------------------------------------------------------
 class Variable : public Expression {

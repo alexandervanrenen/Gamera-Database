@@ -18,6 +18,12 @@ using namespace std;
 //---------------------------------------------------------------------------
 namespace harriet {
 //---------------------------------------------------------------------------
+bool Expression::isLogicOperator() const
+{
+   ExpressionType t = getExpressionType();
+   return t==ExpressionType::TAndOperator || t==ExpressionType::TOrOperator || t==ExpressionType::TGreaterOperator || t==ExpressionType::TLessOperator || t==ExpressionType::TGreaterEqualOperator || t==ExpressionType::TLessEqualOperator || t==ExpressionType::TEqualOperator || t==ExpressionType::TNotEqualOperator;
+}
+//---------------------------------------------------------------------------
 void Variable::print(ostream& stream) const
 {
    stream << identifier;

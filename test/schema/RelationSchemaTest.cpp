@@ -99,20 +99,20 @@ TEST(Schema, SchemaManager)
    vector<dbi::AttributeSchema> attributes1;
    attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
    vector<dbi::IndexSchema> indexes1;
-   RelationSchema schema1("students", move(attributes1), move(indexes1));
-   schema1.setSegmentId(SegmentId(8128));
+   auto schema1 = util::make_unique<RelationSchema>("students", move(attributes1), move(indexes1));
+   schema1->setSegmentId(SegmentId(8128));
 
    vector<dbi::AttributeSchema> attributes2;
    attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true, 0});
    vector<dbi::IndexSchema> indexes2;
-   RelationSchema schema2("listens_to", move(attributes2), move(indexes2));
-   schema2.setSegmentId(SegmentId(1729));
+   auto schema2 = util::make_unique<RelationSchema>("listens_to", move(attributes2), move(indexes2));
+   schema2->setSegmentId(SegmentId(1729));
 
    // Set up schema manager and add two relations
    {
       dbi::SchemaManager schemaManager(segmentManager.getSPSegment(kSchemaSegmentId));
-      schemaManager.addRelation(schema1);
-      schemaManager.addRelation(schema2);
+      schemaManager.addRelation(move(schema1));
+      schemaManager.addRelation(move(schema2));
    }
 
    // Restart schema manager
@@ -121,8 +121,20 @@ TEST(Schema, SchemaManager)
 
       ASSERT_TRUE(schemaManager.hasRelation("students"));
       ASSERT_TRUE(schemaManager.hasRelation("listens_to"));
-      compare(schema1, schemaManager.getRelation("students"));
-      compare(schema2, schemaManager.getRelation("listens_to"));
+
+      vector<dbi::AttributeSchema> attributes1_ref;
+      attributes1_ref.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
+      vector<dbi::IndexSchema> indexes1_ref;
+      auto schema1_ref = util::make_unique<RelationSchema>("students", move(attributes1_ref), move(indexes1));
+      schema1_ref->setSegmentId(SegmentId(8128));
+      compare(*schema1_ref, schemaManager.getRelation("students"));
+
+      vector<dbi::AttributeSchema> attributes2_ref;
+      attributes2_ref.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true, 0});
+      vector<dbi::IndexSchema> indexes2_ref;
+      auto schema2_ref = util::make_unique<RelationSchema>("listens_to", move(attributes2_ref), move(indexes2));
+      schema2_ref->setSegmentId(SegmentId(1729));
+      compare(*schema2_ref, schemaManager.getRelation("listens_to"));
 
       schemaManager.dropRelation("students");
       schemaManager.dropRelation("listens_to");

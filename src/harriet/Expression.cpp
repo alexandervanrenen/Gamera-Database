@@ -33,10 +33,11 @@ unique_ptr<Value> Variable::evaluate(Environment& environment) const
 {
    const Value& result = environment.read(identifier);
    switch(result.getResultType()) {
-      case harriet::VariableType::TInteger: return make_unique<IntegerValue>(reinterpret_cast<const IntegerValue&>(result).result);
-      case harriet::VariableType::TFloat:   return make_unique<FloatValue>(reinterpret_cast<const FloatValue&>(result).result);
-      case harriet::VariableType::TBool:    return make_unique<BoolValue>(reinterpret_cast<const BoolValue&>(result).result);
-      case harriet::VariableType::TVector:  return make_unique<VectorValue>(reinterpret_cast<const VectorValue&>(result).result);
+      case harriet::VariableType::TInteger:    return make_unique<IntegerValue>(reinterpret_cast<const IntegerValue&>(result).result);
+      case harriet::VariableType::TFloat:      return make_unique<FloatValue>(reinterpret_cast<const FloatValue&>(result).result);
+      case harriet::VariableType::TBool:       return make_unique<BoolValue>(reinterpret_cast<const BoolValue&>(result).result);
+      case harriet::VariableType::TVector:     return make_unique<VectorValue>(reinterpret_cast<const VectorValue&>(result).result);
+      case harriet::VariableType::TCharacter:  return make_unique<CharacterValue>(reinterpret_cast<const CharacterValue&>(result).result, reinterpret_cast<const CharacterValue&>(result).result.size());
       default:                                     throw;
    }
 }
@@ -487,7 +488,23 @@ unique_ptr<Value> CharacterValue::evaluate() const
 unique_ptr<Value> CharacterValue::computeEq (const Value& rhs) const
 {
    switch(rhs.getResultType()) {
-      case harriet::VariableType::TCharacter:  return make_unique<BoolValue>(memcmp(this->result.data(), reinterpret_cast<const CharacterValue*>(&rhs)->result.data(), this->result.size())==0);
+      case harriet::VariableType::TCharacter:
+      {
+         auto other = reinterpret_cast<const CharacterValue*>(&rhs);
+         uint32_t otherLength=0;
+         for(auto iter : other->result)
+            if(iter != '\0')
+               otherLength++; else
+               break;
+         uint32_t thisLength=0;
+         for(auto iter : result)
+            if(iter != '\0')
+               thisLength++; else
+               break;
+         if(otherLength != thisLength)
+            return make_unique<BoolValue>(false);
+         return make_unique<BoolValue>(memcmp(this->result.data(), other->result.data(), otherLength) == 0);
+      }
       default:                                 throw harriet::Exception{"invalid input for binary operator '==' oh noze think of teh monkeys !!"};
    }
 }

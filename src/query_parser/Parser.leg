@@ -116,10 +116,10 @@ Factor = OPEN - e:Expression - CLOSE                       { $$.expression = mov
        | v:VALUE                                           { $$.expression = move(v.value); }
        | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
 # --------------------------------------------------------------------------------------------------------------
-TYPE = "integer" ![a-z|A-Z]                                { $$.str = string("integer"); $$.number = 4; }
-     | "float" ![a-z|A-Z]                                  { $$.str = string("float");  $$.number = 4; }
-     | "character" OPEN - i:INTEGER - CLOSE                { $$.str = string("character");  $$.number = i.number; }
-     | "character" ![a-z|A-Z]                              { $$.str = string("character");  $$.number = 1; }
+TYPE = INTEGER_ID ![a-z|A-Z]                               { $$.str = string("integer"); $$.number = 4; }
+     | FLOAT_ID ![a-z|A-Z]                                 { $$.str = string("float"); $$.number = 4; }
+     | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.str = string("character"); $$.number = i.number; }
+     | CHARACTER_ID ![a-z|A-Z]                             { $$.str = string("character"); $$.number = 1; }
 VALUE = v:INTEGER                                          { $$.value = util::make_unique<harriet::IntegerValue>(v.number); }
       | v:FLOAT                                            { $$.value = util::make_unique<harriet::FloatValue>(v.numberf); }
       | v:STRING                                           { $$.value = util::make_unique<harriet::CharacterValue>(v.str, v.str.size()); }
@@ -130,7 +130,7 @@ NULLABLE = "not null"                                      { $$.boolean = false;
 ID = !KEYWORDS < [a-z|A-Z][a-z|A-Z|0-9|_]* >               { $$.str = string(yytext); }
 INTEGER = < [0-9]+ > !'.'                                  { $$.number = harriet::to_number<int32_t>(yytext); }
 FLOAT = < [0-9]*'.'[0-9]+ >                                { $$.numberf = harriet::to_number<float>(yytext); }
-STRING = '"' < [a-z|A-Z]* > '"'                            { $$.str = string(yytext); }
+STRING = '\'' < [a-z|A-Z|0-9| ]* > '\''                          { $$.str = string(yytext); }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
 POINT = "."                                                { }
@@ -141,20 +141,23 @@ PLUS = '+'                                                 { }
 MINUS = '-'                                                { }
 TIMES = '*'                                                { }
 DIVIDE = '/'                                               { }
+EQ = "=" | "=="                                            { }
 # --------------------------------------------------------------------------------------------------------------
 KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE { }
-SELECT = "select" ![a-z|A-Z]                               { }
-FROM = "from" ![a-z|A-Z]                                   { }
-CREATE = "create" ![a-z|A-Z]                               { }
-TABLE = "table" ![a-z|A-Z]                                 { }
-INSERT = "insert" ![a-z|A-Z]                               { }
-INTO = "into" ![a-z|A-Z]                                   { }
-VALUES = "values" ![a-z|A-Z]                               { }
-WHERE = "where" ![a-z|A-Z]                                 { }
-EQ = "=="                                                  { }
-TRUE = "true" ![a-z|A-Z]                                   { }
-FALSE = "false" ![a-z|A-Z]                                 { }
-AND = "and" ![a-z|A-Z]                                     { }
+SELECT = "select"                     ![a-z|A-Z]           { }
+FROM = "from"                         ![a-z|A-Z]           { }
+CREATE = "create"                     ![a-z|A-Z]           { }
+TABLE = "table"                       ![a-z|A-Z]           { }
+INSERT = "insert"                     ![a-z|A-Z]           { }
+INTO = "into"                         ![a-z|A-Z]           { }
+VALUES = "values"                     ![a-z|A-Z]           { }
+WHERE = "where"                       ![a-z|A-Z]           { }
+TRUE = "true"                         ![a-z|A-Z]           { }
+FALSE = "false"                       ![a-z|A-Z]           { }
+AND = "and"                           ![a-z|A-Z]           { }
+INTEGER_ID = "integer"                ![a-z|A-Z]           { }
+FLOAT_ID = "float"                    ![a-z|A-Z]           { }
+CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

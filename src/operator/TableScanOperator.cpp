@@ -87,6 +87,7 @@ void TableScanOperator::close()
 {
    assert(state == kOpen);
    state = kClosed;
+   recordsInCurrentPage.clear();
 }
 
 }

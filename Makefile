@@ -156,6 +156,7 @@ libs/gflags:
 clean:
 	rm bin -rf
 	rm build -rf
+	touch src/query_parser/Parser.cpp
 
 # Clean up =)
 clean-complete:

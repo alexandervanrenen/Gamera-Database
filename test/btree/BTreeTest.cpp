@@ -80,7 +80,7 @@ const IntPair& getKey(const uint64_t& i) {
 template <class T, class CMP>
 void test(uint64_t n) {
     typedef dbi::TID TID;
-    const uint32_t pages = 10000;
+    const uint32_t pages = 1000;
     assert(kSwapFilePages>=pages);
 
     // Create
@@ -131,25 +131,25 @@ void test(uint64_t n) {
 //const uint64_t n = 10*1000ul;
 
 TEST(BTreeTest, FunkeTestUintKey) {
-    uint64_t n = 100*1000ul;
+    uint64_t n = 10*1000ul;
     // Test index with 64bit unsigned integers
     test<uint64_t, MyCustomUInt64Cmp>(n);
 }
 
 TEST(BTreeTest, FunkeTestCharKey) {
-    uint64_t n = 100*1000ul;
+    uint64_t n = 10*1000ul;
     // Test index with CHARSIZE character strings
     test<Char<CHARSIZE>, MyCustomCharCmp<CHARSIZE>>(n);
 }
 
 TEST(BTreeTest, FunkeTestCompoundKey) {
-    uint64_t n = 100*1000ul;
+    uint64_t n = 10*1000ul;
     // Test index with compound key
     test<IntPair, MyCustomIntPairCmp>(n);
 }
 
 TEST(BTreeTest, SimpleTest) {
-    const uint32_t pages = 1000;
+    const uint32_t pages = 100;
     assert(kSwapFilePages>=pages);
 
     // Create
@@ -214,9 +214,9 @@ void threadTestErase(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads
 
 
 TEST(BTreeTest, ThreadTest) {
-    const uint32_t pages = 10000;
+    const uint32_t pages = 1000;
     assert(kSwapFilePages>=pages);
-    const uint64_t n = 50*1000ul;
+    const uint64_t n = 5*1000ul;
     const uint64_t numthreads = 4;
     
     // Create

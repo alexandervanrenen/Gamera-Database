@@ -491,19 +491,7 @@ unique_ptr<Value> CharacterValue::computeEq (const Value& rhs) const
       case harriet::VariableType::TCharacter:
       {
          auto other = reinterpret_cast<const CharacterValue*>(&rhs);
-         uint32_t otherLength=0;
-         for(auto iter : other->result)
-            if(iter != '\0')
-               otherLength++; else
-               break;
-         uint32_t thisLength=0;
-         for(auto iter : result)
-            if(iter != '\0')
-               thisLength++; else
-               break;
-         if(otherLength != thisLength)
-            return make_unique<BoolValue>(false);
-         return make_unique<BoolValue>(memcmp(this->result.data(), other->result.data(), otherLength) == 0);
+         return make_unique<BoolValue>(0==strncmp(result.data(), other->result.data(), max(result.size(), other->result.size())));
       }
       default:                                 throw harriet::Exception{"invalid input for binary operator '==' oh noze think of teh monkeys !!"};
    }

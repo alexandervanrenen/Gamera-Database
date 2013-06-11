@@ -27,6 +27,8 @@ struct RelationSchema {
    RelationSchema(); // Default constructor
    RelationSchema(const std::string& name, std::vector<AttributeSchema>&& attributes, std::vector<IndexSchema>&& indexes); // Create a new schema from a create table statement
    RelationSchema(const Record& record); // Load schema from raw record
+   RelationSchema(const RelationSchema&) = delete;
+   RelationSchema& operator=(const RelationSchema&) = delete;
 
    std::vector<std::unique_ptr<harriet::Value>> recordToTuple(const Record& record) const;
    Record tupleToRecord(const std::vector<std::unique_ptr<harriet::Value>>& tuple) const;

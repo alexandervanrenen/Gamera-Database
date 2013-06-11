@@ -22,7 +22,7 @@ struct Extent {
 private:
    // Pages belonging to this extent: [begin, end)
    PageId beginPage;
-   uint32_t pageCount;
+   uint64_t pageCount;
 };
 
 }

@@ -2,19 +2,18 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "signature/ProjectionSignature.hpp"
+#include "signature/CrossProductSignature.hpp"
 #include "schema/Common.hpp"
-#include <array>
 #include <cstdint>
 #include <memory>
 
 namespace dbi {
 
 /// 
-class ProjectionOperator : public Operator {
+class CrossProductOperator : public Operator {
 public:
-   ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<ColumnReference>& projectedAttributes);
-   virtual ~ProjectionOperator();
+   CrossProductOperator(std::unique_ptr<Operator> lhs, std::unique_ptr<Operator> rhs);
+   virtual ~CrossProductOperator();
 
    virtual const Signature& getSignature() const;
    virtual void checkTypes() const throw(harriet::Exception);
@@ -26,9 +25,11 @@ public:
    virtual void close();
 
 private:
-   std::unique_ptr<Operator> source;
+   std::unique_ptr<Operator> lhs;
+   std::unique_ptr<Operator> rhs;
+   bool lhsHasNext;
    OperatorState state;
-   ProjectionSignature signature;
+   CrossProductSignature signature;
 };
 
 }

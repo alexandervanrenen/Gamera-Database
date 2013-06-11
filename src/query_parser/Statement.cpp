@@ -24,8 +24,8 @@ bool Statement::isGlobal() const
    return t==Type::kSelectStatement || t==Type::kCreateTableStatement || t==Type::kInsertStatement;
 }
 
-SelectStatement::SelectStatement(vector<ColumnIdentifier>&& selectors, vector<TableAccess>&& sources, vector<unique_ptr<harriet::Expression>>&& predicates)
-: selectors(move(selectors))
+SelectStatement::SelectStatement(vector<ColumnReference>&& selectors, vector<TableReference>&& sources, vector<unique_ptr<harriet::Expression>>&& predicates)
+: selections(move(selectors))
 , sources(move(sources))
 , predicates(move(predicates))
 {
@@ -38,7 +38,7 @@ void SelectStatement::acceptVisitor(Visitor& visitor)
 }
 
 CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>&& attributes)
-: name(name)
+: tableName(name)
 , attributes(move(attributes))
 {
 }

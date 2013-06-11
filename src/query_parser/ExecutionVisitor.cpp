@@ -11,6 +11,7 @@
 #include "operator/TableScanOperator.hpp"
 #include "operator/ProjectionOperator.hpp"
 #include "operator/SelectionOperator.hpp"
+#include "operator/CrossProductOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -42,16 +43,25 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   RelationSchema sourceSchema = schemaManager.getRelation(select.sources[0].tableIdentifier);
-   string alias = select.sources[0].alias!=""?select.sources[0].alias:select.sources[0].tableIdentifier;
-   auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+   // Cross-Product it with all other input relations
+   unique_ptr<Operator> tableAccess;
+   for(uint32_t i=0; i<select.sources.size(); i++) {
+      const RelationSchema& sourceSchema = schemaManager.getRelation(select.sources[i].tableName);
+      string tableQualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
+      auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
+      auto nextLevel = util::make_unique<TableScanOperator>(segment, sourceSchema, tableQualifier);
+      if(i==0)
+         tableAccess = move(nextLevel); else
+         tableAccess = util::make_unique<CrossProductOperator>(move(nextLevel), move(tableAccess));
+   }
 
-   auto tableScan = util::make_unique<TableScanOperator>(segment, sourceSchema, alias);
-   unique_ptr<Operator> last = move(tableScan);
+   // Create selections
+   unique_ptr<Operator> last = move(tableAccess);
    for(auto& predicate : select.predicates)
       last = util::make_unique<SelectionOperator>(move(last), move(predicate));
 
-   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selectors);
+   // Create projections
+   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selections);
    auto print = util::make_unique<PrintOperator>(move(projection), cout);
 
    print->dump(cout);
@@ -75,11 +85,11 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    vector<IndexSchema> indexes;
 
    // Add relation
-   dbi::RelationSchema schema(createTable.name, move(attributes), move(indexes));
+   auto schema = util::make_unique<RelationSchema>(createTable.tableName, move(attributes), move(indexes));
    SegmentId sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
-   schema.setSegmentId(sid);
-   schema.optimizePadding();
-   schemaManager.addRelation(schema);
+   schema->setSegmentId(sid);
+   schema->optimizePadding();
+   schemaManager.addRelation(move(schema));
 }
 
 void ExecutionVisitor::onPostVisit(CreateTableStatement&)

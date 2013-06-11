@@ -12,13 +12,21 @@ public:
 
    bool fullfillsPredicates(const std::vector<std::unique_ptr<harriet::Value>>& tuple);
 
+   virtual void dump(std::ostream& os) const;
+
 private:
-   std::unique_ptr<harriet::Expression> expression;
+   std::unique_ptr<harriet::Expression> selectionCondition;
+
    struct VariableMapping {
       std::string name; // Name of the variable
       uint32_t position; // Position in the tuple
    };
    std::vector<VariableMapping> variableMapping;
+
+   enum struct Type : uint8_t {kUnknown, kConstant, kOneColumn, kTwoColumn, kComplex};
+   Type type;
+
+   std::vector<VariableMapping> getFreeVariables(const harriet::Expression& expression) const;
 };
 
 }

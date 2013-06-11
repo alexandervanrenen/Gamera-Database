@@ -29,9 +29,9 @@ void SelectionOperator::checkTypes() const throw(harriet::Exception)
 
 void SelectionOperator::dump(ostream& os, uint32_t lvl) const
 {
-   os << "|" << string(lvl, '.') << "Selection [";
+   os << "|" << string(lvl, '.') << "Selection ";
    signature.dump(os);
-   os << "]" << endl;
+   os << endl;
    source->dump(os, lvl+3);
 }
 

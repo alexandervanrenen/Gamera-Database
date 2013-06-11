@@ -51,7 +51,7 @@ bin/client: libs build/client.o
 src/query_parser/Parser.cpp: src/query_parser/Parser.leg
 	./libs/greg-cpp/greg -o src/query_parser/Parser.cpp src/query_parser/Parser.leg
 
-libs: libs/gtest libs/zmq libs/greg-cpp
+libs: libs/gtest libs/zmq libs/greg-cpp libs/gflags
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp

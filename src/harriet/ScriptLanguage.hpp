@@ -1,11 +1,9 @@
 #ifndef SCRIPTLANGUAGE_SCRIPTLANGUAGE_HPP_
 #define SCRIPTLANGUAGE_SCRIPTLANGUAGE_HPP_
 //---------------------------------------------------------------------------
-#include <array>
 #include <string>
 #include <stdint.h>
 #include <memory>
-#include <ios>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -24,13 +22,14 @@ const std::string kVariableInteger = "integer";
 const std::string kVariableFloat = "float";
 const std::string kVariableBool = "bool";
 const std::string kVariableVector = "vector";
+const std::string kVariableCharacter = "character";
 
 /// boolean values
 const std::string kTrue = "true";
 const std::string kFalse = "false";
 
 /// variable types
-enum struct VariableType : uint8_t {TInteger, TFloat, TBool, TVector};
+enum struct VariableType : uint8_t {TInteger, TFloat, TBool, TVector, TCharacter};
 
 /// exceptions
 struct Exception : public std::exception {
@@ -40,25 +39,15 @@ struct Exception : public std::exception {
    virtual const char* what() const throw() {return message.c_str();}
 };
 
-/// all keywords
-const std::array<std::string, 4 >keywords = {{ kVariableInteger,
-                                               kVariableFloat,
-                                               kVariableBool,
-                                               kVariableVector
-                                       }};
-
-/// helper functions
-bool isKeyword(const std::string& str);
-
 VariableType nameToType(const std::string& name) throw(Exception);
 const std::string typeToName(VariableType type) throw();
 
-uint32_t getLengthOfBinary(VariableType type); // Required bytes for storing
-uint32_t getLengthOfASCII(VariableType type); // Required bytes when printing
+uint16_t getDefaultLengthOfBinary(VariableType type);
+
 std::unique_ptr<Value> createDefaultValue(VariableType type) throw();
 
-std::unique_ptr<Value> readValue(VariableType type, const char* data) throw();
-void writeValue(const Value& value, char* data) throw();
+std::unique_ptr<Value> readValueContent(VariableType type, uint16_t length, const char* data) throw();
+void writeValueContent(const Value& value, char* data) throw();
 
 bool isImplicitCastPossible(VariableType from, VariableType to) throw();
 std::unique_ptr<Expression> createCast(std::unique_ptr<Expression> expression, harriet::VariableType resultType);

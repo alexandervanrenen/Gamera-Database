@@ -9,7 +9,7 @@ ProjectionSignature::ProjectionSignature(const Signature& source, const vector<C
 {
    // Create projection
    for(auto& iter : target)
-      projection.push_back(source.getAttributeIndex(iter.tableQalifier, iter.columnName));
+      projection.push_back(source.getAttributeIndex(iter.tableQualifier, iter.columnName));
 
    // Create new signature from projection
    for(uint32_t i=0; i<projection.size(); i++) {

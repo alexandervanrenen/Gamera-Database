@@ -18,14 +18,6 @@ using namespace std;
 //---------------------------------------------------------------------------
 namespace harriet {
 //---------------------------------------------------------------------------
-bool isKeyword(const string& str)
-{
-   for(auto& iter : keywords)
-      if(str==iter)
-         return true;
-   return false;
-}
-//---------------------------------------------------------------------------
 VariableType nameToType(const string& name) throw(Exception)
 {
    if(name == kVariableInteger)
@@ -36,6 +28,8 @@ VariableType nameToType(const string& name) throw(Exception)
       return VariableType::TBool;
    if(name == kVariableVector)
       return VariableType::TVector;
+   if(name == kVariableCharacter)
+      return VariableType::TCharacter;
    throw Exception{"invalid type name: " + name};
 }
 //---------------------------------------------------------------------------
@@ -50,11 +44,13 @@ const string typeToName(VariableType type) throw()
          return kVariableBool;
       case VariableType::TVector:
          return kVariableVector;
+      case VariableType::TCharacter:
+         return kVariableCharacter;
    }
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
-uint32_t getLengthOfBinary(VariableType type)
+uint16_t getDefaultLengthOfBinary(VariableType type)
 {
    switch(type) {
       case VariableType::TInteger:
@@ -65,21 +61,8 @@ uint32_t getLengthOfBinary(VariableType type)
          return BoolValue(true).typeSize();
       case VariableType::TVector:
          return VectorValue(Vector3<float>(0,0,0)).typeSize();
-   }
-   throw Exception{"unreachable"};
-}
-//---------------------------------------------------------------------------
-uint32_t getLengthOfASCII(VariableType type)
-{
-   switch(type) {
-      case VariableType::TInteger:
-         return 10;
-      case VariableType::TFloat:
-         return 12;
-      case VariableType::TBool:
-         return 5;
-      case VariableType::TVector:
-         return 3*11;
+      case VariableType::TCharacter:
+         return CharacterValue(vector<char>(1, '\0'), 1).typeSize();
    }
    throw Exception{"unreachable"};
 }
@@ -95,11 +78,13 @@ unique_ptr<Value> createDefaultValue(VariableType type) throw()
          return make_unique<BoolValue>(true);
       case VariableType::TVector:
          return make_unique<VectorValue>(Vector3<float>(0,0,0));
+      case VariableType::TCharacter:
+         return make_unique<CharacterValue>(vector<char>(1, '\0'), 1);
    }
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> readValue(VariableType type, const char* data) throw()
+unique_ptr<Value> readValueContent(VariableType type, uint16_t length, const char* data) throw()
 {
    switch(type) {
       case VariableType::TInteger:
@@ -110,11 +95,16 @@ unique_ptr<Value> readValue(VariableType type, const char* data) throw()
          return make_unique<BoolValue>(*reinterpret_cast<const bool*>(data));
       case VariableType::TVector:
          return make_unique<VectorValue>(*reinterpret_cast<const Vector3<float>*>(data));
+      case VariableType::TCharacter: {
+         vector<char> result(length);
+         memcpy(result.data(), data, length);
+         return make_unique<CharacterValue>(result, length);
+      }
    }
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
-void writeValue(const Value& value, char* data) throw()
+void writeValueContent(const Value& value, char* data) throw()
 {
    switch(value.getResultType()) {
       case VariableType::TInteger:
@@ -129,18 +119,22 @@ void writeValue(const Value& value, char* data) throw()
       case VariableType::TVector:
          memcpy(data, &reinterpret_cast<const VectorValue&>(value).result, sizeof(Vector3<float>));
          return;
+      case VariableType::TCharacter:
+         memcpy(data, reinterpret_cast<const CharacterValue&>(value).result.data(), reinterpret_cast<const CharacterValue&>(value).result.size());
+         return;
    }
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
 bool isImplicitCastPossible(VariableType from, VariableType to) throw()
 {
-   bool implicitCast[4][4] = {
-      /* to\from      int     float   bool    vector*/
-      /* int    */ {  true ,  true ,  false,  false},
-      /* float  */ {  true ,  true ,  false,  false},
-      /* bool   */ {  false,  false,  true ,  false},
-      /* vector */ {  false,  false,  false,  true }
+   bool implicitCast[5][5] = {
+      /* to\from         int     float   bool    vector  character */
+      /* int       */ {  true ,  true ,  false,  false,  false},
+      /* float     */ {  true ,  true ,  false,  false,  false},
+      /* bool      */ {  false,  false,  true ,  false,  false},
+      /* vector    */ {  false,  false,  false,  true ,  false},
+      /* charactor */ {  false,  false,  false,  false,  true }
    };
 
    return implicitCast[static_cast<uint32_t>(to)][static_cast<uint32_t>(from)];

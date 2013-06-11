@@ -23,6 +23,7 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
    for(uint32_t i=0; i<lhs.getAttributes().size(); i++) {
       ASSERT_EQ(lhs.getAttributes()[i].name, rhs.getAttributes()[i].name);
       ASSERT_EQ(lhs.getAttributes()[i].type, rhs.getAttributes()[i].type);
+      ASSERT_EQ(lhs.getAttributes()[i].length, rhs.getAttributes()[i].length);
       ASSERT_EQ(lhs.getAttributes()[i].notNull, rhs.getAttributes()[i].notNull);
       ASSERT_EQ(lhs.getAttributes()[i].primaryKey, rhs.getAttributes()[i].primaryKey);
       ASSERT_EQ(lhs.getAttributes()[i].offset, rhs.getAttributes()[i].offset);
@@ -41,10 +42,10 @@ TEST(Schema, RelationSchemaMarschalling)
 {
    // Create
    vector<dbi::AttributeSchema> attributes;
-   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
-   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, 4, false, false, 0});
+   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TCharacter, 20, true, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"condition", harriet::VariableType::TBool, 1, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"percentage", harriet::VariableType::TFloat, 4, false, true, 0});
    vector<dbi::IndexSchema> indexes;
    RelationSchema original("students", move(attributes), move(indexes));
    original.setSegmentId(SegmentId(8128));
@@ -62,10 +63,10 @@ TEST(Schema, TupleMarschalling)
 {
    // Create schema
    vector<dbi::AttributeSchema> attributes;
-   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
-   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TFloat, true, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"term", harriet::VariableType::TBool, false, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"dog", harriet::VariableType::TInteger, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, 4, false, false, 0});
+   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TCharacter, 20, true, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"condition", harriet::VariableType::TBool, 1, false, true, 0});
+   attributes.push_back(dbi::AttributeSchema{"percentage", harriet::VariableType::TFloat, 4, false, true, 0});
    vector<dbi::IndexSchema> indexes;
    RelationSchema schema("students", move(attributes), move(indexes));
    schema.setSegmentId(SegmentId(123));
@@ -74,9 +75,9 @@ TEST(Schema, TupleMarschalling)
    // Create tuple
    vector<unique_ptr<harriet::Value>> tuple;
    tuple.push_back(util::make_unique<harriet::IntegerValue>(1337));
-   tuple.push_back(util::make_unique<harriet::FloatValue>(2.3));
+   tuple.push_back(util::make_unique<harriet::CharacterValue>("alex", 20));
    tuple.push_back(util::make_unique<harriet::BoolValue>(true));
-   tuple.push_back(util::make_unique<harriet::IntegerValue>(3000));
+   tuple.push_back(util::make_unique<harriet::FloatValue>(3000.0f));
 
    // Serialize and de-serialize
    Record record = schema.tupleToRecord(tuple);
@@ -84,8 +85,9 @@ TEST(Schema, TupleMarschalling)
 
    // Compare
    ASSERT_EQ(tuple.size(), tupleCopy.size());
-   for(uint32_t i=0; i<tuple.size(); i++)
+   for(uint32_t i=0; i<tuple.size(); i++) {
       ASSERT_TRUE(reinterpret_cast<harriet::BoolValue&>(*tuple[i]->computeEq(*tupleCopy[i])).result);
+   }
 }
 
 TEST(Schema, SchemaManager)
@@ -97,16 +99,18 @@ TEST(Schema, SchemaManager)
    dbi::SegmentManager segmentManager(bufferManager, true);
 
    vector<dbi::AttributeSchema> attributes1;
-   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
+   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, harriet::getDefaultLengthOfBinary(harriet::VariableType::TInteger), false, false, 0});
    vector<dbi::IndexSchema> indexes1;
    auto schema1 = util::make_unique<RelationSchema>("students", move(attributes1), move(indexes1));
    schema1->setSegmentId(SegmentId(8128));
+   auto schema1_ref = util::make_unique<RelationSchema>(schema1->marschall()); // Just copy ..
 
    vector<dbi::AttributeSchema> attributes2;
-   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true, 0});
+   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, harriet::getDefaultLengthOfBinary(harriet::VariableType::TBool), true, true, 0});
    vector<dbi::IndexSchema> indexes2;
    auto schema2 = util::make_unique<RelationSchema>("listens_to", move(attributes2), move(indexes2));
    schema2->setSegmentId(SegmentId(1729));
+   auto schema2_ref = util::make_unique<RelationSchema>(schema2->marschall()); // Just copy ..
 
    // Set up schema manager and add two relations
    {
@@ -122,18 +126,7 @@ TEST(Schema, SchemaManager)
       ASSERT_TRUE(schemaManager.hasRelation("students"));
       ASSERT_TRUE(schemaManager.hasRelation("listens_to"));
 
-      vector<dbi::AttributeSchema> attributes1_ref;
-      attributes1_ref.push_back(dbi::AttributeSchema{"id", harriet::VariableType::TInteger, false, false, 0});
-      vector<dbi::IndexSchema> indexes1_ref;
-      auto schema1_ref = util::make_unique<RelationSchema>("students", move(attributes1_ref), move(indexes1));
-      schema1_ref->setSegmentId(SegmentId(8128));
       compare(*schema1_ref, schemaManager.getRelation("students"));
-
-      vector<dbi::AttributeSchema> attributes2_ref;
-      attributes2_ref.push_back(dbi::AttributeSchema{"name", harriet::VariableType::TBool, true, true, 0});
-      vector<dbi::IndexSchema> indexes2_ref;
-      auto schema2_ref = util::make_unique<RelationSchema>("listens_to", move(attributes2_ref), move(indexes2));
-      schema2_ref->setSegmentId(SegmentId(1729));
       compare(*schema2_ref, schemaManager.getRelation("listens_to"));
 
       schemaManager.dropRelation("students");

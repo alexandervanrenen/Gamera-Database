@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stack>
 #include <vector>
+#include <cstring>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -20,7 +21,7 @@ class Environment;
 class Value;
 class Variable;
 //---------------------------------------------------------------------------
-enum struct ExpressionType : uint8_t {TVariable, TIntegerValue, TFloatValue, TBoolValue, TVectorValue, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TVectorCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
+enum struct ExpressionType : uint8_t {TVariable, TIntegerValue, TFloatValue, TBoolValue, TVectorValue, TCharacterValue, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TVectorCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
 //---------------------------------------------------------------------------
 class Expression {
 public:
@@ -198,6 +199,26 @@ struct VectorValue : public Value, GenericAllocator<VectorValue> {
    virtual std::unique_ptr<Value> computeNeq(const Value& rhs) const;
 
    virtual std::unique_ptr<Value> computeInv() const;
+
+   virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
+};
+//---------------------------------------------------------------------------
+struct CharacterValue : public Value, GenericAllocator<CharacterValue> {
+   using GenericAllocator<CharacterValue>::operator new;
+   using GenericAllocator<CharacterValue>::operator delete;
+
+   virtual void print(std::ostream& stream) const;
+   virtual std::unique_ptr<Value> evaluate() const;
+   std::vector<char> result; // Is always of max length. i.e. char(100) a = "a"; still has result.size() = 100
+   CharacterValue(std::vector<char> data, uint16_t maxSize) : result(maxSize,'\0') {assert(data.size()<=maxSize); memcpy(result.data(), data.data(), data.size());}
+   CharacterValue(const std::string& data, uint16_t maxSize) : result(maxSize,'\0') {assert(data.size()<=maxSize); memcpy(result.data(), data.data(), data.size());}
+   virtual ~CharacterValue() {};
+   virtual ExpressionType getExpressionType() const {return ExpressionType::TCharacterValue;}
+
+   virtual harriet::VariableType getResultType() const {return harriet::VariableType::TCharacter;}
+   virtual uint32_t typeSize() const {return result.size();}
+
+   virtual std::unique_ptr<Value> computeEq (const Value& rhs) const;
 
    virtual std::unique_ptr<Value> computeCast(harriet::VariableType resultType) const;
 };

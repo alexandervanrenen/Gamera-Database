@@ -41,7 +41,7 @@ void PrintOperator::execute()
    vector<uint32_t> columnWidths;
    auto& signature = source->getSignature();
    for(auto& iter : signature.getAttributes()) {
-      columnWidths.push_back(max(static_cast<uint32_t>(iter.name.size()), harriet::getLengthOfASCII(iter.type)));
+      columnWidths.push_back(max((int)iter.name.size(), 10));
       totalWidth += columnWidths.back() + 3;
    }
 

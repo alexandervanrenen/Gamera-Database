@@ -1,5 +1,6 @@
 
 create table nations (id integer,
+                      name character(20),
                       x float,
                       y float
                      );
@@ -15,8 +16,8 @@ create table characters (id integer,
                          gold integer
                         );
 
-insert into nations values(1, 546.0, 32.0);
-insert into nations values(2, 1729.0, 8128.0);
+insert into nations values(1, "Germany", 546.0, 32.0);
+insert into nations values(2, "France", 1729.0, 8128.0);
 
 insert into players values(1, 2);
 insert into players values(2, 1);
@@ -27,7 +28,7 @@ insert into characters values(2, 4, 22.22, 22.22, 500);
 insert into characters values(3, 3, 232.6, 45.765, 100);
 insert into characters values(4, 1337, 80.0, 45.765, 4);
 
-select n.id, n.x, n.y
+select n.id, n.name
 from characters c, players p, nations n
 where c.player_id == p.id
   and p.nation_id == n.id

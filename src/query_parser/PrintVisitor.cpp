@@ -33,7 +33,7 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
 {
    out << "select " << endl;
    for(auto& iter : select.selections)
-      out << "    " << iter.tableQalifier << "." << iter.columnName << endl;
+      out << "    " << iter.tableQualifier << "." << iter.columnName << endl;
    out << "from " << endl;
    for(auto& iter : select.sources)
       out << "    " << iter.tableName << " " << iter.tableQualifier << endl;
@@ -54,7 +54,7 @@ void PrintVisitor::onPreVisit(CreateTableStatement& createTable)
 {
    out << "create table " << createTable.tableName << " (" << endl;
    for(auto& iter : createTable.attributes)
-      out << iter.name << " " << iter.type << " " << (iter.notNull?"not null":"null") << endl;
+      out << iter.name << " " << harriet::typeToName(iter.type) << " " << iter.length << " " << (iter.notNull?"not null":"null") << endl;
    out << ");" << endl;
 }
 

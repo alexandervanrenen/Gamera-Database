@@ -469,6 +469,36 @@ unique_ptr<Value> VectorValue::computeCast(harriet::VariableType resultType) con
    }
 }
 //---------------------------------------------------------------------------
+void CharacterValue::print(ostream& stream) const
+{
+   ostringstream os;
+   for(auto iter : result)
+      if(iter == '\0')
+         break; else
+         os << iter;
+   stream << os.str();
+}
+//---------------------------------------------------------------------------
+unique_ptr<Value> CharacterValue::evaluate() const
+{
+   return make_unique<CharacterValue>(result, result.size());
+}
+//---------------------------------------------------------------------------
+unique_ptr<Value> CharacterValue::computeEq (const Value& rhs) const
+{
+   switch(rhs.getResultType()) {
+      case harriet::VariableType::TCharacter:  return make_unique<BoolValue>(memcmp(this->result.data(), reinterpret_cast<const CharacterValue*>(&rhs)->result.data(), this->result.size())==0);
+      default:                                 throw harriet::Exception{"invalid input for binary operator '==' oh noze think of teh monkeys !!"};
+   }
+}
+//---------------------------------------------------------------------------
+unique_ptr<Value> CharacterValue::computeCast(harriet::VariableType resultType) const
+{
+   switch(resultType) {
+      default:                                     throw harriet::Exception{"invalid cast target: '" + harriet::typeToName(resultType) + "'"};
+   }
+}
+//---------------------------------------------------------------------------
 void UnaryOperator::print(ostream& stream) const
 {
    stream << " ( " << getSign();

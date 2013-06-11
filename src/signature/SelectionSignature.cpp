@@ -110,8 +110,8 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
    vector<const harriet::Variable*> freeVariables = expression.getAllVariables();
    for(auto iter : freeVariables) {
       ColumnReference c(iter->getIdentifier());
-      if(hasAttribute(c.tableQalifier, c.columnName)) {
-         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQalifier, c.columnName)});
+      if(hasAttribute(c.tableQualifier, c.columnName)) {
+         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQualifier, c.columnName)});
       } else {
          ostringstream os;
          dump(os);

@@ -21,7 +21,7 @@ public:
    Record lookup(TupleId id);
    void remove(TupleId tId);
    void update(TupleId tId, const Record& record);
-   std::vector<std::pair<TupleId, Record>> getAllRecordsOfPage(PageId pageId);
+   std::vector<std::pair<TupleId, Record>> getAllRecordsOfPage(PageId pageId) const;
 
    /// Get extents for this segment (extent is added by the segment inventory)
    virtual const Extent grow();

@@ -130,7 +130,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    throw;
 }
 
-vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
+vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId) const
 {
    auto& frame = fixGlobalPage(pageId, kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());

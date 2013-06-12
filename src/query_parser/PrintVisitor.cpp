@@ -1,9 +1,9 @@
-
 #include "PrintVisitor.hpp"
 #include "Statement.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Value.hpp"
+#include "operator/RootOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -42,10 +42,16 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
       out << "where " << endl;
       for(auto& iter : select.predicates) {
          out << "    ";
-         iter->print(cout);
+         if(iter != nullptr)
+            iter->print(out);
          out << endl;
       }
       out << ";" << endl;
+
+      if(select.queryPlan) {
+         select.queryPlan->dump(out);
+         out << endl;
+      }
    }
 }
 
@@ -74,6 +80,11 @@ void PrintVisitor::onPreVisit(InsertStatement& insert)
       for(auto& iter : insert.values)
          out << *iter << endl;
       out << ");" << endl;
+
+      if(insert.queryPlan) {
+         insert.queryPlan->dump(out);
+         out << endl;
+      }
    }
 }
 

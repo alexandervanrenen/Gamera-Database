@@ -2,6 +2,7 @@
 #include "Visitor.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
+#include "operator/RootOperator.hpp"
 
 using namespace std;
 
@@ -32,6 +33,10 @@ SelectStatement::SelectStatement(vector<ColumnReference>&& selectors, vector<Tab
 {
 }
 
+SelectStatement::~SelectStatement()
+{
+}
+
 void SelectStatement::acceptVisitor(Visitor& visitor)
 {
    visitor.onPreVisit(*this);
@@ -53,6 +58,10 @@ void CreateTableStatement::acceptVisitor(Visitor& visitor)
 InsertStatement::InsertStatement(const string& tableName, vector<unique_ptr<harriet::Value>>&& values)
 : tableName(tableName)
 , values(move(values))
+{
+}
+
+InsertStatement::~InsertStatement()
 {
 }
 

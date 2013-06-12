@@ -12,17 +12,17 @@ Value::Value(const VariableType& type)
 {
    switch(type.type) {
       case VariableType::Type::TBool:
-         vbool = false;
+         data.vbool = false;
          return;
       case VariableType::Type::TInteger:
-         vint = 0;
+         data.vint = 0;
          return;
       case VariableType::Type::TFloat:
-         vfloat = .0f;
+         data.vfloat = .0f;
          return;
       case VariableType::Type::TCharacter:
-         vchar = static_cast<char*>(malloc(type.length));
-         memset(vchar, '\0', type.length);
+         data.vchar = static_cast<char*>(malloc(type.length));
+         memset(data.vchar, '\0', type.length);
          return;
    }
    throw;
@@ -33,18 +33,18 @@ Value::Value(const VariableType& type, const char* ptr)
 {
    switch(type.type) {
       case VariableType::Type::TBool:
-         vbool = reinterpret_cast<const bool&>(*ptr);
+         data.vbool = reinterpret_cast<const bool&>(*ptr);
          return;
       case VariableType::Type::TInteger:
-         vint = reinterpret_cast<const int32_t&>(*ptr);
+         data.vint = reinterpret_cast<const int32_t&>(*ptr);
          return;
       case VariableType::Type::TFloat:
-         vfloat = reinterpret_cast<const float&>(*ptr);
+         data.vfloat = reinterpret_cast<const float&>(*ptr);
          return;
       case VariableType::Type::TCharacter:
-         vchar = static_cast<char*>(malloc(type.length));
-         memset(vchar, '\0', type.length);
-         memcpy(vchar, ptr, type.length);
+         data.vchar = static_cast<char*>(malloc(type.length));
+         memset(data.vchar, '\0', type.length);
+         memcpy(data.vchar, ptr, type.length);
          return;
    }
    throw;
@@ -53,28 +53,28 @@ Value::Value(const VariableType& type, const char* ptr)
 Value::Value(bool value, bool)
 : type(VariableType::Type::TBool, sizeof(bool))
 {
-   vbool = value;
+   data.vbool = value;
 }
 //---------------------------------------------------------------------------
 Value::Value(int32_t value, bool)
 : type(VariableType::Type::TInteger, sizeof(int32_t))
 {
-   vint = value;
+   data.vint = value;
 }
 //---------------------------------------------------------------------------
 Value::Value(float value, bool)
 : type(VariableType::Type::TFloat, sizeof(int32_t))
 {
-   vfloat = value;
+   data.vfloat = value;
 }
 //---------------------------------------------------------------------------
 Value::Value(const string& value, int32_t max, bool)
 : type(VariableType::Type::TCharacter, max)
 {
-   vchar = static_cast<char*>(malloc(type.length));
-   memset(vchar, '\0', type.length);
+   data.vchar = static_cast<char*>(malloc(type.length));
+   memset(data.vchar, '\0', type.length);
    assert(value.size() <= type.length);
-   memcpy(vchar, value.data(), min(static_cast<uint16_t>(value.size()), type.length));
+   memcpy(data.vchar, value.data(), min(static_cast<uint16_t>(value.size()), type.length));
 }
 //---------------------------------------------------------------------------
 Value::~Value()
@@ -85,16 +85,16 @@ void Value::marschall(char* ptr) const
 {
    switch(type.type) {
       case VariableType::Type::TBool:
-         reinterpret_cast<bool&>(*ptr) = vbool;
+         reinterpret_cast<bool&>(*ptr) = data.vbool;
          return;
       case VariableType::Type::TInteger:
-         reinterpret_cast<int32_t&>(*ptr) = vint;
+         reinterpret_cast<int32_t&>(*ptr) = data.vint;
          return;
       case VariableType::Type::TFloat:
-         reinterpret_cast<float&>(*ptr) = vfloat;
+         reinterpret_cast<float&>(*ptr) = data.vfloat;
          return;
       case VariableType::Type::TCharacter:
-         memcpy(ptr, vchar, type.length);
+         memcpy(ptr, data.vchar, type.length);
          return;
    }
    throw;
@@ -129,13 +129,13 @@ ostream& operator<< (ostream& os, const Value& v)
 {
    switch(v.type.type) {
       case VariableType::Type::TBool:
-         return os << v.vbool;
+         return os << v.data.vbool;
       case VariableType::Type::TInteger:
-         return os << v.vint;
+         return os << v.data.vint;
       case VariableType::Type::TFloat:
-         return os << v.vfloat;
+         return os << v.data.vfloat;
       case VariableType::Type::TCharacter:
-         return os << string(v.vchar, v.type.length);
+         return os << string(v.data.vchar, v.type.length);
       default:
          throw;
    }
@@ -197,88 +197,88 @@ Value Value::computeEq (const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Bool::computeAdd(const Value& lhs, const Value& rhs)
+Value Value::Bool::computeAdd(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Bool::computeSub(const Value& lhs, const Value& rhs)
+Value Value::Bool::computeSub(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TBool:
-         return Value(lhs.vbool==rhs.vbool);
+         return Value(lhs.data.vbool==rhs.data.vbool);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Integer::computeAdd(const Value& lhs, const Value& rhs)
+Value Value::Integer::computeAdd(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Integer::computeSub(const Value& lhs, const Value& rhs)
+Value Value::Integer::computeSub(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.vint==rhs.vint);
+         return Value(lhs.data.vint==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.vint==rhs.vfloat);
+         return Value(lhs.data.vint==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
+Value Value::Float::computeAdd(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Float::computeSub(const Value& lhs, const Value& rhs)
+Value Value::Float::computeSub(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.vint==rhs.vint);
+         return Value(lhs.data.vint==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.vint==rhs.vfloat);
+         return Value(lhs.data.vint==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
+Value Value::Character::computeAdd(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Character::computeSub(const Value& lhs, const Value& rhs)
+Value Value::Character::computeSub(const Value&, const Value&)
 {
-
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Character::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TCharacter:
-         return Value(strncmp(lhs.vchar, rhs.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
+         return Value(strncmp(lhs.data.vchar, rhs.data.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
       default:
          doError("==" , lhs, rhs);
          throw;

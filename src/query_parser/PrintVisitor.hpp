@@ -10,7 +10,9 @@ namespace script {
 /// 
 class PrintVisitor : public Visitor {
 public:
-   PrintVisitor(std::ostream& out);
+   enum struct PrintMode : uint8_t {kAll, kSelect, kInsert, kCreate};
+
+   PrintVisitor(std::ostream& out, PrintMode printMode = PrintMode::kAll);
    virtual ~PrintVisitor();
 
    virtual void onPreVisit(RootStatement& root);
@@ -24,6 +26,7 @@ public:
    virtual void onPreVisit(BlockStatement& block);
    virtual void onPostVisit(BlockStatement& block);
 private:
+   PrintMode printMode;
    std::ostream& out;
 };
 

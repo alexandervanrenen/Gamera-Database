@@ -43,7 +43,7 @@ Result Database::executeQuery(const std::string& query)
       auto roots = script::parse(query);
       for(auto& root : roots->statements) {
          // Print script
-         script::PrintVisitor printy(cout);
+         script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
          root->acceptVisitor(printy);
          cout << endl;
 

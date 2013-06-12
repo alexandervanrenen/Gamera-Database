@@ -20,7 +20,7 @@ public:
       int32_t vint;
       float vfloat;
       char* vchar;
-   };
+   } data;
    bool isNull;
 
    explicit Value(const VariableType& type);

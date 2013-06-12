@@ -18,17 +18,24 @@ struct VariableType {
    Type type;
    uint16_t length;
 
-   VariableType();
-   VariableType(const std::string& name, uint16_t length);
-   VariableType(Type type, uint16_t length);
+   explicit VariableType();
+   explicit VariableType(const std::string& name, uint16_t length);
 
    std::string str() const;
 
    std::unique_ptr<Value> createDefaultValue() const;
-
+   
+   static VariableType createBoolType();
+   static VariableType createIntegerType();
+   static VariableType createFloatType();
+   static VariableType createCharacterType(uint16_t len);
+   
    friend bool operator== (const VariableType& lhs, const VariableType& rhs) {return lhs.type==rhs.type && lhs.length==rhs.length;}
    friend bool operator!= (const VariableType& lhs, const VariableType& rhs) {return lhs.type!=rhs.type || lhs.length!=rhs.length;}
    friend std::ostream& operator<< (std::ostream& os, const VariableType& v) {return os << v.str() << " " << v.length;}
+   
+   private:
+       VariableType(Type type, uint16_t length);
 };
 //---------------------------------------------------------------------------
 }

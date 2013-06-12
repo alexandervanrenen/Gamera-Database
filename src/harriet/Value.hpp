@@ -42,30 +42,40 @@ public:
 
    Value computeAdd(const Value& rhs) const;
    Value computeSub(const Value& rhs) const;
+   Value computeMul(const Value& rhs) const;
+   Value computeDiv(const Value& rhs) const;
    Value computeEq (const Value& rhs) const;
 
 private:
    struct Bool {
       static Value computeAdd(const Value& lhs, const Value& rhs);
       static Value computeSub(const Value& lhs, const Value& rhs);
+      static Value computeMul(const Value& lhs, const Value& rhs);
+      static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
    };
 
    struct Integer {
       static Value computeAdd(const Value& lhs, const Value& rhs);
       static Value computeSub(const Value& lhs, const Value& rhs);
+      static Value computeMul(const Value& lhs, const Value& rhs);
+      static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
    };
 
    struct Float {
       static Value computeAdd(const Value& lhs, const Value& rhs);
       static Value computeSub(const Value& lhs, const Value& rhs);
+      static Value computeMul(const Value& lhs, const Value& rhs);
+      static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
    };
 
    struct Character {
       static Value computeAdd(const Value& lhs, const Value& rhs);
       static Value computeSub(const Value& lhs, const Value& rhs);
+      static Value computeMul(const Value& lhs, const Value& rhs);
+      static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
    };
 };

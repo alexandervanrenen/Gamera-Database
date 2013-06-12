@@ -1,6 +1,7 @@
 #include "Statement.hpp"
 #include "Visitor.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Value.hpp"
 
 using namespace std;
 

@@ -5,6 +5,7 @@
 #include "segment_manager/Record.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "schema/RelationSchema.hpp"
+#include "harriet/Value.hpp"
 #include <iostream>
 
 using namespace std;
@@ -80,7 +81,8 @@ bool TableScanOperator::next()
 vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
 {
    assert(positionInCurrentPage < recordsInCurrentPage.size());
-   return underlyingSchema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
+   auto tuple = underlyingSchema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
+   return move(tuple);
 }
 
 void TableScanOperator::close()

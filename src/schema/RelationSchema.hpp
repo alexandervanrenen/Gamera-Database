@@ -12,7 +12,6 @@ namespace dbi {
 struct AttributeSchema {
    std::string name;
    harriet::VariableType type;
-   uint16_t length;
    bool notNull;
    bool primaryKey;
    uint16_t offset;

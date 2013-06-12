@@ -1,5 +1,6 @@
 #include "ProjectionOperator.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Value.hpp"
 #include <iostream>
 
 using namespace std;

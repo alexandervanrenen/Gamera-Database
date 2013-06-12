@@ -30,7 +30,6 @@ struct TableReference {
 struct AttributeDeclaration {
    std::string name;
    harriet::VariableType type;
-   uint16_t length;
    bool notNull;
 };
 

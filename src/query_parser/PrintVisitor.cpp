@@ -2,6 +2,7 @@
 #include "Statement.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
+#include "harriet/Value.hpp"
 #include <sstream>
 
 using namespace std;
@@ -54,7 +55,7 @@ void PrintVisitor::onPreVisit(CreateTableStatement& createTable)
 {
    out << "create table " << createTable.tableName << " (" << endl;
    for(auto& iter : createTable.attributes)
-      out << iter.name << " " << harriet::typeToName(iter.type) << " " << iter.length << " " << (iter.notNull?"not null":"null") << endl;
+      out << iter.name << " " << iter.type.str() << " " << (iter.notNull?"not null":"null") << endl;
    out << ");" << endl;
 }
 

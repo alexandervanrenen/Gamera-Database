@@ -1,6 +1,7 @@
 #include "PrintOperator.hpp"
 #include "Operator.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Value.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
 #include "signature/Signature.hpp"

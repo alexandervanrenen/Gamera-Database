@@ -2,6 +2,7 @@
 #include "Environment.hpp"
 #include "Expression.hpp"
 #include "Function.hpp"
+#include "Value.hpp"
 #include <algorithm>
 #include <cassert>
 #include <iostream>

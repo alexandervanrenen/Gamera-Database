@@ -2,6 +2,7 @@
 #include "Expression.hpp"
 #include "Environment.hpp"
 #include "Utility.hpp"
+#include "Value.hpp"
 #include <cassert>
 //---------------------------------------------------------------------------
 // Harriet Script Language
@@ -58,7 +59,7 @@ const string Function::getFunctionHeader() const
 {
    string result = name + "(";
    for(uint32_t i=0; i<arguments.size(); i++)
-      result += harriet::typeToName(arguments[i].first) + " " + arguments[i].second + (i+1==arguments.size()?")":",");
+      result += arguments[i].first.str() + " " + arguments[i].second + (i+1==arguments.size()?")":",");
    return result;
 }
 //---------------------------------------------------------------------------

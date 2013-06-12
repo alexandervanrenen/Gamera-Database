@@ -1,6 +1,7 @@
 #include "RelationSchema.hpp"
 #include "util/BinarySerializer.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Value.hpp"
 #include "util/Math.hpp"
 #include "util/Utility.hpp"
 #include <sstream>
@@ -38,7 +39,6 @@ RelationSchema::RelationSchema(const Record& record)
    for(auto& iter : attributes) {
       util::readBinary(iter.name, in);
       util::readBinary(iter.type, in);
-      util::readBinary(iter.length, in);
       util::readBinary(iter.notNull, in);
       util::readBinary(iter.primaryKey, in);
       util::readBinary(iter.offset, in);
@@ -61,7 +61,7 @@ vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& r
    vector<unique_ptr<harriet::Value>> result;
    result.reserve(attributes.size());
    for(auto& attribute : attributes)
-      result.push_back(harriet::readValueContent(attribute.type, attribute.length, record.data()+attribute.offset));
+      result.push_back(util::make_unique<harriet::Value>(attribute.type, record.data()+attribute.offset));
    return result;
 }
 
@@ -71,15 +71,12 @@ Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& t
    assert(attributes.size()==tuple.size());
 
    uint32_t tupleSize = 0;
-   for(uint32_t i=0; i<attributes.size(); i++) {
-      if(attributes[i].type != harriet::VariableType::TCharacter)
-         assert(attributes[i].length == tuple[i]->typeSize());
-      tupleSize += attributes[i].length;
-   }
+   for(uint32_t i=0; i<attributes.size(); i++)
+      tupleSize += attributes[i].type.length;
 
    vector<char> data(tupleSize);
    for(uint32_t i=0; i<tuple.size(); i++)
-      harriet::writeValueContent(*tuple[i], data.data()+attributes[i].offset);
+      tuple[i]->marschall(data.data()+attributes[i].offset);
 
    return Record(data);
 }
@@ -96,20 +93,20 @@ void RelationSchema::optimizePadding()
    vector<uint32_t> attributeOrder(attributes.size());
    iota(attributeOrder.begin(), attributeOrder.end(), 0);
    sort(attributeOrder.begin(), attributeOrder.end(), [this](uint32_t lhs, uint32_t rhs) {
-      bool lhsPowerOfTwo = util::countSetBits(attributes[lhs].length)==1;
-      bool rhsPowerOfTwo = util::countSetBits(attributes[rhs].length)==1;
+      bool lhsPowerOfTwo = util::countSetBits(attributes[lhs].type.length)==1;
+      bool rhsPowerOfTwo = util::countSetBits(attributes[rhs].type.length)==1;
       if(lhsPowerOfTwo && !rhsPowerOfTwo)
          return true;
       if(!lhsPowerOfTwo && rhsPowerOfTwo)
          return false;
-      return attributes[lhs].length>attributes[rhs].length;
+      return attributes[lhs].type.length>attributes[rhs].type.length;
    });
 
    // Set offsets
    uint32_t currentOffset = 0;
    for(uint32_t i=0; i<attributeOrder.size(); i++) {
       attributes[attributeOrder[i]].offset = currentOffset;
-      currentOffset += attributes[attributeOrder[i]].length;
+      currentOffset += attributes[attributeOrder[i]].type.length;
    }
 }
 
@@ -127,7 +124,6 @@ Record RelationSchema::marschall() const
    for(auto& iter : attributes) {
       util::writeBinary(out, iter.name);
       util::writeBinary(out, iter.type);
-      util::writeBinary(out, iter.length);
       util::writeBinary(out, iter.notNull);
       util::writeBinary(out, iter.primaryKey);
       util::writeBinary(out, iter.offset);
@@ -149,7 +145,7 @@ void RelationSchema::dump(ostream& os) const
    os << "name: " << name << endl;
    os << "sid: " << sid << endl;
    for(auto& attribute : attributes)
-      os << attribute.name << " " << harriet::typeToName(attribute.type) << " " << attribute.length << " " << attribute.notNull << " " << attribute.primaryKey << " " << attribute.offset << endl;
+      os << attribute.name << " " << attribute.type << " " << attribute.notNull << " " << attribute.primaryKey << " " << attribute.offset << endl;
    for(auto& index : indexes)
       os << index.sid << " " << index.indexedAttribute << " " << index.indexType << endl;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RootOperator.hpp"
 #include "common/Config.hpp"
 #include "OperatorState.hpp"
 #include "segment_manager/PageIdIterator.hpp"
@@ -15,7 +16,7 @@ class SPSegment;
 class Operator;
 
 /// Print the tuples supplied by the source to the given output stream
-class PrintOperator {
+class PrintOperator : public RootOperator {
 public:
    PrintOperator(std::unique_ptr<Operator> source, std::ostream& out);
    virtual ~PrintOperator();

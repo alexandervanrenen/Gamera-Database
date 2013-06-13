@@ -46,9 +46,8 @@ namespace {
 TEST(Value, CharValueTests) {
     // char + char
     Value addCharRes = charValue1.computeAdd(charValue2);
-    cout << addCharRes.type << " " << charResType << endl;
     ASSERT_EQ(addCharRes.type, charResType);
-    ASSERT_EQ(addCharRes.data.vchar, string1 + string2);
+    ASSERT_EQ(addCharRes.str(), string1 + string2);
     // char + (int | float | bool) -> exception
     ASSERT_THROW(charValue1.computeAdd(intValue1), Exception);
     ASSERT_THROW(charValue1.computeAdd(floatValue1), Exception);

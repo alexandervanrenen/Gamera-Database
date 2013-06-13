@@ -149,18 +149,10 @@ void Value::marschall(char* ptr) const
    throw;
 }
 //---------------------------------------------------------------------------
-// unique_ptr<Value> Value::evaluate() const
-// {
-//    auto result = unique_ptr<Value>(new Value(type));
-//    if(type.type == VariableType::Type::TCharacter) {
-//       // Got to copy pointer
-//       result->data.vchar = static_cast<char*>(malloc(type.length));
-//       memcpy(result->data.vchar, data.vchar, type.length);
-//    } else {
-//       result->data = data;
-//    }
-//    return result;
-// }
+string Value::str() const
+{
+   return string(data.vchar, type.length);
+}
 //---------------------------------------------------------------------------
 ostream& operator<< (ostream& os, const Value& v)
 {
@@ -459,9 +451,16 @@ Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
     switch(rhs.type.type) {
         case VariableType::Type::TCharacter: {
             char* res = static_cast<char*>(malloc(lhs.type.length + rhs.type.length));
-            memset(res, '\0', lhs.type.length + rhs.type.length);
-            std::strncat(res, lhs.data.vchar, lhs.type.length);
-            std::strncat(res, rhs.data.vchar, rhs.type.length);
+            char* writeHead = res;
+            // Copy right hand side
+            for(char* readHead=lhs.data.vchar; readHead!=lhs.data.vchar+lhs.type.length&&*readHead!='\0';)
+               *(writeHead++) = *(readHead++);
+            // Copy left hand side
+            for(char* readHead=rhs.data.vchar; readHead!=rhs.data.vchar+rhs.type.length&&*readHead!='\0';)
+               *(writeHead++) = *(readHead++);
+            // Fill with \0
+            while(writeHead != res+lhs.type.length+rhs.type.length)
+              *(writeHead++) = '\0';
             return createCharacter(res, lhs.type.length + rhs.type.length);
         }
         default:

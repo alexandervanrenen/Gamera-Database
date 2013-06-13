@@ -38,6 +38,7 @@ public:
    virtual ~Value();
 
    void marschall(char* ptr) const;
+   std::string str() const;
 
    friend std::ostream& operator<< (std::ostream& os, const Value& v);
 

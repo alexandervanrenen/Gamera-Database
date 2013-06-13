@@ -23,7 +23,7 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    harriet::Environment env;
    for(auto& iter : variableMapping) {
       auto type = source.getAttributes()[iter.position].type;
-      env.add(iter.name, type.createDefaultValue());
+      env.add(iter.name, harriet::Value::createDefault(type).evaluate());
    }
    if(expression->evaluate(env)->type.type != harriet::VariableType::Type::TBool) {
       ostringstream os;

@@ -74,10 +74,10 @@ TEST(Schema, TupleMarschalling)
 
    // Create tuple
    vector<unique_ptr<harriet::Value>> tuple;
-   tuple.push_back(util::make_unique<harriet::Value>(1337));
-   tuple.push_back(util::make_unique<harriet::Value>(string("alex"), 20));
-   tuple.push_back(util::make_unique<harriet::Value>(true));
-   tuple.push_back(util::make_unique<harriet::Value>(3000.0f));
+   tuple.push_back(harriet::Value::createInteger(1337).evaluate());
+   tuple.push_back(harriet::Value::createCharacter(string("alex"), 20).evaluate());
+   tuple.push_back(harriet::Value::createBool(true).evaluate());
+   tuple.push_back(harriet::Value::createFloatgit(3000.0f).evaluate());
 
    // Serialize and de-serialize
    Record record = schema.tupleToRecord(tuple);

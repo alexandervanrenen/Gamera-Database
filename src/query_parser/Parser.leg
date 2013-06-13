@@ -122,9 +122,9 @@ TYPE = INTEGER_ID ![a-z|A-Z]                               { $$.str = string("in
      | FLOAT_ID ![a-z|A-Z]                                 { $$.str = string("float"); $$.number = 4; }
      | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.str = string("character"); $$.number = i.number; }
      | CHARACTER_ID ![a-z|A-Z]                             { $$.str = string("character"); $$.number = 1; }
-VALUE = v:INTEGER                                          { $$.value = util::make_unique<harriet::Value>(v.number); }
-      | v:FLOAT                                            { $$.value = util::make_unique<harriet::Value>(v.numberf); }
-      | v:STRING                                           { $$.value = util::make_unique<harriet::Value>(v.str, v.str.size()); }
+VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number).evaluate(); }
+      | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf).evaluate(); }
+      | v:STRING                                           { $$.value = harriet::Value::createCharacter(v.str, v.str.size()).evaluate(); }
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }

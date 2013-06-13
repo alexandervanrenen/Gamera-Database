@@ -12,75 +12,116 @@ namespace harriet {
 Value::Value(const VariableType& type)
 : type(type)
 {
+}
+//---------------------------------------------------------------------------
+Value Value::createDefault(const VariableType& type)
+{
+   Value result(type);
    switch(type.type) {
       case VariableType::Type::TBool:
-         data.vbool = false;
-         return;
+         result.data.vbool = false;
+         return result;
       case VariableType::Type::TInteger:
-         data.vint = 0;
-         return;
+         result.data.vint = 0;
+         return result;
       case VariableType::Type::TFloat:
-         data.vfloat = .0f;
-         return;
+         result.data.vfloat = .0f;
+         return result;
       case VariableType::Type::TCharacter:
-         data.vchar = static_cast<char*>(malloc(type.length));
-         memset(data.vchar, '\0', type.length);
-         return;
+         result.data.vchar = static_cast<char*>(malloc(type.length));
+         memset(result.data.vchar, '\0', type.length);
+         return result;
    }
    throw;
 }
 //---------------------------------------------------------------------------
-Value::Value(const VariableType& type, const char* ptr)
-: type(type)
+Value Value::createFromRecord(const VariableType& type, const char* ptr)
 {
+   Value result(type);
    switch(type.type) {
       case VariableType::Type::TBool:
-         data.vbool = reinterpret_cast<const bool&>(*ptr);
-         return;
+         result.data.vbool = reinterpret_cast<const bool&>(*ptr);
+         return result;
       case VariableType::Type::TInteger:
-         data.vint = reinterpret_cast<const int32_t&>(*ptr);
-         return;
+         result.data.vint = reinterpret_cast<const int32_t&>(*ptr);
+         return result;
       case VariableType::Type::TFloat:
-         data.vfloat = reinterpret_cast<const float&>(*ptr);
-         return;
+         result.data.vfloat = reinterpret_cast<const float&>(*ptr);
+         return result;
       case VariableType::Type::TCharacter:
-         data.vchar = static_cast<char*>(malloc(type.length));
-         memset(data.vchar, '\0', type.length);
-         memcpy(data.vchar, ptr, type.length);
-         return;
+         result.data.vchar = static_cast<char*>(malloc(type.length));
+         memset(result.data.vchar, '\0', type.length);
+         memcpy(result.data.vchar, ptr, type.length);
+         return result;
    }
    throw;
 }
 //---------------------------------------------------------------------------
-Value::Value(bool value, bool)
-: type(VariableType::createBoolType())
+Value Value::createBool(bool value, bool)
 {
-   data.vbool = value;
+   Value result(VariableType::createBoolType());
+   result.data.vbool = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(int32_t value, bool)
-: type(VariableType::createIntegerType())
+Value Value::createInteger(int32_t value, bool)
 {
-   data.vint = value;
+   Value result(VariableType::createIntegerType());
+   result.data.vint = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(float value, bool)
-: type(VariableType::createFloatType())
+Value Value::createFloat(float value, bool)
 {
-   data.vfloat = value;
+   Value result(VariableType::createFloatType());
+   result.data.vfloat = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(const string& value, int32_t max, bool)
-: type(VariableType::createCharacterType(max))
+Value Value::createCharacter(const string& value, uint16_t max, bool)
 {
-   data.vchar = static_cast<char*>(malloc(type.length));
-   memset(data.vchar, '\0', type.length);
-   assert(value.size() <= type.length);
-   memcpy(data.vchar, value.data(), min(static_cast<uint16_t>(value.size()), type.length));
+   assert(value.size() <= max);
+   Value result(VariableType::createCharacterType(max));
+   result.data.vchar = static_cast<char*>(malloc(max));
+   memset(result.data.vchar, '\0', max);
+   memcpy(result.data.vchar, value.data(), value.size());
+   return result;
+}
+//---------------------------------------------------------------------------
+unique_ptr<Value> Value::toUnique()
+{
+   auto result = unique_ptr<Value>(new Value(type));
+   result->data = data;
+   data.vchar = 0;
+   return result;
+}
+//---------------------------------------------------------------------------
+Value Value::createCharacter(char* value, uint16_t max, bool)
+{
+   Value result(VariableType::createCharacterType(max));
+   result.data.vchar = value;
+   return result;
+}
+//---------------------------------------------------------------------------
+Value::Value(Value&& other)
+: type(other.type)
+, data(other.data)
+{
+   other.data.vchar = nullptr;
+}
+//---------------------------------------------------------------------------
+Value& Value::operator=(Value&& other)
+{
+  type = other.type;
+  data = other.data;
+  other.data.vchar = nullptr;
+  return *this;
 }
 //---------------------------------------------------------------------------
 Value::~Value()
 {
+   if(type.type==VariableType::Type::TCharacter && data.vchar!=nullptr)
+      free(data.vchar);
 }
 //---------------------------------------------------------------------------
 void Value::marschall(char* ptr) const
@@ -107,14 +148,30 @@ void Value::print(ostream& os) const
    os << *this;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> Value::evaluate(Environment&) const
+std::unique_ptr<Value> Value::evaluate(Environment&) const
 {
-   return make_unique<Value>(*this);
+   auto result = unique_ptr<Value>(new Value(type));
+   if(type.type == VariableType::Type::TCharacter) {
+      // Got to copy pointer
+      result->data.vchar = static_cast<char*>(malloc(type.length));
+      memcpy(result->data.vchar, data.vchar, type.length);
+   } else {
+      result->data = data;
+   }
+   return result;
 }
 //---------------------------------------------------------------------------
 unique_ptr<Value> Value::evaluate() const
 {
-   return make_unique<Value>(*this);
+   auto result = unique_ptr<Value>(new Value(type));
+   if(type.type == VariableType::Type::TCharacter) {
+      // Got to copy pointer
+      result->data.vchar = static_cast<char*>(malloc(type.length));
+      memcpy(result->data.vchar, data.vchar, type.length);
+   } else {
+      result->data = data;
+   }
+   return result;
 }
 //---------------------------------------------------------------------------
 vector<const Variable*> Value::getAllVariables() const
@@ -261,7 +318,7 @@ Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TBool:
-         return Value(lhs.data.vbool==rhs.data.vbool);
+         return createBool(lhs.data.vbool==rhs.data.vbool);
       default:
          doError("==" , lhs, rhs);
          throw;
@@ -272,9 +329,9 @@ Value Value::Integer::computeAdd(const Value& lhs, const Value& rhs)
 {
     switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vint + rhs.data.vint);
+            return createInteger(lhs.data.vint + rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vint + rhs.data.vfloat);
+            return createFloat(lhs.data.vint + rhs.data.vfloat);
         default:
             doError("+", lhs, rhs);
             throw;
@@ -285,9 +342,9 @@ Value Value::Integer::computeSub(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vint - rhs.data.vint);
+            return createInteger(lhs.data.vint - rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vint - rhs.data.vfloat);
+            return createFloat(lhs.data.vint - rhs.data.vfloat);
         default:
             doError("-", lhs, rhs);
             throw;
@@ -298,9 +355,9 @@ Value Value::Integer::computeMul(const Value& lhs, const Value& rhs)
 {
     switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vint * rhs.data.vint);
+            return createInteger(lhs.data.vint * rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vint * rhs.data.vfloat);
+            return createFloat(lhs.data.vint * rhs.data.vfloat);
         default:
             doError("*", lhs, rhs);
             throw;
@@ -316,14 +373,14 @@ Value Value::Integer::computeDiv(const Value& lhs, const Value& rhs)
                 throw;
             }          
             else
-                return Value(lhs.data.vint / rhs.data.vint);
+                return createInteger(lhs.data.vint / rhs.data.vint);
         case VariableType::Type::TFloat:
             if(rhs.data.vfloat == 0.0f) {
                 doError("/ by 0", lhs, rhs);
                 throw;
             }
             else
-                return Value(lhs.data.vint / rhs.data.vfloat);
+                return createFloat(lhs.data.vint / rhs.data.vfloat);
         default:
             doError("/", lhs, rhs);
             throw;
@@ -334,9 +391,9 @@ Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.data.vint==rhs.data.vint);
+         return createBool(lhs.data.vint==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.data.vint==rhs.data.vfloat);
+         return createBool(lhs.data.vint==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
@@ -347,9 +404,9 @@ Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vfloat + rhs.data.vint);
+            return createFloat(lhs.data.vfloat + rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vfloat + rhs.data.vfloat);
+            return createFloat(lhs.data.vfloat + rhs.data.vfloat);
         default:
             doError("+", lhs, rhs);
             throw;
@@ -360,9 +417,9 @@ Value Value::Float::computeSub(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vfloat - rhs.data.vint);
+            return createFloat(lhs.data.vfloat - rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vfloat - rhs.data.vfloat);
+            return createFloat(lhs.data.vfloat - rhs.data.vfloat);
         default:
             doError("-", lhs, rhs);
             throw;
@@ -373,9 +430,9 @@ Value Value::Float::computeMul(const Value& lhs, const Value& rhs)
 {
     switch(rhs.type.type){
         case VariableType::Type::TInteger:
-            return Value(lhs.data.vfloat * rhs.data.vint);
+            return createFloat(lhs.data.vfloat * rhs.data.vint);
         case VariableType::Type::TFloat:
-            return Value(lhs.data.vfloat * rhs.data.vfloat);
+            return createFloat(lhs.data.vfloat * rhs.data.vfloat);
         default:
             doError("*", lhs, rhs);
             throw;
@@ -391,14 +448,14 @@ Value Value::Float::computeDiv(const Value& lhs, const Value& rhs)
                 throw;
             }          
             else
-                return Value(lhs.data.vfloat / rhs.data.vint);
+                return createFloat(lhs.data.vfloat / rhs.data.vint);
         case VariableType::Type::TFloat:
             if(rhs.data.vfloat == 0.0f) {
                 doError("/ by 0", lhs, rhs);
                 throw;
             }
             else
-                return Value(lhs.data.vfloat / rhs.data.vfloat);
+                return createFloat(lhs.data.vfloat / rhs.data.vfloat);
         default:
             doError("/", lhs, rhs);
             throw;
@@ -409,9 +466,9 @@ Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.data.vfloat==rhs.data.vint);
+         return createBool(lhs.data.vfloat==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.data.vfloat==rhs.data.vfloat);
+         return createBool(lhs.data.vfloat==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
@@ -424,9 +481,10 @@ Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
     switch(rhs.type.type) {
         case VariableType::Type::TCharacter: {
             char* res = static_cast<char*>(malloc(lhs.type.length + rhs.type.length));
+            memset(res, '\0', lhs.type.length + rhs.type.length);
             std::strncat(res, lhs.data.vchar, lhs.type.length);
             std::strncat(res, rhs.data.vchar, rhs.type.length);
-            return Value(res);
+            return createCharacter(res, lhs.type.length + rhs.type.length);
         }
         default:
             doError("+", lhs, rhs);
@@ -456,7 +514,7 @@ Value Value::Character::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TCharacter:
-         return Value(strncmp(lhs.data.vchar, rhs.data.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
+         return createBool(strncmp(lhs.data.vchar, rhs.data.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
       default:
          doError("==" , lhs, rhs);
          throw;

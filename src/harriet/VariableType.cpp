@@ -108,10 +108,5 @@ string VariableType::str() const
    throw Exception{"unreachable"};
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> VariableType::createDefaultValue() const
-{
-   return make_unique<Value>(Value(*this));
-}
-//---------------------------------------------------------------------------
 } // end of namespace harriet
 //---------------------------------------------------------------------------

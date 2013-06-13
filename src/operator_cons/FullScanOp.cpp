@@ -2,6 +2,8 @@
 #include "harriet/ScriptLanguage.hpp"
 #include "harriet/Value.hpp"
 
+using namespace std;
+
 namespace dbi {
 
     FullScanOp::FullScanOp(const SPSegment& relation, uint16_t writeStartIndex, const RelationSchema& relationSchema, std::vector<harriet::Value>& registerz)
@@ -27,7 +29,7 @@ namespace dbi {
         }
         auto recordValues = relationSchema.recordToTuple((pageEntryIter++)->second);
         for (uint16_t i = 0; i < recordValues.size(); i++) {
-            registerz[writeStartIndex + i] = *recordValues[i];
+            registerz[writeStartIndex + i] = move(*recordValues[i]->evaluate());
         }
         return true;
     }

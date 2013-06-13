@@ -25,16 +25,16 @@ namespace {
     bool bool1 = true;
     bool bool2 = false;
     // Input value objects
-    Value intValue1 = Value(int1);
-    Value intValue2 = Value(int2);
-    Value zeroIntValue = Value(zeroInt);
-    Value floatValue1 = Value(float1);
-    Value floatValue2 = Value(float2);
-    Value zeroFloatValue = Value(zeroFloat);
-    Value charValue1 = Value(string1, string1.size());
-    Value charValue2 = Value(string2, string2.size());
-    Value boolValue1 = Value(bool1);
-    Value boolValue2 = Value(bool2);
+    Value intValue1 = Value::createInteger(int1);
+    Value intValue2 = Value::createInteger(int2);
+    Value zeroIntValue = Value::createInteger(zeroInt);
+    Value floatValue1 = Value::createFloat(float1);
+    Value floatValue2 = Value::createFloat(float2);
+    Value zeroFloatValue = Value::createFloat(zeroFloat);
+    Value charValue1 = Value::createCharacter(string1, string1.size());
+    Value charValue2 = Value::createCharacter(string2, string2.size());
+    Value boolValue1 = Value::createBool(bool1);
+    Value boolValue2 = Value::createBool(bool2);
     // Expected result types
     VariableType intResType = VariableType::createIntegerType();
     VariableType floatResType = VariableType::createFloatType();
@@ -45,6 +45,7 @@ namespace {
 TEST(Value, CharValueTests) {
     // char + char
     Value addCharRes = charValue1.computeAdd(charValue2);
+    cout << addCharRes.type << " " << charResType << endl;
     ASSERT_EQ(addCharRes.type, charResType);
     ASSERT_EQ(addCharRes.data.vchar, string1 + string2);
     // char + (int | float | bool) -> exception

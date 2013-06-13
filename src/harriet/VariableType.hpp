@@ -22,8 +22,6 @@ struct VariableType {
    explicit VariableType(const std::string& name, uint16_t length);
 
    std::string str() const;
-
-   std::unique_ptr<Value> createDefaultValue() const;
    
    static VariableType createBoolType();
    static VariableType createIntegerType();

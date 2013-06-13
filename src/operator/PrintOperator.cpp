@@ -60,7 +60,7 @@ void PrintOperator::execute()
       auto result = source->getOutput();
       out << "| ";
       for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-         out << setw(columnWidths[i]) << *result[i] << " | ";
+         out << setw(columnWidths[i]) << result[i] << " | ";
       out << endl;
       tupleCount++;
    }

@@ -2,6 +2,7 @@
 
 #include "common/Config.hpp"
 #include "harriet/ScriptLanguage.hpp"
+#include "harriet/Value.hpp"
 #include <utility>
 #include <vector>
 #include <memory>
@@ -24,7 +25,7 @@ public:
 
    virtual void open() = 0;
    virtual bool next() = 0;
-   virtual std::vector<std::unique_ptr<harriet::Value>> getOutput() = 0;
+   virtual std::vector<harriet::Value> getOutput() = 0;
    virtual void close() = 0;
 
    virtual ~Operator();

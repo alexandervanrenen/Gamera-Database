@@ -26,7 +26,7 @@ public:
    bool isNull;
 
    static Value createDefault(const VariableType& type);
-   static std::unique_ptr<Value> createFromRecord(const VariableType& type, const char* ptr); // Copies the data
+   static Value createFromRecord(const VariableType& type, const char* ptr); // Copies the data
    static Value createBool(bool value, bool isNull = false);
    static Value createInteger(int32_t value, bool isNull = false);
    static Value createFloat(float value, bool isNull = false);

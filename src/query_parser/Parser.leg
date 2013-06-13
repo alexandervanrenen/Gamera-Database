@@ -18,6 +18,9 @@ using namespace dbi;
 using namespace dbi::script;
 
 struct ReturnValue {
+
+   ReturnValue() : value(harriet::Value::createDefault(harriet::VariableType::createBoolType())) {}
+
    bool boolean;
    int number;
    float numberf;
@@ -36,8 +39,8 @@ struct ReturnValue {
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
 
-   unique_ptr<harriet::Value> value;
-   vector<unique_ptr<harriet::Value>> valueVec;
+   harriet::Value value;
+   vector<harriet::Value> valueVec;
 
    unique_ptr<harriet::Expression> expression;
    vector<unique_ptr<harriet::Expression>> expressionVec;
@@ -101,8 +104,8 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
 # --------------------------------------------------------------------------------------------------------------
 Expression = b:Bool                                        { $$.expression = move(b.expression); }
            | s:Sum                                         { $$.expression = move(s.expression); }
-Bool = t:TRUE                                              { $$.expression = move(t.value); }
-     | f:FALSE                                             { $$.expression = move(f.value); }
+Bool = t:TRUE                                              { $$.expression = t.value.evaluate(); }
+     | f:FALSE                                             { $$.expression = f.value.evaluate(); }
      | b:Sum                                               { }
      ( - EQ - i:Sum                                        { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(i.expression)); }
      )+                                                    { $$.expression = move(b.expression); }
@@ -115,16 +118,16 @@ Product = v:Factor                                         { }
         | - DIVIDE - i:Product                             { v.expression = util::make_unique<harriet::DivisionOperator>(move(v.expression), move(i.expression)); }
         )*                                                 { $$.expression = move(v.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
-       | v:VALUE                                           { $$.expression = move(v.value); }
+       | v:VALUE                                           { $$.expression = v.value.evaluate(); }
        | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID ![a-z|A-Z]                               { $$.str = string("integer"); $$.number = 4; }
      | FLOAT_ID ![a-z|A-Z]                                 { $$.str = string("float"); $$.number = 4; }
      | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.str = string("character"); $$.number = i.number; }
      | CHARACTER_ID ![a-z|A-Z]                             { $$.str = string("character"); $$.number = 1; }
-VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number).evaluate(); }
-      | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf).evaluate(); }
-      | v:STRING                                           { $$.value = harriet::Value::createCharacter(v.str, v.str.size()).evaluate(); }
+VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number); }
+      | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf); }
+      | v:STRING                                           { $$.value = harriet::Value::createCharacter(v.str, v.str.size()); }
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }

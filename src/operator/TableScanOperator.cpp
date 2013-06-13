@@ -78,7 +78,7 @@ bool TableScanOperator::next()
    return positionInCurrentPage < recordsInCurrentPage.size();
 }
 
-vector<unique_ptr<harriet::Value>> TableScanOperator::getOutput()
+vector<harriet::Value> TableScanOperator::getOutput()
 {
    assert(positionInCurrentPage < recordsInCurrentPage.size());
    auto tuple = underlyingSchema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);

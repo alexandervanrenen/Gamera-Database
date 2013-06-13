@@ -29,7 +29,7 @@ namespace dbi {
         }
         auto recordValues = relationSchema.recordToTuple((pageEntryIter++)->second);
         for (uint16_t i = 0; i < recordValues.size(); i++) {
-            registerz[writeStartIndex + i] = move(*recordValues[i]->evaluate());
+            registerz[writeStartIndex + i] = move(recordValues[i]); // May be broken ?
         }
         return true;
     }

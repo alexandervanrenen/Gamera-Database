@@ -55,7 +55,7 @@ void CreateTableStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-InsertStatement::InsertStatement(const string& tableName, vector<unique_ptr<harriet::Value>>&& values)
+InsertStatement::InsertStatement(const string& tableName, vector<harriet::Value>&& values)
 : tableName(tableName)
 , values(move(values))
 {

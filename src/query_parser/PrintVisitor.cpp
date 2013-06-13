@@ -78,7 +78,7 @@ void PrintVisitor::onPreVisit(InsertStatement& insert)
    if(printMode==PrintMode::kAll || printMode==PrintMode::kInsert) {
       out << "insert into " << insert.tableName << " values(" << endl;
       for(auto& iter : insert.values)
-         out << *iter << endl;
+         out << iter << endl;
       out << ");" << endl;
 
       if(insert.queryPlan) {

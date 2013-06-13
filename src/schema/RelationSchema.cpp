@@ -56,16 +56,16 @@ RelationSchema::RelationSchema(const Record& record)
    assert(in.good());
 }
 
-vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& record) const
+vector<harriet::Value> RelationSchema::recordToTuple(const Record& record) const
 {
-   vector<unique_ptr<harriet::Value>> result;
+   vector<harriet::Value> result;
    result.reserve(attributes.size());
    for(auto& attribute : attributes)
-      result.push_back(harriet::Value::createFromRecord(attribute.type, record.data()+attribute.offset));
+      result.emplace_back(harriet::Value::createFromRecord(attribute.type, record.data()+attribute.offset));
    return result;
 }
 
-Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& tuple) const
+Record RelationSchema::tupleToRecord(const vector<harriet::Value>& tuple) const
 {
    assert(sid != kInvalidSegmentId);
    assert(attributes.size()==tuple.size());
@@ -76,7 +76,7 @@ Record RelationSchema::tupleToRecord(const vector<unique_ptr<harriet::Value>>& t
 
    vector<char> data(tupleSize);
    for(uint32_t i=0; i<tuple.size(); i++)
-      tuple[i]->marschall(data.data()+attributes[i].offset);
+      tuple[i].marschall(data.data()+attributes[i].offset);
 
    return Record(data);
 }

@@ -73,11 +73,11 @@ TEST(Schema, TupleMarschalling)
    schema.optimizePadding();
 
    // Create tuple
-   vector<unique_ptr<harriet::Value>> tuple;
-   tuple.push_back(harriet::Value::createInteger(1337).evaluate());
-   tuple.push_back(harriet::Value::createCharacter(string("alex"), 20).evaluate());
-   tuple.push_back(harriet::Value::createBool(true).evaluate());
-   tuple.push_back(harriet::Value::createFloatgit(3000.0f).evaluate());
+   vector<harriet::Value> tuple;
+   tuple.push_back(harriet::Value::createInteger(1337));
+   tuple.push_back(harriet::Value::createCharacter(string("alex"), 20));
+   tuple.push_back(harriet::Value::createBool(true));
+   tuple.push_back(harriet::Value::createFloat(3000.0f));
 
    // Serialize and de-serialize
    Record record = schema.tupleToRecord(tuple);
@@ -86,7 +86,7 @@ TEST(Schema, TupleMarschalling)
    // Compare
    ASSERT_EQ(tuple.size(), tupleCopy.size());
    for(uint32_t i=0; i<tuple.size(); i++)
-      ASSERT_TRUE(tuple[i]->computeEq(*tupleCopy[i]).data.vbool);
+      ASSERT_TRUE(tuple[i].computeEq(tupleCopy[i]).data.vbool);
 }
 
 TEST(Schema, SchemaManager)

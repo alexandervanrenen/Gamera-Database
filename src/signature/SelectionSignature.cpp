@@ -80,21 +80,21 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    selectionCondition = move(expression);
 }
 
-bool SelectionSignature::fullfillsPredicates(const vector<unique_ptr<harriet::Value>>& tuple)
+bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple)
 {
    harriet::Environment env;
    if(type == Type::kConstant) // => Constant Value
       return reinterpret_cast<harriet::Value&>(*selectionCondition).data.vbool;
 
    if(type == Type::kOneColumn) // => a = 3
-      return tuple[variableMapping[0].position]->computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition)).data.vbool;
+      return tuple[variableMapping[0].position].computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition)).data.vbool;
 
    if(type == Type::kTwoColumn) // => a = b
-      return tuple[variableMapping[0].position]->computeEq(*tuple[variableMapping[1].position]).data.vbool;
+      return tuple[variableMapping[0].position].computeEq(tuple[variableMapping[1].position]).data.vbool;
 
    // => something wired
    for(auto& iter : variableMapping)
-      env.add(iter.name, tuple[iter.position]->evaluate());
+      env.add(iter.name, tuple[iter.position].evaluate());
    return selectionCondition->evaluate(env)->data.vbool;
 }
 

@@ -56,7 +56,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
 {
-   auto source = util::make_unique<SingleRecordOperator>(insert.values);
+   auto source = util::make_unique<SingleRecordOperator>(move(insert.values));
 
    auto& targetSchema = schemaManager.getRelation(insert.tableName);
    SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());

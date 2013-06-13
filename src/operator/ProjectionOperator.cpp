@@ -49,12 +49,12 @@ bool ProjectionOperator::next()
    return source->next();
 }
 
-vector<unique_ptr<harriet::Value>> ProjectionOperator::getOutput()
+vector<harriet::Value> ProjectionOperator::getOutput()
 {
    auto tuple = source->getOutput();
-   vector<unique_ptr<harriet::Value>> result;
+   vector<harriet::Value> result;
    for(auto iter : signature.getProjection())
-      result.push_back(tuple[iter]->evaluate());
+      result.push_back(move(tuple[iter]));
    return result;
 }
 

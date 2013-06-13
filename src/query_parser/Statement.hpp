@@ -2,6 +2,7 @@
 
 #include "Visitor.hpp"
 #include "schema/Common.hpp"
+#include "harriet/Value.hpp"
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -64,11 +65,11 @@ struct CreateTableStatement : public Statement {
 /// 
 struct InsertStatement : public Statement {
 
-   InsertStatement(const std::string& tableName, std::vector<std::unique_ptr<harriet::Value>>&& values);
+   InsertStatement(const std::string& tableName, std::vector<harriet::Value>&& values);
    ~InsertStatement();
 
    std::string tableName;
-   std::vector<std::unique_ptr<harriet::Value>> values;
+   std::vector<harriet::Value> values;
 
    std::unique_ptr<RootOperator> queryPlan;
 

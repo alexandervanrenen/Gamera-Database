@@ -7,13 +7,12 @@ using namespace std;
 
 namespace dbi {
 
-SingleRecordOperator::SingleRecordOperator(const std::vector<std::unique_ptr<harriet::Value>>& input)
+SingleRecordOperator::SingleRecordOperator(std::vector<harriet::Value>&& input)
 : state(kClosed)
 , hasNext(false)
 , signature(input)
+, tuple(move(input))
 {
-   for(auto& value : input)
-      values.push_back(value->evaluate());
 }
 
 SingleRecordOperator::~SingleRecordOperator()
@@ -52,11 +51,11 @@ bool SingleRecordOperator::next()
    return result;
 }
 
-vector<unique_ptr<harriet::Value>> SingleRecordOperator::getOutput()
+vector<harriet::Value> SingleRecordOperator::getOutput()
 {
-   vector<unique_ptr<harriet::Value>> result;
-   for(auto& value : values)
-      result.push_back(value->evaluate());
+   vector<harriet::Value> result;
+   for(auto& value : tuple)
+      result.push_back(move(*value.evaluate())); // AAA hack
    return result;
 }
 

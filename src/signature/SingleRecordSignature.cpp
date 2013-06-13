@@ -6,10 +6,10 @@ using namespace std;
 
 namespace dbi {
 
-SingleRecordSignature::SingleRecordSignature(const vector<unique_ptr<harriet::Value>>& values)
+SingleRecordSignature::SingleRecordSignature(const vector<harriet::Value>& values)
 {
    for(auto& iter : values)
-      attributes.push_back(AttributeSignature{"", "", true, true, iter->type});
+      attributes.push_back(AttributeSignature{"", "", true, true, iter.type});
 }
 
 }

@@ -30,8 +30,8 @@ struct RelationSchema {
    RelationSchema(const RelationSchema&) = delete;
    RelationSchema& operator=(const RelationSchema&) = delete;
 
-   std::vector<std::unique_ptr<harriet::Value>> recordToTuple(const Record& record) const;
-   Record tupleToRecord(const std::vector<std::unique_ptr<harriet::Value>>& tuple) const;
+   std::vector<harriet::Value> recordToTuple(const Record& record) const;
+   Record tupleToRecord(const std::vector<harriet::Value>& tuple) const;
 
    void setSegmentId(SegmentId sid);
    void optimizePadding();

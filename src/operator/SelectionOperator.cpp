@@ -54,7 +54,7 @@ bool SelectionOperator::next()
    return false;
 }
 
-vector<unique_ptr<harriet::Value>> SelectionOperator::getOutput()
+vector<harriet::Value> SelectionOperator::getOutput()
 {
    return move(tuple);
 }

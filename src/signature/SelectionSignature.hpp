@@ -10,7 +10,7 @@ public:
    /// Create signature using the supplied signature of the underlying operator and the predicate
    SelectionSignature(const Signature& source, std::unique_ptr<harriet::Expression> expression);
 
-   bool fullfillsPredicates(const std::vector<std::unique_ptr<harriet::Value>>& tuple);
+   bool fullfillsPredicates(const std::vector<harriet::Value>& tuple);
 
    virtual void dump(std::ostream& os) const;
 

@@ -63,12 +63,13 @@ bool CrossProductOperator::next()
    return false;
 }
 
-vector<unique_ptr<harriet::Value>> CrossProductOperator::getOutput()
+vector<harriet::Value> CrossProductOperator::getOutput()
 {
       auto lhsTuple = lhs->getOutput();
       auto rhsTuple = rhs->getOutput();
-      lhsTuple.resize(lhsTuple.size() + rhsTuple.size());
-      move(rhsTuple.begin(), rhsTuple.end(), lhsTuple.begin() + lhsTuple.size() - rhsTuple.size());
+      lhsTuple.reserve(lhsTuple.size() + rhsTuple.size());
+      for(auto& iter : rhsTuple)
+         lhsTuple.emplace_back(move(iter));
       return lhsTuple;
 }
 

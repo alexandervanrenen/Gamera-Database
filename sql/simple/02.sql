@@ -103,9 +103,3 @@ insert into pruefen values (27550, 4630, 2137, 2.0);
   and v.gelesenVon = p.PersNr
   and p.Name = 'Sokrates';
 
-select s1.Name , s1.MatrNr
-from Studenten s1 , Studenten s2 , hoeren h1, hoeren h2
-where s1.MatrNr = h1.MatrNr
-and s2.MatrNr = h2.MatrNr
-and h1.VorlNr = h2.VorlNr
-and s2.Name = 'Fichte';

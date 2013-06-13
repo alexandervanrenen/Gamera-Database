@@ -23,7 +23,7 @@ private:
    };
    std::vector<VariableMapping> variableMapping;
 
-   enum struct Type : uint8_t {kUnknown, kConstant, kOneColumn, kTwoColumn, kComplex};
+   enum struct Type : uint8_t {kConstant, kOneColumn, kTwoColumn, kComplex, kUnknown};
    Type type;
 
    std::vector<VariableMapping> getFreeVariables(const harriet::Expression& expression) const;

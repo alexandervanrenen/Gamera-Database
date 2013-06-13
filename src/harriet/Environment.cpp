@@ -24,13 +24,13 @@ Environment::~Environment()
 {
 }
 //---------------------------------------------------------------------------
-void Environment::add(const string& identifier, unique_ptr<Value> value)
+void Environment::add(const string& identifier, Value&& value)
 {
-   assert(none_of(data.begin(), data.end(), [&identifier](const pair<string,unique_ptr<Value>>& iter){return iter.first==identifier;}));
+   assert(none_of(data.begin(), data.end(), [&identifier](const pair<string,Value>& iter){return iter.first==identifier;}));
    data.push_back(make_pair(identifier, ::move(value)));
 }
 //---------------------------------------------------------------------------
-void Environment::update(const string& identifier, unique_ptr<Value> value)
+void Environment::update(const string& identifier, Value&& value)
 {
    assert(isInAnyScope(identifier));
    for(auto& iter : data)
@@ -46,7 +46,7 @@ const Value& Environment::read(const string& identifier) const
    assert(isInAnyScope(identifier));
    for(auto& iter : data)
       if(iter.first == identifier)
-         return *iter.second;
+         return iter.second;
    return parent->read(identifier);
 }
 //---------------------------------------------------------------------------

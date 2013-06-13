@@ -104,8 +104,8 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
 # --------------------------------------------------------------------------------------------------------------
 Expression = b:Bool                                        { $$.expression = move(b.expression); }
            | s:Sum                                         { $$.expression = move(s.expression); }
-Bool = t:TRUE                                              { $$.expression = t.value.evaluate(); }
-     | f:FALSE                                             { $$.expression = f.value.evaluate(); }
+Bool = t:TRUE                                              { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
+     | f:FALSE                                             { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
      | b:Sum                                               { }
      ( - EQ - i:Sum                                        { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(i.expression)); }
      )+                                                    { $$.expression = move(b.expression); }
@@ -118,7 +118,7 @@ Product = v:Factor                                         { }
         | - DIVIDE - i:Product                             { v.expression = util::make_unique<harriet::DivisionOperator>(move(v.expression), move(i.expression)); }
         )*                                                 { $$.expression = move(v.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
-       | v:VALUE                                           { $$.expression = v.value.evaluate(); }
+       | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
        | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID ![a-z|A-Z]                               { $$.str = string("integer"); $$.number = 4; }

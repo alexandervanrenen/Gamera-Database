@@ -3,6 +3,7 @@
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Value.hpp"
+#include "util/Utility.hpp"
 #include <sstream>
 #include <algorithm>
 
@@ -23,9 +24,9 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    harriet::Environment env;
    for(auto& iter : variableMapping) {
       auto type = source.getAttributes()[iter.position].type;
-      env.add(iter.name, harriet::Value::createDefault(type).evaluate());
+      env.add(iter.name, harriet::Value::createDefault(type));
    }
-   if(expression->evaluate(env)->type.type != harriet::VariableType::Type::TBool) {
+   if(expression->evaluate(env).type.type != harriet::VariableType::Type::TBool) {
       ostringstream os;
       expression->print(os);
       throw harriet::Exception{"Result type of: '" + os.str() + "' is not bool."};
@@ -34,7 +35,7 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    // Optimize -- constant values. an expression that evaluates to a constant value (e.g. 2==3 is always false)
    if(variableMapping.size() == 0) {
       harriet::Environment env; // Empty environment for now
-      selectionCondition = expression->evaluate(env);
+      selectionCondition = util::make_unique<harriet::ValueExpression>(expression->evaluate(env));
       type = Type::kConstant;
       return;
    }
@@ -50,7 +51,7 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
 
       // Evaluate the constant subtree and replace it with the computed result
       harriet::Environment env; // Empty environment for now
-      (*constantSubTree) = (*constantSubTree)->evaluate(env);
+      (*constantSubTree) = util::make_unique<harriet::ValueExpression>((*constantSubTree)->evaluate(env));
 
       // This optimization only works if the variable subtree is a singe variable
       if((*columnRefSubTree)->getExpressionType() == harriet::ExpressionType::TVariable) {
@@ -87,15 +88,15 @@ bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple
       return reinterpret_cast<harriet::Value&>(*selectionCondition).data.vbool;
 
    if(type == Type::kOneColumn) // => a = 3
-      return tuple[variableMapping[0].position].computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition)).data.vbool;
+      return tuple[variableMapping[0].position].computeEq(reinterpret_cast<harriet::ValueExpression&>(*selectionCondition).value).data.vbool;
 
    if(type == Type::kTwoColumn) // => a = b
       return tuple[variableMapping[0].position].computeEq(tuple[variableMapping[1].position]).data.vbool;
 
    // => something wired
    for(auto& iter : variableMapping)
-      env.add(iter.name, tuple[iter.position].evaluate());
-   return selectionCondition->evaluate(env)->data.vbool;
+      env.add(iter.name, tuple[iter.position].createCopy());
+   return selectionCondition->evaluate(env).data.vbool;
 }
 
 void SelectionSignature::dump(ostream& os) const

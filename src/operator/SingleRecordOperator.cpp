@@ -55,7 +55,7 @@ vector<harriet::Value> SingleRecordOperator::getOutput()
 {
    vector<harriet::Value> result;
    for(auto& value : tuple)
-      result.push_back(move(*value.evaluate())); // AAA hack
+      result.push_back(value.createCopy());
    return result;
 }
 

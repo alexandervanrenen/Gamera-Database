@@ -1,5 +1,6 @@
 #include "Value.hpp"
 #include "Utility.hpp"
+#include "ScriptLanguage.hpp"
 #include <cassert>
 #include <iostream>
 #include <cstdlib>
@@ -95,6 +96,19 @@ Value Value::createCharacter(char* value, uint16_t max, bool)
    return result;
 }
 //---------------------------------------------------------------------------
+Value Value::createCopy() const
+{
+   Value result(type);
+   if(type.type == VariableType::Type::TCharacter) {
+      // Got to copy pointer
+      result.data.vchar = static_cast<char*>(malloc(type.length));
+      memcpy(result.data.vchar, data.vchar, type.length);
+   } else {
+      result.data = data;
+   }
+   return result;
+}
+//---------------------------------------------------------------------------
 Value::Value(Value&& other)
 : type(other.type)
 , data(other.data)
@@ -135,46 +149,18 @@ void Value::marschall(char* ptr) const
    throw;
 }
 //---------------------------------------------------------------------------
-void Value::print(ostream& os) const
-{
-   os << *this;
-}
-//---------------------------------------------------------------------------
-std::unique_ptr<Value> Value::evaluate(Environment&) const
-{
-   auto result = unique_ptr<Value>(new Value(type));
-   if(type.type == VariableType::Type::TCharacter) {
-      // Got to copy pointer
-      result->data.vchar = static_cast<char*>(malloc(type.length));
-      memcpy(result->data.vchar, data.vchar, type.length);
-   } else {
-      result->data = data;
-   }
-   return result;
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> Value::evaluate() const
-{
-   auto result = unique_ptr<Value>(new Value(type));
-   if(type.type == VariableType::Type::TCharacter) {
-      // Got to copy pointer
-      result->data.vchar = static_cast<char*>(malloc(type.length));
-      memcpy(result->data.vchar, data.vchar, type.length);
-   } else {
-      result->data = data;
-   }
-   return result;
-}
-//---------------------------------------------------------------------------
-vector<const Variable*> Value::getAllVariables() const
-{
-   return vector<const Variable*>();
-}
-//---------------------------------------------------------------------------
-ExpressionType Value::getExpressionType() const
-{
-   return ExpressionType::TValue;
-}
+// unique_ptr<Value> Value::evaluate() const
+// {
+//    auto result = unique_ptr<Value>(new Value(type));
+//    if(type.type == VariableType::Type::TCharacter) {
+//       // Got to copy pointer
+//       result->data.vchar = static_cast<char*>(malloc(type.length));
+//       memcpy(result->data.vchar, data.vchar, type.length);
+//    } else {
+//       result->data = data;
+//    }
+//    return result;
+// }
 //---------------------------------------------------------------------------
 ostream& operator<< (ostream& os, const Value& v)
 {
@@ -193,8 +179,8 @@ ostream& operator<< (ostream& os, const Value& v)
 }
 //---------------------------------------------------------------------------
 namespace {
-void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(harriet::Exception) { throw harriet::Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
-void doError(const string& operatorSign, const Value& lhs) throw(harriet::Exception) { throw harriet::Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
+void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(Exception) { throw Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
+void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
 }
 //---------------------------------------------------------------------------
 Value Value::computeAdd(const Value& rhs) const
@@ -505,8 +491,16 @@ Value Value::Character::computeDiv(const Value& lhs, const Value& rhs)
 Value Value::Character::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
-      case VariableType::Type::TCharacter:
-         return createBool(strncmp(lhs.data.vchar, rhs.data.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
+      case VariableType::Type::TCharacter: {
+         bool isContentEq = 0==memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(lhs.type.length == rhs.type.length) {
+            return createBool(isContentEq);
+         } else if(lhs.type.length < rhs.type.length) {
+            return createBool(rhs.data.vchar[lhs.type.length]=='\0' && isContentEq);
+         } else {
+            return createBool(lhs.data.vchar[rhs.type.length]=='\0' && isContentEq);
+         }
+      }
       default:
          doError("==" , lhs, rhs);
          throw;

@@ -30,10 +30,20 @@ void Variable::print(ostream& stream) const
    stream << identifier;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> Variable::evaluate(Environment& environment) const
+Value Variable::evaluate(Environment& environment) const
 {
    const Value& result = environment.read(identifier);
-   return result.evaluate();
+   return result.createCopy();
+}
+//---------------------------------------------------------------------------
+void ValueExpression::print(ostream& stream) const
+{
+   stream << value;
+}
+//---------------------------------------------------------------------------
+Value ValueExpression::evaluate(Environment&) const
+{
+   return value.createCopy();
 }
 //---------------------------------------------------------------------------
 void UnaryOperator::print(ostream& stream) const
@@ -48,16 +58,16 @@ void UnaryOperator::addChild(unique_ptr<Expression> child)
    this->child = ::move(child);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> UnaryMinusOperator::evaluate(Environment&) const
+Value UnaryMinusOperator::evaluate(Environment&) const
 {
    // return child->evaluate(environment)->computeInv();
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> NotOperator::evaluate(Environment&) const
+Value NotOperator::evaluate(Environment&) const
 {
    // return child->evaluate(environment)->computeNot();
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
 void BinaryOperator::addChildren(unique_ptr<Expression> lhsChild, unique_ptr<Expression> rhsChild)
@@ -76,94 +86,94 @@ void BinaryOperator::print(ostream& stream) const
    stream << " ) ";
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> AssignmentOperator::evaluate(Environment& environment) const
+Value AssignmentOperator::evaluate(Environment&) const
 {
    if(lhs->getExpressionType() != ExpressionType::TVariable)
       throw harriet::Exception("need variable as left hand side of assignment operator");
-
-   environment.update(reinterpret_cast<Variable*>(lhs.get())->getIdentifier(), rhs->evaluate(environment));
-   return lhs->evaluate(environment);
+throw;
+   // environment.update(reinterpret_cast<Variable*>(lhs.get())->getIdentifier(), rhs->evaluate(environment));
+   // return lhs->evaluate(environment);
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> PlusOperator::evaluate(Environment& environment) const
+Value PlusOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeAdd(*rhs->evaluate(environment)).evaluate();
+   return lhs->evaluate(environment).computeAdd(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> MinusOperator::evaluate(Environment& environment) const
+Value MinusOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeSub(*rhs->evaluate(environment)).evaluate();
+   return lhs->evaluate(environment).computeSub(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> MultiplicationOperator::evaluate(Environment&) const
+Value MultiplicationOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeMul(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> DivisionOperator::evaluate(Environment&) const
+Value DivisionOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeDiv(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> ModuloOperator::evaluate(Environment&) const
+Value ModuloOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeMod(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> ExponentiationOperator::evaluate(Environment&) const
+Value ExponentiationOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeExp(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> AndOperator::evaluate(Environment&) const
+Value AndOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeAnd(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> OrOperator::evaluate(Environment&) const
+Value OrOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeOr (*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> GreaterOperator::evaluate(Environment&) const
+Value GreaterOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeGt (*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> LessOperator::evaluate(Environment&) const
+Value LessOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeLt (*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> GreaterEqualOperator::evaluate(Environment&) const
+Value GreaterEqualOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeGeq(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> LessEqualOperator::evaluate(Environment&) const
+Value LessEqualOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeLeq(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> EqualOperator::evaluate(Environment& environment) const
+Value EqualOperator::evaluate(Environment& environment) const
 {
-   return lhs->evaluate(environment)->computeEq(*rhs->evaluate(environment)).evaluate();
+   return lhs->evaluate(environment).computeEq(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> NotEqualOperator::evaluate(Environment&) const
+Value NotEqualOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeNeq(*rhs->evaluate(environment));
-   return nullptr;
+   throw;
 }
 //---------------------------------------------------------------------------
 FunctionOperator::FunctionOperator(const string& functionName, uint32_t functionIdentifier, vector<unique_ptr<Expression>>& arguments)
@@ -173,20 +183,21 @@ FunctionOperator::FunctionOperator(const string& functionName, uint32_t function
 {
 }
 //---------------------------------------------------------------------------
-unique_ptr<Value> FunctionOperator::evaluate(Environment& environment) const
+Value FunctionOperator::evaluate(Environment&) const
 {
-   // build arguments
-   vector<unique_ptr<Value>> evaluetedArguments;
-   auto function = environment.getFunction(functionIdentifier);
-   for(uint32_t i=0; i<arguments.size(); i++) {
-      auto result = arguments[i]->evaluate(environment);
-      if(result->type != function->getArgumentType(i))
-         throw harriet::Exception{"type missmatch in function '" + function->getName() + "' for argument '" + to_string(i) + "' unable to convert '" + result->type.str() + "' to '" + function->getArgumentType(i).str() + "'"};
-      evaluetedArguments.push_back(::move(result));
-   }
+   throw;
+   // // build arguments
+   // vector<unique_ptr<Value>> evaluetedArguments;
+   // auto function = environment.getFunction(functionIdentifier);
+   // for(uint32_t i=0; i<arguments.size(); i++) {
+   //    auto result = arguments[i]->evaluate(environment);
+   //    if(result->type != function->getArgumentType(i))
+   //       throw harriet::Exception{"type missmatch in function '" + function->getName() + "' for argument '" + to_string(i) + "' unable to convert '" + result->type.str() + "' to '" + function->getArgumentType(i).str() + "'"};
+   //    evaluetedArguments.push_back(::move(result));
+   // }
 
-   // call function
-   return function->execute(evaluetedArguments, environment);
+   // // call function
+   // return function->execute(evaluetedArguments, environment);
 }
 //---------------------------------------------------------------------------
 void FunctionOperator::print(ostream& stream) const

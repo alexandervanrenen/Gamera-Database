@@ -1,6 +1,7 @@
 #include "VariableType.hpp"
 #include "Value.hpp"
 #include "Utility.hpp"
+#include "ScriptLanguage.hpp"
 #include <sstream>
 #include <ctype.h>
 #include <cassert>

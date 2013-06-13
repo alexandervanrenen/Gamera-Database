@@ -26,13 +26,12 @@ public:
    bool isNull;
 
    static Value createDefault(const VariableType& type);
-   static Value createFromRecord(const VariableType& type, const char* ptr); // Copies the data
+   static std::unique_ptr<Value> createFromRecord(const VariableType& type, const char* ptr); // Copies the data
    static Value createBool(bool value, bool isNull = false);
    static Value createInteger(int32_t value, bool isNull = false);
    static Value createFloat(float value, bool isNull = false);
    static Value createCharacter(const std::string& value, uint16_t max, bool isNull = false);
    static Value createCharacter(char* value, uint16_t max, bool isNull = false); // Transfers ownership of the memory pointed to by value
-   std::unique_ptr<Value> toUnique();
    Value(Value&& other);
    Value& operator=(Value&& other);
    virtual ~Value();

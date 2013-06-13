@@ -61,7 +61,7 @@ vector<unique_ptr<harriet::Value>> RelationSchema::recordToTuple(const Record& r
    vector<unique_ptr<harriet::Value>> result;
    result.reserve(attributes.size());
    for(auto& attribute : attributes)
-      result.push_back(harriet::Value::createFromRecord(attribute.type, record.data()+attribute.offset).toUnique());
+      result.push_back(harriet::Value::createFromRecord(attribute.type, record.data()+attribute.offset));
    return result;
 }
 

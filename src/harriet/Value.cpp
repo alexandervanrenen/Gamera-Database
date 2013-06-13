@@ -35,23 +35,23 @@ Value Value::createDefault(const VariableType& type)
    throw;
 }
 //---------------------------------------------------------------------------
-Value Value::createFromRecord(const VariableType& type, const char* ptr)
+unique_ptr<Value> Value::createFromRecord(const VariableType& type, const char* ptr)
 {
-   Value result(type);
+   auto result = unique_ptr<Value>(new Value(type));
    switch(type.type) {
       case VariableType::Type::TBool:
-         result.data.vbool = reinterpret_cast<const bool&>(*ptr);
+         result->data.vbool = reinterpret_cast<const bool&>(*ptr);
          return result;
       case VariableType::Type::TInteger:
-         result.data.vint = reinterpret_cast<const int32_t&>(*ptr);
+         result->data.vint = reinterpret_cast<const int32_t&>(*ptr);
          return result;
       case VariableType::Type::TFloat:
-         result.data.vfloat = reinterpret_cast<const float&>(*ptr);
+         result->data.vfloat = reinterpret_cast<const float&>(*ptr);
          return result;
       case VariableType::Type::TCharacter:
-         result.data.vchar = static_cast<char*>(malloc(type.length));
-         memset(result.data.vchar, '\0', type.length);
-         memcpy(result.data.vchar, ptr, type.length);
+         result->data.vchar = static_cast<char*>(malloc(type.length));
+         memset(result->data.vchar, '\0', type.length);
+         memcpy(result->data.vchar, ptr, type.length);
          return result;
    }
    throw;
@@ -85,14 +85,6 @@ Value Value::createCharacter(const string& value, uint16_t max, bool)
    result.data.vchar = static_cast<char*>(malloc(max));
    memset(result.data.vchar, '\0', max);
    memcpy(result.data.vchar, value.data(), value.size());
-   return result;
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> Value::toUnique()
-{
-   auto result = unique_ptr<Value>(new Value(type));
-   result->data = data;
-   data.vchar = 0;
    return result;
 }
 //---------------------------------------------------------------------------

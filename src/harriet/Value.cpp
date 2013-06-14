@@ -33,6 +33,7 @@ Value Value::createDefault(const VariableType& type)
          result.data.vchar = static_cast<char*>(malloc(type.length));
          memset(result.data.vchar, '\0', type.length);
          return result;
+
    }
    throw;
 }
@@ -119,10 +120,10 @@ Value::Value(Value&& other)
 //---------------------------------------------------------------------------
 Value& Value::operator=(Value&& other)
 {
-  type = other.type;
-  data = other.data;
-  other.data.vchar = nullptr;
-  return *this;
+   type = other.type;
+   data = other.data;
+   other.data.vchar = nullptr;
+   return *this;
 }
 //---------------------------------------------------------------------------
 Value::~Value()
@@ -214,7 +215,7 @@ Value Value::computeSub(const Value& rhs) const
 //---------------------------------------------------------------------------
 Value Value::computeMul(const Value& rhs) const
 {
-    switch(type.type) {
+   switch(type.type) {
       case VariableType::Type::TBool:
          return Bool::computeMul(*this, rhs);
       case VariableType::Type::TInteger:
@@ -231,7 +232,7 @@ Value Value::computeMul(const Value& rhs) const
 //---------------------------------------------------------------------------
 Value Value::computeDiv(const Value& rhs) const
 {
-    switch(type.type) {
+   switch(type.type) {
       case VariableType::Type::TBool:
          return Bool::computeDiv(*this, rhs);
       case VariableType::Type::TInteger:
@@ -277,14 +278,14 @@ Value Value::Bool::computeSub(const Value& lhs, const Value& rhs)
 //---------------------------------------------------------------------------
 Value Value::Bool::computeMul(const Value& lhs, const Value& rhs)
 {
-    doError("*", lhs, rhs);
-    throw;
+   doError("*", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Bool::computeDiv(const Value& lhs, const Value& rhs)
 {
-    doError("/", lhs, rhs);
-    throw;
+   doError("/", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
@@ -300,64 +301,64 @@ Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
 //---------------------------------------------------------------------------
 Value Value::Integer::computeAdd(const Value& lhs, const Value& rhs)
 {
-    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createInteger(lhs.data.vint + rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vint + rhs.data.vfloat);
-        default:
-            doError("+", lhs, rhs);
-            throw;
-    }
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint + rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint + rhs.data.vfloat);
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeSub(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createInteger(lhs.data.vint - rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vint - rhs.data.vfloat);
-        default:
-            doError("-", lhs, rhs);
-            throw;
-    }
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint - rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint - rhs.data.vfloat);
+      default:
+         doError("-", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeMul(const Value& lhs, const Value& rhs)
 {
-    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createInteger(lhs.data.vint * rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vint * rhs.data.vfloat);
-        default:
-            doError("*", lhs, rhs);
-            throw;
-    }
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint * rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint * rhs.data.vfloat);
+      default:
+         doError("*", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeDiv(const Value& lhs, const Value& rhs)
 {
-    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            if(rhs.data.vint == 0) {
-                doError("/ by 0", lhs, rhs);
-                throw;
-            }          
-            else
-                return createInteger(lhs.data.vint / rhs.data.vint);
-        case VariableType::Type::TFloat:
-            if(rhs.data.vfloat == 0.0f) {
-                doError("/ by 0", lhs, rhs);
-                throw;
-            }
-            else
-                return createFloat(lhs.data.vint / rhs.data.vfloat);
-        default:
-            doError("/", lhs, rhs);
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         if(rhs.data.vint == 0) {
+            doError("/ by 0", lhs, rhs);
             throw;
-    }
+         }          
+         else
+            return createInteger(lhs.data.vint / rhs.data.vint);
+      case VariableType::Type::TFloat:
+         if(rhs.data.vfloat == 0.0f) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }
+         else
+            return createFloat(lhs.data.vint / rhs.data.vfloat);
+      default:
+         doError("/", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
@@ -376,63 +377,63 @@ Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
 Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createFloat(lhs.data.vfloat + rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vfloat + rhs.data.vfloat);
-        default:
-            doError("+", lhs, rhs);
-            throw;
-    }
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat + rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat + rhs.data.vfloat);
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeSub(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createFloat(lhs.data.vfloat - rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vfloat - rhs.data.vfloat);
-        default:
-            doError("-", lhs, rhs);
-            throw;
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat - rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat - rhs.data.vfloat);
+      default:
+         doError("-", lhs, rhs);
+         throw;
     }
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeMul(const Value& lhs, const Value& rhs)
 {
-    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            return createFloat(lhs.data.vfloat * rhs.data.vint);
-        case VariableType::Type::TFloat:
-            return createFloat(lhs.data.vfloat * rhs.data.vfloat);
-        default:
-            doError("*", lhs, rhs);
-            throw;
-    }
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat * rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat * rhs.data.vfloat);
+      default:
+         doError("*", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeDiv(const Value& lhs, const Value& rhs)
 {
-    switch(rhs.type.type){
-        case VariableType::Type::TInteger:
-            if(rhs.data.vint == 0) {
-                doError("/ by 0", lhs, rhs);
-                throw;
-            }          
-            else
-                return createFloat(lhs.data.vfloat / rhs.data.vint);
-        case VariableType::Type::TFloat:
-            if(rhs.data.vfloat == 0.0f) {
-                doError("/ by 0", lhs, rhs);
-                throw;
-            }
-            else
-                return createFloat(lhs.data.vfloat / rhs.data.vfloat);
-        default:
-            doError("/", lhs, rhs);
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         if(rhs.data.vint == 0) {
+            doError("/ by 0", lhs, rhs);
             throw;
-    }
+         }          
+         else
+            return createFloat(lhs.data.vfloat / rhs.data.vint);
+      case VariableType::Type::TFloat:
+         if(rhs.data.vfloat == 0.0f) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }
+         else
+            return createFloat(lhs.data.vfloat / rhs.data.vfloat);
+      default:
+         doError("/", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
@@ -450,26 +451,26 @@ Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
 //---------------------------------------------------------------------------
 Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
 {
-    // TODO: auto conversion to char* to make appending of numbers possible
-    switch(rhs.type.type) {
-        case VariableType::Type::TCharacter: {
-            char* res = static_cast<char*>(malloc(lhs.type.length + rhs.type.length));
-            char* writeHead = res;
-            // Copy right hand side
-            for(char* readHead=lhs.data.vchar; readHead!=lhs.data.vchar+lhs.type.length&&*readHead!='\0';)
-               *(writeHead++) = *(readHead++);
-            // Copy left hand side
-            for(char* readHead=rhs.data.vchar; readHead!=rhs.data.vchar+rhs.type.length&&*readHead!='\0';)
-               *(writeHead++) = *(readHead++);
-            // Fill with \0
-            while(writeHead != res+lhs.type.length+rhs.type.length)
-              *(writeHead++) = '\0';
-            return createCharacter(res, lhs.type.length + rhs.type.length);
-        }
-        default:
-            doError("+", lhs, rhs);
-            throw;
-    }
+   // TODO: auto conversion to char* to make appending of numbers possible
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         char* res = static_cast<char*>(malloc(lhs.type.length + rhs.type.length));
+         char* writeHead = res;
+         // Copy right hand side
+         for(char* readHead=lhs.data.vchar; readHead!=lhs.data.vchar+lhs.type.length&&*readHead!='\0';)
+            *(writeHead++) = *(readHead++);
+         // Copy left hand side
+         for(char* readHead=rhs.data.vchar; readHead!=rhs.data.vchar+rhs.type.length&&*readHead!='\0';)
+            *(writeHead++) = *(readHead++);
+         // Fill with \0
+         while(writeHead != res+lhs.type.length+rhs.type.length)
+            *(writeHead++) = '\0';
+         return createCharacter(res, lhs.type.length + rhs.type.length);
+      }
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Character::computeSub(const Value& lhs, const Value& rhs)
@@ -480,14 +481,14 @@ Value Value::Character::computeSub(const Value& lhs, const Value& rhs)
 //---------------------------------------------------------------------------
 Value Value::Character::computeMul(const Value& lhs, const Value& rhs)
 {
-    doError("*", lhs, rhs);
-    throw;
+   doError("*", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Character::computeDiv(const Value& lhs, const Value& rhs)
 {
-    doError("/", lhs, rhs);
-    throw;
+   doError("/", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Character::computeEq (const Value& lhs, const Value& rhs)

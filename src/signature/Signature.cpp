@@ -1,5 +1,6 @@
 #include "Signature.hpp"
 #include "harriet/Expression.hpp"
+#include <sstream>
 
 using namespace std;
 

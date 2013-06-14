@@ -2,6 +2,7 @@
 #include "schema/Common.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
+#include "harriet/Value.hpp"
 #include <sstream>
 #include <algorithm>
 
@@ -22,9 +23,9 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    harriet::Environment env;
    for(auto& iter : variableMapping) {
       auto type = source.getAttributes()[iter.position].type;
-      env.add(iter.name, harriet::createDefaultValue(type));
+      env.add(iter.name, type.createDefaultValue());
    }
-   if(expression->evaluate(env)->getResultType() != harriet::VariableType::TBool) {
+   if(expression->evaluate(env)->type.type != harriet::VariableType::Type::TBool) {
       ostringstream os;
       expression->print(os);
       throw harriet::Exception{"Result type of: '" + os.str() + "' is not bool."};
@@ -83,19 +84,18 @@ bool SelectionSignature::fullfillsPredicates(const vector<unique_ptr<harriet::Va
 {
    harriet::Environment env;
    if(type == Type::kConstant) // => Constant Value
-      return reinterpret_cast<harriet::BoolValue&>(*selectionCondition->evaluate(env)).result;
+      return reinterpret_cast<harriet::Value&>(*selectionCondition).data.vbool;
 
    if(type == Type::kOneColumn) // => a = 3
-      return reinterpret_cast<harriet::BoolValue&>(*tuple[variableMapping[0].position]->computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition))).result;
+      return tuple[variableMapping[0].position]->computeEq(reinterpret_cast<harriet::Value&>(*selectionCondition)).data.vbool;
 
    if(type == Type::kTwoColumn) // => a = b
-      return reinterpret_cast<harriet::BoolValue&>(*tuple[variableMapping[0].position]->computeEq(*tuple[variableMapping[1].position])).result;
+      return tuple[variableMapping[0].position]->computeEq(*tuple[variableMapping[1].position]).data.vbool;
 
    // => something wired
    for(auto& iter : variableMapping)
       env.add(iter.name, tuple[iter.position]->evaluate());
-   auto result = selectionCondition->evaluate(env);
-   return reinterpret_cast<harriet::BoolValue&>(*result).result;
+   return selectionCondition->evaluate(env)->data.vbool;
 }
 
 void SelectionSignature::dump(ostream& os) const
@@ -110,8 +110,8 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
    vector<const harriet::Variable*> freeVariables = expression.getAllVariables();
    for(auto iter : freeVariables) {
       ColumnReference c(iter->getIdentifier());
-      if(hasAttribute(c.tableQalifier, c.columnName)) {
-         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQalifier, c.columnName)});
+      if(hasAttribute(c.tableQualifier, c.columnName)) {
+         result.push_back(VariableMapping{iter->getIdentifier(), getAttributeIndex(c.tableQualifier, c.columnName)});
       } else {
          ostringstream os;
          dump(os);

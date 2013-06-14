@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RootOperator.hpp"
 #include "common/Config.hpp"
 #include "OperatorState.hpp"
 #include "segment_manager/PageIdIterator.hpp"
@@ -15,7 +16,7 @@ class SPSegment;
 class Operator;
 
 /// Insert the tuples provided into the given table -- this is a root operator (can not have a parent)
-class InsertOperator {
+class InsertOperator : public RootOperator {
 public:
    InsertOperator(std::unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema);
    virtual ~InsertOperator();

@@ -1,6 +1,7 @@
 #include "InsertOperator.hpp"
 #include "Operator.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Value.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "signature/Signature.hpp"
 #include <iostream>
@@ -37,7 +38,7 @@ void InsertOperator::checkTypes() const throw(harriet::Exception)
       throw harriet::Exception{"Insert: expected " + to_string(targetSchema.getAttributes().size()) + " arguments, " + to_string(sourceSchema.getAttributes().size()) + " provided."};
    for(uint32_t i=0; i<sourceSchema.getAttributes().size(); i++)
       if(!harriet::isImplicitCastPossible(sourceSchema.getAttributes()[i].type, targetSchema.getAttributes()[i].type))
-         throw harriet::Exception{"Insert: invalid conversion from '" + harriet::typeToName(sourceSchema.getAttributes()[i].type) + "' to '" + harriet::typeToName(targetSchema.getAttributes()[i].type) + "'."};
+         throw harriet::Exception{"Insert: invalid conversion from '" + sourceSchema.getAttributes()[i].type.str() + "' to '" + targetSchema.getAttributes()[i].type.str() + "'."};
  }
 
 void InsertOperator::execute()

@@ -14,6 +14,8 @@ namespace harriet {
 
 namespace dbi {
 
+class RootOperator;
+
 namespace script {
 
 /// 
@@ -32,10 +34,13 @@ struct Statement {
 struct SelectStatement : public Statement {
 
    SelectStatement(std::vector<ColumnReference>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& predicates);
+   ~SelectStatement();
 
    std::vector<ColumnReference> selections;
    std::vector<TableReference> sources;
    std::vector<std::unique_ptr<harriet::Expression>> predicates;
+
+   std::unique_ptr<RootOperator> queryPlan;
 
    virtual Statement::Type getType() const {return Statement::Type::kSelectStatement;}
 
@@ -60,9 +65,12 @@ struct CreateTableStatement : public Statement {
 struct InsertStatement : public Statement {
 
    InsertStatement(const std::string& tableName, std::vector<std::unique_ptr<harriet::Value>>&& values);
+   ~InsertStatement();
 
    std::string tableName;
    std::vector<std::unique_ptr<harriet::Value>> values;
+
+   std::unique_ptr<RootOperator> queryPlan;
 
    virtual Statement::Type getType() const {return Statement::Type::kInsertStatement;}
 

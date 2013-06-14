@@ -5,13 +5,7 @@
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "util/Utility.hpp"
-#include "operator/SingleRecordOperator.hpp"
-#include "operator/InsertOperator.hpp"
-#include "operator/PrintOperator.hpp"
-#include "operator/TableScanOperator.hpp"
-#include "operator/ProjectionOperator.hpp"
-#include "operator/SelectionOperator.hpp"
-#include "operator/CrossProductOperator.hpp"
+#include "operator/RootOperator.hpp"
 #include <sstream>
 
 using namespace std;
@@ -43,31 +37,10 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   // Cross-Product it with all other input relations
-   unique_ptr<Operator> tableAccess;
-   for(uint32_t i=0; i<select.sources.size(); i++) {
-      const RelationSchema& sourceSchema = schemaManager.getRelation(select.sources[i].tableName);
-      string tableQualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
-      auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
-      auto nextLevel = util::make_unique<TableScanOperator>(segment, sourceSchema, tableQualifier);
-      if(i==0)
-         tableAccess = move(nextLevel); else
-         tableAccess = util::make_unique<CrossProductOperator>(move(nextLevel), move(tableAccess));
-   }
-
-   // Create selections
-   unique_ptr<Operator> last = move(tableAccess);
-   for(auto& predicate : select.predicates)
-      last = util::make_unique<SelectionOperator>(move(last), move(predicate));
-
-   // Create projections
-   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selections);
-   auto print = util::make_unique<PrintOperator>(move(projection), cout);
-
-   print->dump(cout);
+   select.queryPlan->dump(cout);
    cout << endl;
-   print->checkTypes();
-   print->execute();
+   select.queryPlan->checkTypes();
+   select.queryPlan->execute();
 }
 
 void ExecutionVisitor::onPostVisit(SelectStatement&)
@@ -79,7 +52,7 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    // Create attributes
    vector<AttributeSchema> attributes;
    for(auto& iter : createTable.attributes)
-      attributes.push_back(dbi::AttributeSchema{iter.name, harriet::nameToType(iter.type), iter.notNull, true, 0});
+      attributes.push_back(dbi::AttributeSchema{iter.name, iter.type, iter.notNull, true, 0});
 
    // Create indexes
    vector<IndexSchema> indexes;
@@ -98,16 +71,8 @@ void ExecutionVisitor::onPostVisit(CreateTableStatement&)
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
-   auto source = util::make_unique<SingleRecordOperator>(insert.values);
-
-   auto& targetSchema = schemaManager.getRelation(insert.tableName);
-   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
-   auto plan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema);
-
-   plan->dump(cout);
-   cout << endl;
-   plan->checkTypes();
-   plan->execute();
+   insert.queryPlan->checkTypes();
+   insert.queryPlan->execute();
 }
 
 void ExecutionVisitor::onPostVisit(InsertStatement&)

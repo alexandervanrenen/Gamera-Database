@@ -8,6 +8,7 @@
 #include "query_parser/Visitor.hpp"
 #include "query_parser/PrintVisitor.hpp"
 #include "query_parser/ExecutionVisitor.hpp"
+#include "query_parser/PlanGenerationVisitor.hpp"
 #include "schema/SchemaManager.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "harriet/Expression.hpp"
@@ -42,10 +43,13 @@ Result Database::executeQuery(const std::string& query)
       // Parse query
       auto roots = script::parse(query);
       for(auto& root : roots->statements) {
+         // Plan generation
+         script::PlanGenerationVisitor geny(*segmentManager, *schemaManager);
+         root->acceptVisitor(geny);
+
          // Print script
-         script::PrintVisitor printy(cout);
+         script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
          root->acceptVisitor(printy);
-         cout << endl;
 
          // Interpret script
          script::ExecutionVisitor inty(*segmentManager, *schemaManager);

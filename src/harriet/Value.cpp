@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -151,7 +152,9 @@ void Value::marschall(char* ptr) const
 //---------------------------------------------------------------------------
 string Value::str() const
 {
-   return string(data.vchar, type.length);
+   ostringstream os;
+   os << *this;
+   return os.str();
 }
 //---------------------------------------------------------------------------
 ostream& operator<< (ostream& os, const Value& v)

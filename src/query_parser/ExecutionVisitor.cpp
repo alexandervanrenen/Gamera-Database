@@ -37,8 +37,6 @@ void ExecutionVisitor::onPostVisit(RootStatement&)
 
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
-   select.queryPlan->dump(cout);
-   cout << endl;
    select.queryPlan->checkTypes();
    select.queryPlan->execute();
 }

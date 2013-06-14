@@ -19,7 +19,7 @@ using namespace dbi::script;
 
 struct ReturnValue {
 
-   ReturnValue() : value(harriet::Value::createDefault(harriet::VariableType::createBoolType())) {}
+   ReturnValue() : value(harriet::Value::createDefault(harriet::VariableType::createBoolType())), type(harriet::VariableType::createBoolType()) {}
 
    bool boolean;
    int number;
@@ -44,6 +44,8 @@ struct ReturnValue {
 
    unique_ptr<harriet::Expression> expression;
    vector<unique_ptr<harriet::Expression>> expressionVec;
+
+   harriet::VariableType type;
 };
 
 # define YYSTYPE struct ReturnValue
@@ -95,7 +97,7 @@ CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = 
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
        )* CLOSE                                            { $$ = move(a); }
-Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, harriet::VariableType(t.str, t.number), n.boolean}; }
+Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.type, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
 InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
 Values = OPEN - a:VALUE                                    { a.valueVec.push_back(move(a.value)); }
@@ -121,10 +123,11 @@ Factor = OPEN - e:Expression - CLOSE                       { $$.expression = mov
        | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
        | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
 # --------------------------------------------------------------------------------------------------------------
-TYPE = INTEGER_ID ![a-z|A-Z]                               { $$.str = string("integer"); $$.number = 4; }
-     | FLOAT_ID ![a-z|A-Z]                                 { $$.str = string("float"); $$.number = 4; }
-     | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.str = string("character"); $$.number = i.number; }
-     | CHARACTER_ID ![a-z|A-Z]                             { $$.str = string("character"); $$.number = 1; }
+TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
+     | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
+     | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.type = harriet::VariableType::createCharacterType(i.number); }
+     | CHARACTER_ID                                        { $$.type = harriet::VariableType::createCharacterType(1); }
+     | BOOL_ID                                             { $$.type = harriet::VariableType::createBoolType(); }
 VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number); }
       | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf); }
       | v:STRING                                           { $$.value = harriet::Value::createCharacter(v.str, v.str.size()); }
@@ -163,6 +166,7 @@ AND = "and"                           ![a-z|A-Z]           { }
 INTEGER_ID = "integer"                ![a-z|A-Z]           { }
 FLOAT_ID = "float"                    ![a-z|A-Z]           { }
 CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
+BOOL_ID = "bool"                      ![a-z|A-Z]           { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

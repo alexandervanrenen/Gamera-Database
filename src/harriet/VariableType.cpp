@@ -1,14 +1,7 @@
 #include "VariableType.hpp"
-#include "Value.hpp"
-#include "Utility.hpp"
 #include "ScriptLanguage.hpp"
 #include <sstream>
-#include <ctype.h>
 #include <cassert>
-#include <istream>
-#include <algorithm>
-#include <cstring>
-#include <math.h>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -24,14 +17,9 @@ static const std::string kVariableInteger = "integer";
 static const std::string kVariableFloat = "float";
 static const std::string kVariableBool = "bool";
 static const std::string kVariableCharacter = "character";
-
-/// boolean values
-static const std::string kTrue = "true";
-static const std::string kFalse = "false";
 }
 //---------------------------------------------------------------------------
 VariableType::VariableType()
-: length(-1)
 {
 }
 //---------------------------------------------------------------------------
@@ -107,6 +95,21 @@ string VariableType::str() const
          return kVariableCharacter;
    }
    throw Exception{"unreachable"};
+}
+//---------------------------------------------------------------------------
+std::ostream& operator<< (std::ostream& os, const VariableType& v)
+{
+   return os << v.str() << " " << v.length;
+}
+//---------------------------------------------------------------------------
+bool operator== (const VariableType& lhs, const VariableType& rhs)
+{
+   return lhs.type==rhs.type && lhs.length==rhs.length;
+}
+//---------------------------------------------------------------------------
+bool operator!= (const VariableType& lhs, const VariableType& rhs)
+{
+   return lhs.type!=rhs.type || lhs.length!=rhs.length;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

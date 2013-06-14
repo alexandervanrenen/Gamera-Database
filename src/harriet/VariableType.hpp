@@ -3,7 +3,7 @@
 //---------------------------------------------------------------------------
 #include <string>
 #include <memory>
-#include <iostream> // AAA
+#include <ios>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -11,29 +11,31 @@
 //---------------------------------------------------------------------------
 namespace harriet {
 //---------------------------------------------------------------------------
-class Value;
-//---------------------------------------------------------------------------
-struct VariableType {
+class VariableType {
+public:
+   /// Each type has a length
    enum struct Type : uint8_t {TBool, TInteger, TFloat, TCharacter};
    Type type;
    uint16_t length;
 
+   /// Create a specific type
    explicit VariableType();
-   explicit VariableType(const std::string& name, uint16_t length);
-
-   std::string str() const;
-   
    static VariableType createBoolType();
    static VariableType createIntegerType();
    static VariableType createFloatType();
    static VariableType createCharacterType(uint16_t len);
+
+   /// Convert to string or output to stream
+   std::string str() const;
+   friend std::ostream& operator<< (std::ostream& os, const VariableType& v);
+
+   /// Compare to another type (length has to match)
+   friend bool operator== (const VariableType& lhs, const VariableType& rhs);
+   friend bool operator!= (const VariableType& lhs, const VariableType& rhs);
    
-   friend bool operator== (const VariableType& lhs, const VariableType& rhs) {return lhs.type==rhs.type && lhs.length==rhs.length;}
-   friend bool operator!= (const VariableType& lhs, const VariableType& rhs) {return lhs.type!=rhs.type || lhs.length!=rhs.length;}
-   friend std::ostream& operator<< (std::ostream& os, const VariableType& v) {return os << v.str() << " " << v.length;}
-   
-   private:
-       VariableType(Type type, uint16_t length);
+private:
+   explicit VariableType(const std::string& name, uint16_t length);
+   VariableType(Type type, uint16_t length);
 };
 //---------------------------------------------------------------------------
 }

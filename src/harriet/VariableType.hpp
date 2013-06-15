@@ -14,16 +14,17 @@ namespace harriet {
 class VariableType {
 public:
    /// Each type has a length
-   enum struct Type : uint8_t {TBool, TInteger, TFloat, TCharacter};
+   enum struct Type : uint8_t {TBool, TInteger, TFloat, TCharacter, TUndefined}; // Undefined is needed only for coding. There are some places where we create a value, which has no type yet.
    Type type;
    uint16_t length;
 
    /// Create a specific type
-   explicit VariableType();
+   VariableType(); // Creates undefined type
    static VariableType createBoolType();
    static VariableType createIntegerType();
    static VariableType createFloatType();
    static VariableType createCharacterType(uint16_t len);
+   static VariableType createUndefinedType();
 
    /// Convert to string or output to stream
    std::string str() const;
@@ -34,8 +35,7 @@ public:
    friend bool operator!= (const VariableType& lhs, const VariableType& rhs);
    
 private:
-   explicit VariableType(const std::string& name, uint16_t length);
-   VariableType(Type type, uint16_t length);
+   explicit VariableType(Type type, uint16_t length);
 };
 //---------------------------------------------------------------------------
 }

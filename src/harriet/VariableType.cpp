@@ -17,48 +17,13 @@ static const std::string kVariableInteger = "integer";
 static const std::string kVariableFloat = "float";
 static const std::string kVariableBool = "bool";
 static const std::string kVariableCharacter = "character";
+static const std::string kVariableUndefined = "undefined";
 }
 //---------------------------------------------------------------------------
 VariableType::VariableType()
+: type(Type::TUndefined)
+, length(0)
 {
-}
-//---------------------------------------------------------------------------
-VariableType::VariableType(const string& name, uint16_t length)
-: length(length)
-{
-   if(name == kVariableBool) {
-      type = Type::TBool;
-      assert(length == sizeof(bool));
-   } else if(name == kVariableInteger) {
-      type = Type::TInteger;
-      assert(length == sizeof(int32_t));
-   } else if(name == kVariableFloat) {
-      type = Type::TFloat;
-      assert(length == sizeof(float));
-   } else if(name == kVariableCharacter) {
-      type = Type::TCharacter;
-      assert(length >= sizeof(char));
-   } else throw Exception{"invalid type name: " + name};
-}
-//---------------------------------------------------------------------------
-VariableType::VariableType(Type type, uint16_t length)
-: type(type)
-, length(length)
-{
-   switch(type) {
-      case Type::TBool:
-         assert(length == sizeof(bool));
-         return;
-      case Type::TInteger:
-         assert(length == sizeof(int32_t));
-         return;
-      case Type::TFloat:
-         assert(length == sizeof(float));
-         return;
-      case Type::TCharacter:
-         assert(length >= sizeof(char));
-         return;
-   }
 }
 //---------------------------------------------------------------------------
 VariableType VariableType::createBoolType()
@@ -79,7 +44,12 @@ VariableType VariableType::createFloatType()
 VariableType VariableType::createCharacterType(uint16_t len)
 {
    assert(len > 0);
-   return VariableType(VariableType::Type::TCharacter, len); 
+   return VariableType(VariableType::Type::TCharacter, len);
+}
+//---------------------------------------------------------------------------
+VariableType VariableType::createUndefinedType()
+{
+   return VariableType(VariableType::Type::TUndefined, 0);
 }
 //---------------------------------------------------------------------------
 string VariableType::str() const
@@ -93,6 +63,8 @@ string VariableType::str() const
          return kVariableFloat;
       case Type::TCharacter:
          return kVariableCharacter;
+      case Type::TUndefined:
+         return kVariableUndefined;
    }
    throw Exception{"unreachable"};
 }
@@ -110,6 +82,29 @@ bool operator== (const VariableType& lhs, const VariableType& rhs)
 bool operator!= (const VariableType& lhs, const VariableType& rhs)
 {
    return lhs.type!=rhs.type || lhs.length!=rhs.length;
+}
+//---------------------------------------------------------------------------
+VariableType::VariableType(Type type, uint16_t length)
+: type(type)
+, length(length)
+{
+   switch(type) {
+      case Type::TBool:
+         assert(length == sizeof(bool));
+         return;
+      case Type::TInteger:
+         assert(length == sizeof(int32_t));
+         return;
+      case Type::TFloat:
+         assert(length == sizeof(float));
+         return;
+      case Type::TCharacter:
+         assert(length >= sizeof(char));
+         return;
+      case Type::TUndefined:
+         assert(length == 0);
+         return;
+   }
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

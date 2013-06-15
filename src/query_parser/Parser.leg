@@ -19,7 +19,10 @@ using namespace dbi::script;
 
 struct ReturnValue {
 
-   ReturnValue() : value(harriet::Value::createDefault(harriet::VariableType::createBoolType())), type(harriet::VariableType::createBoolType()) {}
+   ReturnValue()
+   : value(harriet::Value::createDefault(harriet::VariableType::createUndefinedType()))
+   , type(harriet::VariableType::createUndefinedType())
+   {}
 
    bool boolean;
    int number;
@@ -125,8 +128,8 @@ Factor = OPEN - e:Expression - CLOSE                       { $$.expression = mov
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
-     | CHARACTER_ID OPEN - i:INTEGER - CLOSE  ![a-z|A-Z]   { $$.type = harriet::VariableType::createCharacterType(i.number); }
-     | CHARACTER_ID                                        { $$.type = harriet::VariableType::createCharacterType(1); }
+     | CHARACTER_ID OPEN - i:INTEGER - CLOSE ![a-z|A-Z]    { $$.type = harriet::VariableType::createCharacterType(i.number); }
+     | CHARACTER_ID ![a-z|A-Z]                             { $$.type = harriet::VariableType::createCharacterType(1); }
      | BOOL_ID                                             { $$.type = harriet::VariableType::createBoolType(); }
 VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number); }
       | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf); }

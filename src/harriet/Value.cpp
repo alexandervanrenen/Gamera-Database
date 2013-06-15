@@ -33,9 +33,11 @@ Value Value::createDefault(const VariableType& type)
          result.data.vchar = static_cast<char*>(malloc(type.length));
          memset(result.data.vchar, '\0', type.length);
          return result;
-
+      case VariableType::Type::TUndefined:
+         result.data.vchar = nullptr;
+         return result;
    }
-   throw;
+   throw "unreachable";
 }
 //---------------------------------------------------------------------------
 Value Value::createFromRecord(const VariableType& type, const char* ptr)
@@ -56,8 +58,10 @@ Value Value::createFromRecord(const VariableType& type, const char* ptr)
          memset(result.data.vchar, '\0', type.length);
          memcpy(result.data.vchar, ptr, type.length);
          return result;
+      case VariableType::Type::TUndefined:
+         throw;
    }
-   throw;
+   throw "unreachable";
 }
 //---------------------------------------------------------------------------
 Value Value::createBool(bool value, bool)
@@ -147,12 +151,15 @@ void Value::marschall(char* ptr) const
       case VariableType::Type::TCharacter:
          memcpy(ptr, data.vchar, type.length);
          return;
+      case VariableType::Type::TUndefined:
+         throw;
    }
-   throw;
+   throw "unreachable";
 }
 //---------------------------------------------------------------------------
 string Value::str() const
 {
+   assert(type.type != VariableType::Type::TUndefined);
    ostringstream os;
    os << *this;
    return os.str();
@@ -160,6 +167,7 @@ string Value::str() const
 //---------------------------------------------------------------------------
 ostream& operator<< (ostream& os, const Value& v)
 {
+   assert(v.type.type != VariableType::Type::TUndefined);
    switch(v.type.type) {
       case VariableType::Type::TBool:
          return os << v.data.vbool;

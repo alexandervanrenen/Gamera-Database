@@ -196,7 +196,7 @@ unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
     while (yyparse(&g));
     yydeinit(&g);
   } catch (int) {
-    throw ParserException("parser error: ", lineNumber, columnNumber);
+    throw ParserException("parser error: ", lineNumber+1, columnNumber);
   }
 
   return move(result);

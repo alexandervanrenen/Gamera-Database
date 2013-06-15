@@ -40,7 +40,7 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
       for(auto& iter : select.sources)
          out << "    " << iter.tableName << " " << iter.tableQualifier << endl;
       out << "where " << endl;
-      for(auto& iter : select.predicates) {
+      for(auto& iter : select.conditions) {
          out << "    ";
          if(iter != nullptr)
             iter->print(out);

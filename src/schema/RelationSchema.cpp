@@ -140,6 +140,14 @@ Record RelationSchema::marschall() const
    return Record(out.str());
 }
 
+const AttributeSchema* RelationSchema::getAttribute(const string& name) const
+{
+   for(auto& iter : attributes)
+      if(iter.name == name)
+         return &iter;
+   return nullptr;
+}
+
 void RelationSchema::dump(ostream& os) const
 {
    os << "name: " << name << endl;

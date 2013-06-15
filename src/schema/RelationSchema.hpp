@@ -43,6 +43,8 @@ struct RelationSchema {
    const std::vector<AttributeSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}
 
+   const AttributeSchema* getAttribute(const std::string& name) const;
+
    void dump(std::ostream& os) const;
 
 private:

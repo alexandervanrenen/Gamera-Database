@@ -47,9 +47,9 @@ Result Database::executeQuery(const std::string& query)
          script::PlanGenerationVisitor geny(*segmentManager, *schemaManager);
          root->acceptVisitor(geny);
 
-         // Print script
-         script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
-         root->acceptVisitor(printy);
+         // // Print script
+         // script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
+         // root->acceptVisitor(printy);
 
          // Interpret script
          script::ExecutionVisitor inty(*segmentManager, *schemaManager);

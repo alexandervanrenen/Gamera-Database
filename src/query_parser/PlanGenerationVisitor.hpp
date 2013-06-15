@@ -22,7 +22,6 @@ public:
 private:
    SegmentManager& segmentManager;
    SchemaManager& schemaManager;
-   bool verbose;
 };
 
 }

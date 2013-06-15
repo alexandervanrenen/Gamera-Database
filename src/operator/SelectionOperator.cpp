@@ -56,7 +56,10 @@ bool SelectionOperator::next()
 
 vector<harriet::Value> SelectionOperator::getOutput()
 {
-   return move(tuple);
+   vector<harriet::Value> result;
+   for(auto& iter : tuple)
+      result.emplace_back(iter.createCopy());
+   return move(result);
 }
 
 void SelectionOperator::close()

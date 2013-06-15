@@ -68,12 +68,10 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    if(variableMapping.size()==2 && expression->isLogicOperator()) {
       // Optimization only works if both children of the operator are variables => direct comparison
       auto& rootOperator = reinterpret_cast<harriet::LogicOperator&>(*expression.get());
-      if(rootOperator.lhs->getExpressionType()==harriet::ExpressionType::TVariable && rootOperator.rhs->getExpressionType()==harriet::ExpressionType::TVariable) {
-         type = Type::kTwoColumn;
-      } else {
+      selectionCondition = move(expression);
+      if(rootOperator.lhs->getExpressionType()==harriet::ExpressionType::TVariable && rootOperator.rhs->getExpressionType()==harriet::ExpressionType::TVariable)
+         type = Type::kTwoColumn; else
          type = Type::kComplex;
-         selectionCondition = move(expression);
-      }
       return;
    }
 
@@ -81,7 +79,7 @@ SelectionSignature::SelectionSignature(const Signature& source, std::unique_ptr<
    selectionCondition = move(expression);
 }
 
-bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple)
+bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple) const
 {
    harriet::Environment env;
    if(type == Type::kConstant) // => Constant Value
@@ -101,8 +99,9 @@ bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple
 
 void SelectionSignature::dump(ostream& os) const
 {
+   os << "opt: " << (int)type;
+   selectionCondition->print(os);
    Signature::dump(os);
-   os << " opt: " << (int)type;
 }
 
 vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables(const harriet::Expression& expression) const

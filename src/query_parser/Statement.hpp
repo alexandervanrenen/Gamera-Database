@@ -34,12 +34,12 @@ struct Statement {
 /// 
 struct SelectStatement : public Statement {
 
-   SelectStatement(std::vector<ColumnReference>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& predicates);
+   SelectStatement(std::vector<ColumnReference>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions);
    ~SelectStatement();
 
    std::vector<ColumnReference> selections;
    std::vector<TableReference> sources;
-   std::vector<std::unique_ptr<harriet::Expression>> predicates;
+   std::vector<std::unique_ptr<harriet::Expression>> conditions;
 
    std::unique_ptr<RootOperator> queryPlan;
 

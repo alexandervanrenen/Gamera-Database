@@ -1,6 +1,7 @@
 #include "PlanGenerationVisitor.hpp"
 #include "Statement.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Environment.hpp"
 #include "schema/RelationSchema.hpp"
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
@@ -12,6 +13,11 @@
 #include "operator/ProjectionOperator.hpp"
 #include "operator/SelectionOperator.hpp"
 #include "operator/CrossProductOperator.hpp"
+#include "query_optimizer/ChainOptimizer.hpp"
+#include "query_optimizer/DummyOptimizer.hpp"
+#include "query_optimizer/TableAccessInfo.hpp"
+#include "query_optimizer/PredicateGenerator.hpp"
+#include "query_optimizer/Predicate.hpp"
 #include <sstream>
 
 using namespace std;
@@ -32,26 +38,29 @@ PlanGenerationVisitor::~PlanGenerationVisitor()
 
 void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 {
-   // Cross-Product it with all other input relations
-   unique_ptr<Operator> tableAccess;
+   // Build a vector containing all table access'
+   vector<qopt::TableAccessInfo> tableAccessVec;
    for(uint32_t i=0; i<select.sources.size(); i++) {
-      const RelationSchema& sourceSchema = schemaManager.getRelation(select.sources[i].tableName);
-      string tableQualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
-      auto& segment = segmentManager.getSPSegment(sourceSchema.getSegmentId());
-      auto nextLevel = util::make_unique<TableScanOperator>(segment, sourceSchema, tableQualifier);
-      if(i==0)
-         tableAccess = move(nextLevel); else
-         tableAccess = util::make_unique<CrossProductOperator>(move(nextLevel), move(tableAccess));
+      const RelationSchema* schema = &schemaManager.getRelation(select.sources[i].tableName);
+      string qualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
+      SPSegment* segment = &segmentManager.getSPSegment(schema->getSegmentId());
+      tableAccessVec.push_back(qopt::TableAccessInfo{schema, segment, qualifier});
    }
 
-   // Create selections
-   unique_ptr<Operator> last = move(tableAccess);
-   for(auto& predicate : select.predicates)
-      last = util::make_unique<SelectionOperator>(move(last), move(predicate));
+   // Build predicates from condition-expressions
+   vector<std::unique_ptr<qopt::Predicate>> predicates;
+   harriet::Environment env;
+   qopt::PredicateGenerator predicateGenerator(env);
+   for(auto& condition : select.conditions)
+      predicates.emplace_back(predicateGenerator.createPredicate(move(condition), tableAccessVec));
+
+   // Let the optimizer build a nice access tree from the table access' and the predicates
+   qopt::ChainOptimizer opty;
+   auto plan = opty.optimize(tableAccessVec, predicates);
 
    // Create projections
-   auto projection = util::make_unique<ProjectionOperator>(move(last), select.selections);
-   select.queryPlan = util::make_unique<PrintOperator>(move(projection), cout);
+   plan = util::make_unique<ProjectionOperator>(move(plan), select.selections);
+   select.queryPlan = util::make_unique<PrintOperator>(move(plan), cout);
 }
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)

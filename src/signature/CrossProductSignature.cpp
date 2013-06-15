@@ -1,5 +1,4 @@
 #include "CrossProductSignature.hpp"
-#include "schema/Common.hpp"
 #include <algorithm>
 
 using namespace std;

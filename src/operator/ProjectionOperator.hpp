@@ -3,7 +3,6 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "signature/ProjectionSignature.hpp"
-#include "schema/Common.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>

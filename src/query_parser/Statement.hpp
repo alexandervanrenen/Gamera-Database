@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Visitor.hpp"
-#include "schema/Common.hpp"
+#include "Common.hpp"
 #include "harriet/Value.hpp"
 #include <vector>
 #include <cstdint>

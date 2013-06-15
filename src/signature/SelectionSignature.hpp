@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Signature.hpp"
-#include "schema/Common.hpp"
 
 namespace dbi {
 

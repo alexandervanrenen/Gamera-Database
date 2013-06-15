@@ -58,10 +58,9 @@ Value Value::createFromRecord(const VariableType& type, const char* ptr)
          memset(result.data.vchar, '\0', type.length);
          memcpy(result.data.vchar, ptr, type.length);
          return result;
-      case VariableType::Type::TUndefined:
+      default:
          throw;
    }
-   throw "unreachable";
 }
 //---------------------------------------------------------------------------
 Value Value::createBool(bool value, bool)
@@ -151,10 +150,9 @@ void Value::marschall(char* ptr) const
       case VariableType::Type::TCharacter:
          memcpy(ptr, data.vchar, type.length);
          return;
-      case VariableType::Type::TUndefined:
+      default:
          throw;
    }
-   throw "unreachable";
 }
 //---------------------------------------------------------------------------
 string Value::str() const

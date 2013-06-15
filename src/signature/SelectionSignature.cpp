@@ -1,5 +1,5 @@
 #include "SelectionSignature.hpp"
-#include "schema/Common.hpp"
+#include "query_parser/Common.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Value.hpp"

@@ -3,7 +3,6 @@
 #include "Operator.hpp"
 #include "OperatorState.hpp"
 #include "signature/CrossProductSignature.hpp"
-#include "schema/Common.hpp"
 #include <cstdint>
 #include <memory>
 

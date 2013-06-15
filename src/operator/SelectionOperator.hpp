@@ -4,7 +4,6 @@
 #include "OperatorState.hpp"
 #include "signature/SelectionSignature.hpp"
 #include "harriet/Value.hpp"
-#include "schema/Common.hpp"
 #include <cstdint>
 #include <memory>
 

@@ -2,7 +2,6 @@
 #include "RelationSchema.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
-#include "schema/Common.hpp"
 #include <iostream>
 
 using namespace std;

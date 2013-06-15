@@ -6,7 +6,7 @@
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
 #include "harriet/VariableType.hpp"
-#include "schema/Common.hpp"
+#include "Common.hpp"
 #include <unistd.h>
 #include <sstream>
 #include <memory>

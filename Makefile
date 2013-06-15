@@ -3,10 +3,10 @@ all: bin/tester bin/server bin/client bin/driver
 # Define compile and link flags
 -include config.local
 CXX ?= g++
-#opt = -g3 -O0
-opt = -g0 -O3
-cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -fPIC
-lf = $(opt) --std=c++0x -ldl -lpthread -lrt
+opt = -g3 -O0
+#opt = -g0 -O3
+cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -I./libs/tbb/include/ -fPIC
+lf = $(opt) --std=c++0x -ldl -lpthread -lrt -L./libs/tbb/ -ltbb
 
 # Object director
 objDir:= build/
@@ -25,33 +25,33 @@ test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard te
 # Build database
 bin/database.so: libs src/query_parser/Parser.cpp $(src_files)
 	$(build_dir) bin/gen bin/var
-	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a $(lf)
+	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
 
 # Build tester
 bin/tester: libs bin/database.so $(test_files) build/test/tester.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/tester $(test_files) bin/database.so libs/gtest/libgtest.a $(lf)
+	$(CXX) -o bin/tester $(test_files) bin/database.so libs/gtest/libgtest.a libs/tbb/libtbb.so.2 $(lf)
 
 # Build driver
 bin/driver: libs bin/database.so build/driver.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/driver build/driver.o bin/database.so libs/gflags/libgflags.a $(lf)
+	$(CXX) -o bin/driver build/driver.o bin/database.so libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
 
 # Build server
 bin/server: libs bin/database.so build/server.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/gflags/libgflags.a $(lf)
+	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
 
 # Build client
 bin/client: libs build/client.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/gflags/libgflags.a $(lf)
+	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
 
 # Ensure latest parser version
 src/query_parser/Parser.cpp: src/query_parser/Parser.leg
 	./libs/greg-cpp/greg -o src/query_parser/Parser.cpp src/query_parser/Parser.leg
 
-libs: libs/gtest libs/zmq libs/greg-cpp libs/gflags
+libs: libs/gtest libs/zmq libs/greg-cpp libs/gflags libs/tbb
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp

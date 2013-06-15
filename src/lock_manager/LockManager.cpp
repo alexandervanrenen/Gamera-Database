@@ -4,12 +4,14 @@
 
 namespace dbi {
 
+
+
 bool LockManager::tryLock(TupleId tid, TxId tx, bool exclusive) {
     TupleBoolMap::accessor a;
     bool res = locks.insert(a, {tid, exclusive});
     if (res) {
         TupleTxMap::accessor atx;
-        bool restx = transactions.insert(atx, tid);
+        transactions.insert(atx, tid);
         atx->second.push_back(tx);
         TxTupleMap::accessor atup;
         lockedtuples.insert(atup, tx);
@@ -17,7 +19,7 @@ bool LockManager::tryLock(TupleId tid, TxId tx, bool exclusive) {
         return true;
     } else if (!exclusive && !a->second) {
         TupleTxMap::accessor atx;
-        bool restx = transactions.insert(atx, tid);
+        transactions.insert(atx, tid);
         atx->second.push_back(tx);
         TxTupleMap::accessor atup;
         lockedtuples.insert(atup, tx);
@@ -27,7 +29,7 @@ bool LockManager::tryLock(TupleId tid, TxId tx, bool exclusive) {
         TupleTxMap::const_accessor atx;
         if (transactions.find(atx, tid)) {
             if (std::find(atx->second.cbegin(), atx->second.cend(), tx) != atx->second.cend())
-                throw new AlreadyLockedException();
+                throw AlreadyLockedException();
         }
     }
     return false;
@@ -36,44 +38,57 @@ bool LockManager::tryLock(TupleId tid, TxId tx, bool exclusive) {
 bool LockManager::lock(TupleId tid, TxId tx, bool exclusive) {
     bool first = true;
     while (true) {
-        if (tryLock(tid, tx, exclusive))
+        TupleBoolMap::accessor a;
+        bool res = locks.insert(a, {tid, exclusive});
+        if (res || (!exclusive && !a->second)) {
+            TupleTxMap::accessor atx;
+            transactions.insert(atx, tid);
+            atx->second.push_back(tx);
+            TxTupleMap::accessor atup;
+            lockedtuples.insert(atup, tx);
+            atup->second.push_back(tid);
             break;
-        printf("T%d waiting for %d\n",  int(tx), int(tid.toInteger()));
+        }
+        // Make sure no transaction tries to lock a tuple a second time
+        TupleTxMap::const_accessor catx;
+        if (transactions.find(catx, tid)) {
+            if (std::find(catx->second.cbegin(), catx->second.cend(), tx) != catx->second.cend())
+                throw AlreadyLockedException();
+        }
+        catx.release();
+        //printf("T%d waiting for %d\n",  int(tx), int(tid.toInteger()));
         // Tuple is locked, wait
         if (deadlock(tx, tid))
-            throw new DeadlockException(); 
+            throw DeadlockException(); 
         if (first) {
             TupleTxMap::accessor atup;
             waiterlist.insert(atup, tid);
             atup->second.push_back(tx);
-            TxTidMap::accessor atx;
-            waitingfor.insert(atx, {tx, tid});
             first = false;
         }
-        TupleWaiterMap::accessor a;
-        if (waiterlocks.insert(a, tid)) {
-            a->second.first = new std::condition_variable;
-            a->second.second = new std::mutex;
+        TupleWaiterMap::accessor await;
+        if (waiterlocks.insert(await, tid)) {
+            await->second.first = new std::condition_variable;
+            await->second.second = new std::mutex;
         }
-        std::unique_lock<std::mutex> ul(*a->second.second);
-        std::condition_variable* cv = a->second.first;
+        std::unique_lock<std::mutex> ul(*await->second.second);
+        std::condition_variable* cv = await->second.first;
+        await.release();
         a.release();
         cv->wait(ul);
     }
     if (!first) {
+        waitgraph.clearNode(tx);
         TupleTxMap::accessor atup;
         waiterlist.find(atup, tid);
         atup->second.remove(tx);
-        TxTidMap::accessor atx;
-        waitingfor.find(atx, tx);
-        waitingfor.erase(atx);
     }
-    printf("T%d locked %d\n",  int(tx), int(tid.toInteger()));
+    //printf("T%d locked %d\n",  int(tx), int(tid.toInteger()));
     return true;
 }
 
 void LockManager::unlock(TxId tx, TupleId tid) {
-    printf("T%d unlocked %d\n",  int(tx), int(tid.toInteger()));
+    //printf("T%d unlocked %d\n",  int(tx), int(tid.toInteger()));
     TupleBoolMap::accessor a;
     bool lres = locks.find(a, tid);
     assert(lres);
@@ -102,27 +117,19 @@ void LockManager::unlockAll(TxId tx) {
 }
 
 bool LockManager::deadlock(TxId tx, TupleId tid) {
-    //TupleBoolMap::accessor abool;
-    //bool lres = locks.find(abool, tid);
-    //assert(lres);
-    TxTupleMap::const_accessor ac;
-    bool res = lockedtuples.find(ac, tx);
-    if (!res)
-        return false;
-    TidList t = ac->second;
-    ac.release();
     TupleTxMap::const_accessor a;
     assert(transactions.find(a, tid));
-    // Loop through all transactions which have currently locked tid
-    for (TxId othertx: a->second) {
-        // Check if other transaction waits for something tx has locked
-        TxTidMap::const_accessor atup;
-        if (waitingfor.find(atup, othertx)) {
-            if (std::find(t.cbegin(), t.cend(), atup->second) != t.cend())
-               return true;
-        }
+    TxList tlist = a->second;
+    a.release();
+    for (TxId t : tlist) {
+        waitgraph.addEdge(tx, t);
     }
-    return false;
+    if (waitgraph.hasCycle(tx)) {
+        waitgraph.clearNode(tx);
+        return true;
+    } else 
+        return false;
+
 }
 
 }

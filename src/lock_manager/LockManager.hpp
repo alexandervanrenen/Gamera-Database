@@ -1,5 +1,6 @@
 #pragma once
 
+#include <signal.h>
 #include <iostream>
 #include <functional>
 #include <list>
@@ -9,6 +10,7 @@
 #include "tbb/concurrent_hash_map.h"
 #include "common/Config.hpp"
 #include "common/TupleId.hpp"
+#include "util/Graph.hpp"
 
 namespace dbi {
 
@@ -61,7 +63,7 @@ private:
     TxTupleMap lockedtuples; // which transaction has which tuples locked
     TupleWaiterMap waiterlocks; // condition_variable + mutex for waiting on tuple
     TupleTxMap waiterlist; // Transactions which are waiting on a tuple
-    TxTidMap waitingfor; // which transaction is waiting for which tuple
+    Graph<TxId> waitgraph;
 
     void unlock(TxId tx, TupleId tid);
     bool deadlock(TxId tx, TupleId tid);

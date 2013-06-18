@@ -51,8 +51,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    vector<std::unique_ptr<qopt::Predicate>> predicates;
    harriet::Environment env;
    qopt::PredicateGenerator predicateGenerator(env);
-   for(auto& condition : select.conditions)
-      predicates.emplace_back(predicateGenerator.createPredicate(move(condition), tableAccessVec));
+   predicates = predicateGenerator.createPredicates(select.conditions, tableAccessVec);
 
    // Let the optimizer build a nice access tree from the table access' and the predicates
    qopt::ChainOptimizer opty;

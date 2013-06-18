@@ -17,6 +17,30 @@ PredicateGenerator::PredicateGenerator(const harriet::Environment& env)
 {
 }
 
+
+// All conditions and all accessed tables
+vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique_ptr<harriet::Expression>>& conditions, const vector<TableAccessInfo>& tableAccessVec) const
+{
+   // 1: generate all predicates
+   vector<unique_ptr<Predicate>> predicates;
+   predicates.reserve(conditions.size());
+   for(auto& expression: conditions) {
+      predicates.push_back(createPredicate(move(expression), tableAccessVec));
+   } 
+   // 2: check all predicates if tables match
+   for(auto outerIter = predicates.begin(); outerIter != predicates.end(); outerIter++) {    
+      for(auto innerIter = outerIter + 1; innerIter != predicates.end();) {
+         // If so merge condition expression and drop one predicate
+         if((*outerIter)->tables == (*innerIter)->tables) {
+            (*outerIter)->condition = util::make_unique<harriet::AndOperator>(move((*outerIter)->condition), move((*innerIter)->condition));
+            innerIter = predicates.erase(innerIter);
+         } else 
+            innerIter++;
+      }
+   }
+   return predicates;
+}
+
 unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Expression> condition, const vector<TableAccessInfo>& tableAccessVec) const
 {
    // Create predicate

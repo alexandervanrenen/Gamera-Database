@@ -134,10 +134,9 @@ AndOperator::AndOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expres
    this->rhs = move(rhs);
 }
 //---------------------------------------------------------------------------
-Value AndOperator::evaluate(Environment&) const
+Value AndOperator::evaluate(Environment& environment) const
 {
-   // return lhs->evaluate(environment)->computeAnd(*rhs->evaluate(environment));
-   throw;
+   return lhs->evaluate(environment).computeAnd(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 Value OrOperator::evaluate(Environment&) const

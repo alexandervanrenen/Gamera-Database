@@ -129,6 +129,11 @@ Value ExponentiationOperator::evaluate(Environment&) const
    throw;
 }
 //---------------------------------------------------------------------------
+AndOperator::AndOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
+   this->lhs = move(lhs);
+   this->rhs = move(rhs);
+}
+//---------------------------------------------------------------------------
 Value AndOperator::evaluate(Environment&) const
 {
    // return lhs->evaluate(environment)->computeAnd(*rhs->evaluate(environment));

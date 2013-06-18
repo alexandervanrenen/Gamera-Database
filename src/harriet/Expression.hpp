@@ -177,6 +177,7 @@ class LogicOperator : public BinaryOperator {
 //---------------------------------------------------------------------------
 class AndOperator : public LogicOperator {
 public:
+   AndOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs);
    virtual ~AndOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TAndOperator;}
 protected:

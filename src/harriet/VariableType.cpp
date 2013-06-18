@@ -43,7 +43,6 @@ VariableType VariableType::createFloatType()
 //---------------------------------------------------------------------------
 VariableType VariableType::createCharacterType(uint16_t len)
 {
-   assert(len > 0);
    return VariableType(VariableType::Type::TCharacter, len);
 }
 //---------------------------------------------------------------------------
@@ -99,7 +98,6 @@ VariableType::VariableType(Type type, uint16_t length)
          assert(length == sizeof(float));
          return;
       case Type::TCharacter:
-         assert(length >= sizeof(char));
          return;
       case Type::TUndefined:
          assert(length == 0);

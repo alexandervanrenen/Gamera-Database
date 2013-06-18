@@ -99,7 +99,7 @@ Predicate = b:Bool                                         { $$.expression = mov
 CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
-       )* CLOSE                                            { $$ = move(a); }
+       )* - CLOSE                                          { $$ = move(a); }
 Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.type, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
 InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
@@ -128,20 +128,23 @@ Factor = OPEN - e:Expression - CLOSE                       { $$.expression = mov
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
-     | CHARACTER_ID OPEN - i:INTEGER - CLOSE ![a-z|A-Z]    { $$.type = harriet::VariableType::createCharacterType(i.number); }
+     | CHARACTER_ID OPEN - i:INTEGER_VAL - CLOSE ![a-z|A-Z]{ $$.type = harriet::VariableType::createCharacterType(i.number); }
      | CHARACTER_ID ![a-z|A-Z]                             { $$.type = harriet::VariableType::createCharacterType(1); }
      | BOOL_ID                                             { $$.type = harriet::VariableType::createBoolType(); }
-VALUE = v:INTEGER                                          { $$.value = harriet::Value::createInteger(v.number); }
-      | v:FLOAT                                            { $$.value = harriet::Value::createFloat(v.numberf); }
-      | v:STRING                                           { $$.value = harriet::Value::createCharacter(v.str, v.str.size()); }
+VALUE = v:INTEGER_VAL                                      { $$.value = harriet::Value::createInteger(v.number); }
+      | v:FLOAT_VAL                                        { $$.value = harriet::Value::createFloat(v.numberf); }
+      | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacter(v.str, v.str.size()); }
+      | v:BOOL_VAL                                         { $$.value = harriet::Value::createBool(v.boolean); }
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }
 # --------------------------------------------------------------------------------------------------------------
 ID = !KEYWORDS < [a-z|A-Z][a-z|A-Z|0-9|_]* >               { $$.str = string(yytext); }
-INTEGER = < [0-9]+ > !'.'                                  { $$.number = harriet::to_number<int32_t>(yytext); }
-FLOAT = < [0-9]*'.'[0-9]+ >                                { $$.numberf = harriet::to_number<float>(yytext); }
-STRING = '\'' < [a-z|A-Z|0-9| ]* > '\''                    { $$.str = string(yytext); }
+INTEGER_VAL = (PLUS|MINUS)* < [0-9]+ > !'.'                { $$.number = harriet::to_number<int32_t>(yytext); }
+FLOAT_VAL = (PLUS|MINUS)* < [0-9]*'.'[0-9]+ >              { $$.numberf = harriet::to_number<float>(yytext); }
+STRING_VAL = '\'' < [^\']* > '\''                          { $$.str = string(yytext); }
+BOOL_VAL = TRUE                                            { $$.boolean = true; }
+         | FALSE                                           { $$.boolean = false; }
 - = (' '|'\n'|'\t')*                                       { }
 COMMA = ','                                                { }
 POINT = "."                                                { }

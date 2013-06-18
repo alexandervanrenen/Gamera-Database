@@ -35,10 +35,10 @@ void InsertOperator::checkTypes() const throw(harriet::Exception)
    // See if we can insert the provided types into the table
    auto& sourceSchema = source->getSignature();
    if(sourceSchema.getAttributes().size() != targetSchema.getAttributes().size())
-      throw harriet::Exception{"Insert: expected " + to_string(targetSchema.getAttributes().size()) + " arguments, " + to_string(sourceSchema.getAttributes().size()) + " provided."};
+      throw harriet::Exception{"Insert " + targetSchema.getName() + ": expected " + to_string(targetSchema.getAttributes().size()) + " arguments, " + to_string(sourceSchema.getAttributes().size()) + " provided."};
    for(uint32_t i=0; i<sourceSchema.getAttributes().size(); i++)
       if(!harriet::isImplicitCastPossible(sourceSchema.getAttributes()[i].type, targetSchema.getAttributes()[i].type))
-         throw harriet::Exception{"Insert: invalid conversion from '" + sourceSchema.getAttributes()[i].type.str() + "' to '" + targetSchema.getAttributes()[i].type.str() + "'."};
+         throw harriet::Exception{"Insert into " + targetSchema.getName() + ": invalid conversion from '" + sourceSchema.getAttributes()[i].type.str() + "' to '" + targetSchema.getAttributes()[i].type.str() + "' for argument " + to_string(i) + "."};
  }
 
 void InsertOperator::execute()

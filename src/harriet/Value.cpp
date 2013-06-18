@@ -270,6 +270,23 @@ Value Value::computeEq (const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
+Value Value::computeAnd (const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeAnd(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeAnd(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeAnd(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeAnd(*this, rhs);
+      default:
+         doError("&" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::Bool::computeAdd(const Value& lhs, const Value& rhs)
 {
    doError("+", lhs, rhs);
@@ -301,6 +318,17 @@ Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
          return createBool(lhs.data.vbool==rhs.data.vbool);
       default:
          doError("==" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeAnd(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TBool:
+         return createBool(lhs.data.vbool && rhs.data.vbool);
+      default:
+         doError("&", lhs, rhs);
          throw;
    }
 }
@@ -380,6 +408,12 @@ Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
    }
 }
 //---------------------------------------------------------------------------
+Value Value::Integer::computeAnd(const Value& lhs, const Value& rhs)
+{
+   doError("&", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
 Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
@@ -455,6 +489,12 @@ Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
    }
 }
 //---------------------------------------------------------------------------
+Value Value::Float::computeAnd(const Value& lhs, const Value& rhs)
+{
+   doError("&", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
 Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
 {
    // TODO: auto conversion to char* to make appending of numbers possible
@@ -514,6 +554,12 @@ Value Value::Character::computeEq (const Value& lhs, const Value& rhs)
          doError("==" , lhs, rhs);
          throw;
    }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeAnd(const Value& lhs, const Value& rhs)
+{
+   doError("&", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 }

@@ -59,7 +59,6 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue1.computeSub(charValue2), Exception);
     ASSERT_THROW(charValue1.computeSub(boolValue1), Exception);
 
-
     // char * (int | float | char | bool ) -> exception
     ASSERT_THROW(charValue1.computeMul(intValue1), Exception);
     ASSERT_THROW(charValue1.computeMul(floatValue1), Exception);
@@ -85,7 +84,11 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue1.computeEq(floatValue1), Exception);
     ASSERT_THROW(charValue1.computeEq(boolValue1), Exception);
     
-
+    // char && (int | float | char | bool) -> exception
+    ASSERT_THROW(charValue1.computeAnd(intValue1), Exception);
+    ASSERT_THROW(charValue1.computeAnd(floatValue1), Exception);
+    ASSERT_THROW(charValue1.computeAnd(charValue1), Exception);
+    ASSERT_THROW(charValue1.computeAnd(boolValue1), Exception);
 }
 
 TEST(Value, BoolValueTests) {
@@ -125,6 +128,15 @@ TEST(Value, BoolValueTests) {
     ASSERT_THROW(boolValue1.computeEq(intValue1), Exception);
     ASSERT_THROW(boolValue1.computeEq(floatValue1), Exception);
     ASSERT_THROW(boolValue1.computeEq(charValue1), Exception);
+    
+    // bool && bool
+    Value andBoolRes = boolValue1.computeAnd(boolValue2);
+    ASSERT_EQ(andBoolRes.type, boolResType);
+    ASSERT_FALSE(andBoolRes.data.vbool);
+    // bool && (int | float | char) -> exception
+    ASSERT_THROW(boolValue1.computeAnd(intValue1), Exception);
+    ASSERT_THROW(boolValue1.computeAnd(floatValue1), Exception);
+    ASSERT_THROW(boolValue1.computeAnd(charValue1), Exception);
 }
 
 TEST(Value, IntegerValueTests) {
@@ -198,7 +210,12 @@ TEST(Value, IntegerValueTests) {
     // int == (char | bool) -> exception
     ASSERT_THROW(intValue1.computeEq(charValue1), Exception);
     ASSERT_THROW(intValue1.computeEq(boolValue1), Exception);
-
+    
+    // int && (int | float | char | bool) -> exception
+    ASSERT_THROW(intValue1.computeAnd(intValue1), Exception);
+    ASSERT_THROW(intValue1.computeAnd(floatValue1), Exception);
+    ASSERT_THROW(intValue1.computeAnd(charValue1), Exception);
+    ASSERT_THROW(intValue1.computeAnd(boolValue1), Exception);
 }
 
 TEST(Value, FloatValueTest) {
@@ -272,4 +289,10 @@ TEST(Value, FloatValueTest) {
     // float == (char | bool) -> exception
     ASSERT_THROW(floatValue1.computeEq(charValue1), Exception);
     ASSERT_THROW(floatValue1.computeEq(boolValue1), Exception);
+    
+    // float && (int | float | char | bool) -> exception
+    ASSERT_THROW(floatValue1.computeAnd(intValue1), Exception);
+    ASSERT_THROW(floatValue1.computeAnd(floatValue1), Exception);
+    ASSERT_THROW(floatValue1.computeAnd(charValue1), Exception);
+    ASSERT_THROW(floatValue1.computeAnd(boolValue1), Exception);
 }

@@ -55,6 +55,7 @@ public:
    Value computeMul(const Value& rhs) const;
    Value computeDiv(const Value& rhs) const;
    Value computeEq (const Value& rhs) const;
+   Value computeAnd(const Value& rhs) const;
 
 private:
    /// Operations on boolean values
@@ -64,6 +65,7 @@ private:
       static Value computeMul(const Value& lhs, const Value& rhs);
       static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
+      static Value computeAnd(const Value& lhs, const Value& rhs);
    };
 
    /// Operations on integer values
@@ -73,6 +75,7 @@ private:
       static Value computeMul(const Value& lhs, const Value& rhs);
       static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
+      static Value computeAnd(const Value& lhs, const Value& rhs);
    };
 
    /// Operations on floating point values
@@ -82,6 +85,7 @@ private:
       static Value computeMul(const Value& lhs, const Value& rhs);
       static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
+      static Value computeAnd(const Value& lhs, const Value& rhs);
    };
 
    /// Operations on fixed size character values
@@ -91,6 +95,7 @@ private:
       static Value computeMul(const Value& lhs, const Value& rhs);
       static Value computeDiv(const Value& lhs, const Value& rhs);
       static Value computeEq (const Value& lhs, const Value& rhs);
+      static Value computeAnd(const Value& lhs, const Value& rhs);
    };
 };
 //---------------------------------------------------------------------------

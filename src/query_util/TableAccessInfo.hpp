@@ -7,13 +7,15 @@
 namespace dbi {
 
 class SPSegment;
+class RelationSchema;
 
 namespace qopt {
 
 struct TableAccessInfo {
-   const RelationSchema* schema;
-   SPSegment* segment;
-   std::string tableQualifier; // The name given by the user or the actual table name
+   TableAccessInfo(const RelationSchema& schema, SPSegment& segment, const std::string& tableQualifier) : schema(schema), segment(segment), tableQualifier(tableQualifier) {}
+   const RelationSchema& schema;
+   SPSegment& segment;
+   const std::string tableQualifier; // The name given by the user or the actual table name
 };
 
 }
@@ -28,7 +30,7 @@ struct hash<std::vector<dbi::qopt::TableAccessInfo*>> {
    size_t operator()(const std::vector<dbi::qopt::TableAccessInfo*>& input) const {
       size_t result = 0;
       for(auto iter : input)
-         result ^= iter->schema->getSegmentId().toInteger();
+         result ^= iter->schema.getSegmentId().toInteger();
       return result;
    }
 };

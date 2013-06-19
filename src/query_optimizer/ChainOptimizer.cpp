@@ -1,12 +1,12 @@
 #include "ChainOptimizer.hpp"
-#include "TableAccessInfo.hpp"
+#include "query_util/TableAccessInfo.hpp"
 #include "AccessTree.hpp"
 #include "util/Utility.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "operator/SelectionOperator.hpp"
 #include "operator/CrossProductOperator.hpp"
 #include "harriet/Expression.hpp"
-#include "Predicate.hpp"
+#include "query_util/Predicate.hpp"
 #include <cstdint>
 #include <algorithm>
 

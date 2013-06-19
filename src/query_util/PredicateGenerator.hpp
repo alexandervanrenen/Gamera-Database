@@ -20,7 +20,7 @@ public:
 
 private:
    const harriet::Environment& env;
-   
+
    std::unique_ptr<Predicate> createPredicate(std::unique_ptr<harriet::Expression> condition, const std::vector<TableAccessInfo>& tableAccessVec) const;
 };
 

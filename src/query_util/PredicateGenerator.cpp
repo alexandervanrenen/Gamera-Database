@@ -4,6 +4,7 @@
 #include "harriet/Expression.hpp"
 #include "query_parser/Common.hpp"
 #include "util/Utility.hpp"
+#include "query_util/ColumnResolver.hpp"
 #include <iostream>
 
 using namespace std;
@@ -17,7 +18,6 @@ PredicateGenerator::PredicateGenerator(const harriet::Environment& env)
 {
 }
 
-
 // All conditions and all accessed tables
 vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique_ptr<harriet::Expression>>& conditions, const vector<TableAccessInfo>& tableAccessVec) const
 {
@@ -26,7 +26,7 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
    predicates.reserve(conditions.size());
    for(auto& expression: conditions) {
       predicates.push_back(createPredicate(move(expression), tableAccessVec));
-   } 
+   }
    // 2: check all predicates if tables match
    for(auto outerIter = predicates.begin(); outerIter != predicates.end(); outerIter++) {    
       for(auto innerIter = outerIter + 1; innerIter != predicates.end();) {
@@ -49,30 +49,14 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
 
    // First -- Resolve all variables in the condition and add to the predicate
    {
+      ColumnResolver columnResolver(env);
       vector<const harriet::Variable*> freeVariables = predicate->condition->getAllVariables();
       for(auto variable : freeVariables) {
-         // Find table of the variable
-         int16_t tableId = -1;
-         ColumnReference ref(variable->getIdentifier());
-         for(uint32_t id=0; id<tableAccessVec.size(); id++) {
-            // Check if variable is a column in this table
-            bool refersToTable = false;
-            if(ref.tableQualifier.size()==0 || ref.tableQualifier==tableAccessVec[id].tableQualifier)
-               refersToTable = tableAccessVec[id].schema->getAttribute(ref.columnName) != nullptr;
-
-            // If so we found the table we are searching for
-            if(refersToTable) {
-               if(tableId == -1)
-                  tableId = id; else
-                  throw harriet::Exception{"ambiguous identifier '" + ref.tableQualifier + "." + ref.columnName + "', candidates: '" + tableAccessVec[tableId].tableQualifier + "." + ref.columnName + "' or '" + tableAccessVec[id].tableQualifier + "." + ref.columnName + "'"};
-            }
+         ColumnResolver::Result result = columnResolver.resolveSelection(variable->getIdentifier(), tableAccessVec);
+         if(result.has()) {
+            predicate->columns.push_back(result.get());
+            predicate->tables.insert(predicate->columns.back().tableIndex);
          }
-         if(tableId == -1)
-            throw harriet::Exception{"unknown identifier: '" + variable->getIdentifier() + "'"};
-
-         // Add to the list =)
-         predicate->columns.push_back(ColumnAccessInfo(variable->getIdentifier(), *tableAccessVec[tableId].schema->getAttribute(ref.columnName)));
-         predicate->tables.insert(tableId);
       }
    }
 

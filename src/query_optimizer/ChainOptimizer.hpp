@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Optimizer.hpp"
+#include "query_util/TableAccessInfo.hpp"
 #include <vector>
 #include <memory>
 #include <string>

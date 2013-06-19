@@ -1,7 +1,6 @@
 #include "AccessTree.hpp"
-#include "TableAccessInfo.hpp"
-#include "TableAccessInfo.hpp"
-#include "Predicate.hpp"
+#include "query_util/TableAccessInfo.hpp"
+#include "query_util/Predicate.hpp"
 #include "harriet/Expression.hpp"
 #include "operator/Operator.hpp"
 #include "operator/TableScanOperator.hpp"
@@ -37,7 +36,7 @@ Leafe::~Leafe()
 
 unique_ptr<Operator> Leafe::toPlan() const
 {
-   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(*table.segment, *table.schema, table.tableQualifier);
+   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table.segment, table.schema, table.tableQualifier);
    
    if(predicate != nullptr)
       result = util::make_unique<SelectionOperator>(move(result), move(predicate->condition));

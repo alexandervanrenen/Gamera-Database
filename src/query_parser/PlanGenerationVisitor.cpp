@@ -15,9 +15,9 @@
 #include "operator/CrossProductOperator.hpp"
 #include "query_optimizer/ChainOptimizer.hpp"
 #include "query_optimizer/DummyOptimizer.hpp"
-#include "query_optimizer/TableAccessInfo.hpp"
-#include "query_optimizer/PredicateGenerator.hpp"
-#include "query_optimizer/Predicate.hpp"
+#include "query_util/TableAccessInfo.hpp"
+#include "query_util/PredicateGenerator.hpp"
+#include "query_util/Predicate.hpp"
 #include <sstream>
 
 using namespace std;
@@ -41,10 +41,10 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    // Build a vector containing all table access'
    vector<qopt::TableAccessInfo> tableAccessVec;
    for(uint32_t i=0; i<select.sources.size(); i++) {
-      const RelationSchema* schema = &schemaManager.getRelation(select.sources[i].tableName);
+      auto& relationSchema = schemaManager.getRelation(select.sources[i].tableName);
       string qualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
-      SPSegment* segment = &segmentManager.getSPSegment(schema->getSegmentId());
-      tableAccessVec.push_back(qopt::TableAccessInfo{schema, segment, qualifier});
+      auto& segment = segmentManager.getSPSegment(relationSchema.getSegmentId());
+      tableAccessVec.push_back(qopt::TableAccessInfo{relationSchema, segment, qualifier});
    }
 
    // Build predicates from condition-expressions

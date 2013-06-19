@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TableAccessInfo.hpp"
 #include <vector>
 #include <memory>
 #include <string>
@@ -16,6 +15,7 @@ class SPSegment;
 namespace qopt {
 
 class Predicate;
+class TableAccessInfo;
 
 /// Interface for all optimizers
 class Optimizer {

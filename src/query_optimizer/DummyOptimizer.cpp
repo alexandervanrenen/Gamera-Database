@@ -3,8 +3,9 @@
 #include "operator/TableScanOperator.hpp"
 #include "operator/SelectionOperator.hpp"
 #include "operator/CrossProductOperator.hpp"
+#include "query_util/TableAccessInfo.hpp"
 #include "harriet/Expression.hpp"
-#include "Predicate.hpp"
+#include "query_util/Predicate.hpp"
 #include <cstdint>
 
 using namespace std;
@@ -18,7 +19,7 @@ unique_ptr<Operator> DummyOptimizer::optimize(const vector<TableAccessInfo>& rel
    // Cross-Product it with all other input relations
    unique_ptr<Operator> result;
    for(uint32_t i=0; i<relations.size(); i++) {
-      auto nextLevel = util::make_unique<TableScanOperator>(*relations[i].segment, *relations[i].schema, relations[i].tableQualifier);
+      auto nextLevel = util::make_unique<TableScanOperator>(relations[i].segment, relations[i].schema, relations[i].tableQualifier);
       if(i==0)
          result = move(nextLevel); else
          result = util::make_unique<CrossProductOperator>(move(nextLevel), move(result));

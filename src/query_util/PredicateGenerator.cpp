@@ -64,7 +64,7 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    {
       harriet::Environment env;
       for(auto& iter : predicate->columns)
-         env.add(iter.scriptName, harriet::Value::createDefault(iter.attributeSchema.type));
+         env.add(iter.scriptName, harriet::Value::createDefault(iter.columnSchema.type));
       if(predicate->condition->evaluate(env).type.type != harriet::VariableType::Type::TBool) {
          ostringstream os;
          predicate->condition->print(os);

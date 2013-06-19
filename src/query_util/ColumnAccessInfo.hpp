@@ -7,9 +7,9 @@ namespace dbi {
 namespace qopt {
 
 struct ColumnAccessInfo {
-   ColumnAccessInfo(std::string scriptName, const AttributeSchema& attributeSchema, uint32_t tableIndex) : scriptName(scriptName), attributeSchema(attributeSchema), tableIndex(tableIndex) {}
+   ColumnAccessInfo(std::string scriptName, const ColumnSchema& columnSchema, uint32_t tableIndex) : scriptName(scriptName), columnSchema(columnSchema), tableIndex(tableIndex) {}
    const std::string scriptName; // The name of the variable in the script
-   const AttributeSchema& attributeSchema;
+   const ColumnSchema& columnSchema;
    const uint32_t tableIndex; // The index in the table vector (generated from the FROM clause)
 };
 

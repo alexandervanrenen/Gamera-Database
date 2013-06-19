@@ -17,7 +17,7 @@ RelationSchema::RelationSchema()
 {
 }
 
-RelationSchema::RelationSchema(const string& name, vector<AttributeSchema>&& attributes, vector<IndexSchema>&& indexes)
+RelationSchema::RelationSchema(const string& name, vector<ColumnSchema>&& attributes, vector<IndexSchema>&& indexes)
 : sid(kInvalidSegmentId)
 , name(name)
 , attributes(move(attributes))
@@ -40,7 +40,6 @@ RelationSchema::RelationSchema(const Record& record)
       util::readBinary(iter.name, in);
       util::readBinary(iter.type, in);
       util::readBinary(iter.notNull, in);
-      util::readBinary(iter.primaryKey, in);
       util::readBinary(iter.offset, in);
    }
 
@@ -49,8 +48,8 @@ RelationSchema::RelationSchema(const Record& record)
    indexes.resize(len);
    for(auto& iter : indexes) {
       util::readBinary(iter.sid, in);
-      util::readBinary(iter.indexedAttribute, in);
-      util::readBinary(iter.indexType, in);
+      util::readBinary(iter.indexedColumns, in);
+      util::readBinary(iter.type, in);
    }
 
    assert(in.good());
@@ -125,7 +124,6 @@ Record RelationSchema::marschall() const
       util::writeBinary(out, iter.name);
       util::writeBinary(out, iter.type);
       util::writeBinary(out, iter.notNull);
-      util::writeBinary(out, iter.primaryKey);
       util::writeBinary(out, iter.offset);
    }
 
@@ -133,29 +131,30 @@ Record RelationSchema::marschall() const
    util::writeBinary(out, indexes.size());
    for(auto& iter : indexes) {
       util::writeBinary(out, iter.sid);
-      util::writeBinary(out, iter.indexedAttribute);
-      util::writeBinary(out, iter.indexType);
+      util::writeBinary(out, iter.indexedColumns);
+      util::writeBinary(out, iter.type);
    }
 
    return Record(out.str());
 }
 
-const AttributeSchema* RelationSchema::getAttribute(const string& name) const
+const ColumnSchema* RelationSchema::getColumn(const string& name) const
 {
    for(auto& iter : attributes)
       if(iter.name == name)
          return &iter;
    return nullptr;
 }
-
+/*
 void RelationSchema::dump(ostream& os) const
 {
    os << "name: " << name << endl;
    os << "sid: " << sid << endl;
    for(auto& attribute : attributes)
-      os << attribute.name << " " << attribute.type << " " << attribute.notNull << " " << attribute.primaryKey << " " << attribute.offset << endl;
+      os << attribute.name << " " << attribute.type << " " << attribute.notNull << " " << attribute.offset << endl;
    for(auto& index : indexes)
-      os << index.sid << " " << index.indexedAttribute << " " << index.indexType << endl;
+      os << index.sid << " " << index.indexedColumns << " " << index.type << endl;
 }
+ */
 
 }

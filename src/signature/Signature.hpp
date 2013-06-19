@@ -10,7 +10,6 @@ struct AttributeSignature {
    std::string name;
    std::string alias;
    bool notNull;
-   bool primaryKey;
    harriet::VariableType type;
 };
 

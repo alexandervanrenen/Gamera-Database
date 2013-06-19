@@ -28,7 +28,7 @@ public:
 
 private:
    const harriet::Environment& env;
-   static std::pair<uint32_t, const AttributeSchema*> tryFindColumn(const std::string& name, const std::vector<TableAccessInfo>& tableAccessVec);
+   static std::pair<uint32_t, const ColumnSchema*> tryFindColumn(const std::string& name, const std::vector<TableAccessInfo>& tableAccessVec);
 };
 
 }

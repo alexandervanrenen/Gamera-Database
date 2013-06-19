@@ -48,15 +48,15 @@ void ExecutionVisitor::onPostVisit(SelectStatement&)
 void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 {
    // Create attributes
-   vector<AttributeSchema> attributes;
+   vector<ColumnSchema> columns;
    for(auto& iter : createTable.attributes)
-      attributes.push_back(dbi::AttributeSchema{iter.name, iter.type, iter.notNull, true, 0});
+      columns.push_back(dbi::ColumnSchema{iter.name, iter.type, iter.notNull, 0});
 
    // Create indexes
    vector<IndexSchema> indexes;
 
    // Add relation
-   auto schema = util::make_unique<RelationSchema>(createTable.tableName, move(attributes), move(indexes));
+   auto schema = util::make_unique<RelationSchema>(createTable.tableName, move(columns), move(indexes));
    SegmentId sid = segmentManager.createSegment(SegmentType::SP, kInitialPagesPerRelation);
    schema->setSegmentId(sid);
    schema->optimizePadding();

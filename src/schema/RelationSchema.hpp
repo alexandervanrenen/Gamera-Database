@@ -6,26 +6,31 @@
 #include <vector>
 #include <string>
 #include <ios>
+#include <set>
 
 namespace dbi {
 
-struct AttributeSchema {
+struct ColumnSchema {
    std::string name;
    harriet::VariableType type;
    bool notNull;
-   bool primaryKey;
    uint16_t offset;
 };
 
 struct IndexSchema {
+   enum Type: uint8_t { kBTree, kHash, kBit };
+   
    SegmentId sid;
-   uint8_t indexedAttribute;
-   uint8_t indexType;
+   std::set<uint8_t> indexedColumns;
+//   uint8_t indexedAttribute;
+   Type type;
+//   uint8_t indexType;
+   bool unique;
 };
 
 struct RelationSchema {
    RelationSchema(); // Default constructor
-   RelationSchema(const std::string& name, std::vector<AttributeSchema>&& attributes, std::vector<IndexSchema>&& indexes); // Create a new schema from a create table statement
+   RelationSchema(const std::string& name, std::vector<ColumnSchema>&& columns, std::vector<IndexSchema>&& indexes); // Create a new schema from a create table statement
    RelationSchema(const Record& record); // Load schema from raw record
    RelationSchema(const RelationSchema&) = delete;
    RelationSchema& operator=(const RelationSchema&) = delete;
@@ -40,17 +45,17 @@ struct RelationSchema {
 
    const SegmentId getSegmentId() const {return sid;}
    const std::string& getName() const {return name;}
-   const std::vector<AttributeSchema>& getAttributes() const {return attributes;}
+   const std::vector<ColumnSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}
 
-   const AttributeSchema* getAttribute(const std::string& name) const;
+   const ColumnSchema* getColumn(const std::string& name) const;
 
    void dump(std::ostream& os) const;
 
 private:
    SegmentId sid;
    std::string name;
-   std::vector<AttributeSchema> attributes;
+   std::vector<ColumnSchema> attributes;
    std::vector<IndexSchema> indexes;
 };
 

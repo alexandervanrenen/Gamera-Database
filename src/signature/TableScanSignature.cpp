@@ -9,7 +9,7 @@ TableScanSignature::TableScanSignature(const RelationSchema& relationSchema, con
 {
    attributes.reserve(relationSchema.getAttributes().size());
    for(auto& attribute : relationSchema.getAttributes())
-      attributes.push_back(AttributeSignature{attribute.name, alias, attribute.notNull, attribute.primaryKey, attribute.type});
+      attributes.push_back(AttributeSignature{attribute.name, alias, attribute.notNull, attribute.type});
 }
 
 }

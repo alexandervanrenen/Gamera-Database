@@ -25,7 +25,6 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
       ASSERT_EQ(lhs.getAttributes()[i].name, rhs.getAttributes()[i].name);
       ASSERT_EQ(lhs.getAttributes()[i].type, rhs.getAttributes()[i].type);
       ASSERT_EQ(lhs.getAttributes()[i].notNull, rhs.getAttributes()[i].notNull);
-      ASSERT_EQ(lhs.getAttributes()[i].primaryKey, rhs.getAttributes()[i].primaryKey);
       ASSERT_EQ(lhs.getAttributes()[i].offset, rhs.getAttributes()[i].offset);
    }
 
@@ -33,21 +32,22 @@ void compare(const RelationSchema& lhs, const RelationSchema& rhs)
    ASSERT_EQ(lhs.getIndexes().size(), rhs.getIndexes().size());
    for(uint32_t i=0; i<lhs.getIndexes().size(); i++) {
       ASSERT_EQ(lhs.getIndexes()[i].sid, rhs.getIndexes()[i].sid);
-      ASSERT_EQ(lhs.getIndexes()[i].indexedAttribute, rhs.getIndexes()[i].indexedAttribute);
-      ASSERT_EQ(lhs.getIndexes()[i].indexType, rhs.getIndexes()[i].indexType);
+      ASSERT_EQ(lhs.getIndexes()[i].indexedColumns, rhs.getIndexes()[i].indexedColumns);
+      ASSERT_EQ(lhs.getIndexes()[i].type, rhs.getIndexes()[i].type);
    }
 }
 
 TEST(Schema, RelationSchemaMarschalling)
 {
    // Create
-   vector<dbi::AttributeSchema> attributes;
-   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::createIntegerType(), false, false, 0});
-   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::createCharacterType(20), true, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"condition", harriet::VariableType::createBoolType(), false, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"percentage", harriet::VariableType::createFloatType(), false, true, 0});
+   vector<dbi::ColumnSchema> columns;
+   columns.push_back(dbi::ColumnSchema{"id", harriet::VariableType::createIntegerType(), false, 0});
+   columns.push_back(dbi::ColumnSchema{"name", harriet::VariableType::createCharacterType(20), true, 0});
+   columns.push_back(dbi::ColumnSchema{"condition", harriet::VariableType::createBoolType(), false, 0});
+   columns.push_back(dbi::ColumnSchema{"percentage", harriet::VariableType::createFloatType(), false, 0});
    vector<dbi::IndexSchema> indexes;
-   RelationSchema original("students", move(attributes), move(indexes));
+   indexes.push_back(IndexSchema{SegmentId(10), {1,2}, dbi::IndexSchema::Type::kBTree, true});
+   RelationSchema original("students", move(columns), move(indexes));
    original.setSegmentId(SegmentId(8128));
    original.optimizePadding();
 
@@ -62,11 +62,11 @@ TEST(Schema, RelationSchemaMarschalling)
 TEST(Schema, TupleMarschalling)
 {
    // Create schema
-   vector<dbi::AttributeSchema> attributes;
-   attributes.push_back(dbi::AttributeSchema{"id", harriet::VariableType::createIntegerType(), false, false, 0});
-   attributes.push_back(dbi::AttributeSchema{"name", harriet::VariableType::createCharacterType(20), true, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"condition", harriet::VariableType::createBoolType(), false, true, 0});
-   attributes.push_back(dbi::AttributeSchema{"percentage", harriet::VariableType::createFloatType(), false, true, 0});
+   vector<dbi::ColumnSchema> attributes;
+   attributes.push_back(dbi::ColumnSchema{"id", harriet::VariableType::createIntegerType(), false, 0});
+   attributes.push_back(dbi::ColumnSchema{"name", harriet::VariableType::createCharacterType(20), true, 0});
+   attributes.push_back(dbi::ColumnSchema{"condition", harriet::VariableType::createBoolType(), false, 0});
+   attributes.push_back(dbi::ColumnSchema{"percentage", harriet::VariableType::createFloatType(), false, 0});
    vector<dbi::IndexSchema> indexes;
    RelationSchema schema("students", move(attributes), move(indexes));
    schema.setSegmentId(SegmentId(123));
@@ -97,15 +97,15 @@ TEST(Schema, SchemaManager)
    dbi::BufferManager bufferManager(kSwapFileName, pages / 2);
    dbi::SegmentManager segmentManager(bufferManager, true);
 
-   vector<dbi::AttributeSchema> attributes1;
-   attributes1.push_back(dbi::AttributeSchema{"id", harriet::VariableType::createIntegerType(), false, false, 0});
+   vector<dbi::ColumnSchema> attributes1;
+   attributes1.push_back(dbi::ColumnSchema{"id", harriet::VariableType::createIntegerType(), false, 0});
    vector<dbi::IndexSchema> indexes1;
    auto schema1 = util::make_unique<RelationSchema>("students", move(attributes1), move(indexes1));
    schema1->setSegmentId(SegmentId(8128));
    auto schema1_ref = util::make_unique<RelationSchema>(schema1->marschall()); // Just copy ..
 
-   vector<dbi::AttributeSchema> attributes2;
-   attributes2.push_back(dbi::AttributeSchema{"name", harriet::VariableType::createBoolType(), true, true, 0});
+   vector<dbi::ColumnSchema> attributes2;
+   attributes2.push_back(dbi::ColumnSchema{"name", harriet::VariableType::createBoolType(), true, 0});
    vector<dbi::IndexSchema> indexes2;
    auto schema2 = util::make_unique<RelationSchema>("listens_to", move(attributes2), move(indexes2));
    schema2->setSegmentId(SegmentId(1729));

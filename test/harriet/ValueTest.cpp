@@ -9,16 +9,7 @@ using namespace std;
 using namespace harriet;
 
 namespace {
-    // Raw input values
-    // Requirements:
-        // int1 must be less than int2
-        // int1 must match float1
-        // int1 must be lesss than float2
-        // float1 must be less than float2
-        // float1 must be less than int2
-        // bool1 must not match bool2
-        // string1 must not match string2
-        // string3 must match string2 at the first (string2.size) letters
+    // be careful when changing these values: many tests depend on them
     int int_5 = 5;
     int int_10 = 10;
     int int_0 = 0;

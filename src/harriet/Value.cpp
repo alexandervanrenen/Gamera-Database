@@ -287,6 +287,40 @@ Value Value::computeAnd (const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
+Value Value::computeLeq(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeLeq(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeLeq(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeLeq(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeLeq(*this, rhs);
+      default:
+         doError("<=" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::computeGeq(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeGeq(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeGeq(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeGeq(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeGeq(*this, rhs);
+      default:
+         doError(">=" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::Bool::computeAdd(const Value& lhs, const Value& rhs)
 {
    doError("+", lhs, rhs);
@@ -331,6 +365,18 @@ Value Value::Bool::computeAnd(const Value& lhs, const Value& rhs)
          doError("&", lhs, rhs);
          throw;
    }
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeLeq(const Value& lhs, const Value& rhs)
+{
+   doError("<=", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeGeq(const Value& lhs, const Value& rhs)
+{
+   doError(">=", lhs, rhs);
+   throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeAdd(const Value& lhs, const Value& rhs)
@@ -414,6 +460,32 @@ Value Value::Integer::computeAnd(const Value& lhs, const Value& rhs)
    throw;
 }
 //---------------------------------------------------------------------------
+Value Value::Integer::computeLeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vint <= rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createBool(lhs.data.vint <= rhs.data.vfloat);
+      default:
+         doError("<=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vint >= rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createBool(lhs.data.vint >= rhs.data.vfloat);
+      default:
+         doError(">=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type){
@@ -495,6 +567,32 @@ Value Value::Float::computeAnd(const Value& lhs, const Value& rhs)
    throw;
 }
 //---------------------------------------------------------------------------
+Value Value::Float::computeLeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vfloat <= rhs.data.vint);
+      case VariableType::Type::TFloat: 
+         return createBool(lhs.data.vfloat <= rhs.data.vfloat);
+      default:
+         doError("<=" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vfloat >= rhs.data.vint);
+      case VariableType::Type::TFloat: 
+         return createBool(lhs.data.vfloat >= rhs.data.vfloat);
+      default:
+         doError(">=" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
 {
    // TODO: auto conversion to char* to make appending of numbers possible
@@ -560,6 +658,52 @@ Value Value::Character::computeAnd(const Value& lhs, const Value& rhs)
 {
    doError("&", lhs, rhs);
    throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeLeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         auto cmpVal = memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(cmpVal != 0) {
+            return createBool(cmpVal < 0 );
+         } else {
+            // inputs are equals within their minimum size and the longer one has a termination symbol at (minSize + 1)
+            if((lhs.type.length < rhs.type.length && rhs.data.vchar[lhs.type.length]=='\0') ||
+               (lhs.type.length > rhs.type.length && lhs.data.vchar[rhs.type.length]=='\0')) {
+               return createBool(true);
+            } else {
+               return createBool(lhs.type.length <= rhs.type.length);
+            }
+         }
+      }
+      default:
+         doError("<=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         auto cmpVal =  memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(cmpVal != 0) {
+            return createBool(cmpVal > 0 );
+         } else {
+            // inputs are equals within their minimum size and the longer one has a termination symbol at (minSize + 1)
+            if((lhs.type.length < rhs.type.length && rhs.data.vchar[lhs.type.length]=='\0') ||
+               (lhs.type.length > rhs.type.length && lhs.data.vchar[rhs.type.length]=='\0')) {
+               return createBool(true);
+            } else {
+               return createBool(lhs.type.length >= rhs.type.length);
+            }
+         }
+      }
+      default:
+         doError(">=", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 }

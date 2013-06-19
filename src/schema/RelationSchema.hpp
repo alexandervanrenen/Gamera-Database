@@ -22,9 +22,7 @@ struct IndexSchema {
    
    SegmentId sid;
    std::set<uint8_t> indexedColumns;
-//   uint8_t indexedAttribute;
    Type type;
-//   uint8_t indexType;
    bool unique;
 };
 

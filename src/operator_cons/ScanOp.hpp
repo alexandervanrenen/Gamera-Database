@@ -1,10 +1,10 @@
 #pragma once
 
-#include "harriet/ScriptLanguage.hpp"
-#include "segment_manager/SPSegment.hpp"
 #include "COperator.hpp"
-#include <vector>
+#include "harriet/ScriptLanguage.hpp"
 #include "schema/RelationSchema.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include <vector>
 
 namespace dbi {
     

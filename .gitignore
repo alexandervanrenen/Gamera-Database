@@ -6,5 +6,5 @@ config.local
 *.png
 *.dot
 
-src/query_parser/Parser.cpp
+src/query/parser/Parser.cpp
 

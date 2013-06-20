@@ -1,14 +1,14 @@
-#include <stdint.h>
+#include "common/Config.hpp"
 #include "gtest/gtest.h"
 #include "segment_manager/SlottedPage.hpp"
 #include "test/TestConfig.hpp"
-#include "common/Config.hpp"
-#include "util/Utility.hpp"
 #include "util/Random.hpp"
-#include <cstdlib>
-#include <unordered_map>
+#include "util/Utility.hpp"
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
+#include <stdint.h>
+#include <unordered_map>
 
 using namespace std;
 using namespace dbi;

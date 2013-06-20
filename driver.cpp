@@ -1,8 +1,8 @@
+#include "common/Config.hpp"
 #include "core/Database.hpp"
 #include "core/DatabaseConfig.hpp"
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
 #include "gflags/gflags.h"
+#include "util/Utility.hpp"
 #include <iostream>
 #include <string>
 

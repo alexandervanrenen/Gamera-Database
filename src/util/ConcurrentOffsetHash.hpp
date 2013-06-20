@@ -4,10 +4,10 @@
 #include "util/SpinLock.hpp"
 #include <cassert>
 #include <functional>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <vector>
-#include <functional>
 
 namespace dbi {
 

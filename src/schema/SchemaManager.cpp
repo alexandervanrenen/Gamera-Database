@@ -1,5 +1,5 @@
-#include "SchemaManager.hpp"
 #include "RelationSchema.hpp"
+#include "SchemaManager.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
 #include <iostream>

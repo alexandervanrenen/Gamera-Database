@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "util/ReadWriteLock.hpp"
 #include "test/TestConfig.hpp"
+#include "util/ReadWriteLock.hpp"
 #include <thread>
 
 TEST(ReadWriteLockTest, Simple)

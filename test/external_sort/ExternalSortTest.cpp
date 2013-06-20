@@ -1,7 +1,7 @@
-#include "util/Utility.hpp"
-#include "test/TestConfig.hpp"
 #include "external_sort/ExternalSort.hpp"
 #include "gtest/gtest.h"
+#include "test/TestConfig.hpp"
+#include "util/Utility.hpp"
 #include <cstdio>
 #include <iostream>
 

@@ -1,7 +1,7 @@
+#include "common/Config.hpp"
 #include "gtest/gtest.h"
 #include "TestConfig.hpp"
 #include "util/Utility.hpp"
-#include "common/Config.hpp"
 
 using namespace std;
 

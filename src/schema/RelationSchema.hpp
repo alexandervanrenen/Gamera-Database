@@ -1,12 +1,12 @@
 #pragma once
 
 #include "common/SegmentId.hpp"
-#include "segment_manager/Record.hpp"
 #include "harriet/ScriptLanguage.hpp"
-#include <vector>
-#include <string>
+#include "segment_manager/Record.hpp"
 #include <ios>
 #include <set>
+#include <string>
+#include <vector>
 
 namespace dbi {
 

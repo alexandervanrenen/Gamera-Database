@@ -1,10 +1,10 @@
 #pragma once
 
 #include "common/Config.hpp"
+#include <cassert>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <cassert>
 
 namespace dbi {
 

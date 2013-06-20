@@ -1,9 +1,9 @@
 #include "CompactExtentStore.hpp"
 #include "util/StupidUserException.hpp"
-#include <vector>
-#include <iostream>
-#include <exception>
 #include <algorithm>
+#include <exception>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 

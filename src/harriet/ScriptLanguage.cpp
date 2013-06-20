@@ -1,15 +1,15 @@
+#include "Environment.hpp"
+#include "Expression.hpp"
+#include "Function.hpp"
 #include "ScriptLanguage.hpp"
 #include "Utility.hpp"
-#include "Expression.hpp"
-#include "Environment.hpp"
-#include "Function.hpp"
 #include "Value.hpp"
-#include <sstream>
-#include <ctype.h>
-#include <cassert>
-#include <istream>
 #include <algorithm>
+#include <cassert>
 #include <cstring>
+#include <ctype.h>
+#include <istream>
+#include <sstream>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2013 Alexander van Renen (alexandervanrenen@gmail.com)

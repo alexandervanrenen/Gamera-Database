@@ -1,19 +1,18 @@
-#include "FunkeSlottedTest.hpp"
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
-#include "test/TestConfig.hpp"
+#include "common/Config.hpp"
+#include "FunkeSlottedTest.hpp"
+#include "gtest/gtest.h"
+#include "segment_manager/ExtentStore.hpp"
+#include "segment_manager/Record.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
-#include "gtest/gtest.h"
-#include "segment_manager/Record.hpp"
-#include "operator/TableScanOperator.hpp"
-#include "segment_manager/ExtentStore.hpp"
+#include "test/TestConfig.hpp"
 #include "util/Random.hpp"
+#include "util/Utility.hpp"
 #include <array>
 #include <fstream>
-#include <string>
 #include <set>
+#include <string>
 
 using namespace std;
 using namespace dbi;

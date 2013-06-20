@@ -1,6 +1,6 @@
+#include <set>
 #include <sstream>
 #include <string>
-#include <set>
 
 namespace dbi {
 

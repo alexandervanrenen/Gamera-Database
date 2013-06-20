@@ -1,9 +1,9 @@
 #pragma once
 
-#include "TupleId.hpp"
 #include "PageId.hpp"
 #include "RecordId.hpp"
 #include "SegmentId.hpp"
+#include "TupleId.hpp"
 #include <cstdint>
 
 namespace dbi {

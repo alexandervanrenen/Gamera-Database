@@ -1,13 +1,13 @@
-#include "zmq/zmq.hpp"
+#include "common/Config.hpp"
 #include "core/Database.hpp"
 #include "core/DatabaseConfig.hpp"
 #include "util/Utility.hpp"
-#include "common/Config.hpp"
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
+#include "zmq/zmq.hpp"
 #include <assert.h>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 using namespace std;
 

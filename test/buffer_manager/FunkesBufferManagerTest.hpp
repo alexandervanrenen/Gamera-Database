@@ -2,11 +2,11 @@
 
 #include "buffer_manager/BufferManager.hpp"
 #include "test/TestConfig.hpp"
-#include <stdlib.h>
-#include <stdint.h>
 #include <assert.h>
-#include <pthread.h>
 #include <iostream>
+#include <pthread.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 dbi::BufferManager* bm;
 unsigned pagesOnDisk;

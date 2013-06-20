@@ -1,10 +1,10 @@
 #ifndef SCRIPTLANGUAGE_GENERICALLOCATOR_HPP
 #define SCRIPTLANGUAGE_GENERICALLOCATOR_HPP
 //---------------------------------------------------------------------------
-#include <stdint.h>
 #include <cassert>
-#include <memory>
 #include <cstdlib>
+#include <memory>
+#include <stdint.h>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

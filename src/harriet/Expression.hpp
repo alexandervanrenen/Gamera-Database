@@ -1,15 +1,15 @@
 #ifndef SCRIPTLANGUAGE_EXPRESSION_HPP_
 #define SCRIPTLANGUAGE_EXPRESSION_HPP_
 //---------------------------------------------------------------------------
-#include "ScriptLanguage.hpp"
 #include "GenericAllocator.hpp"
+#include "ScriptLanguage.hpp"
 #include "Value.hpp"
-#include <memory>
-#include <string>
-#include <iostream>
-#include <stack>
-#include <vector>
 #include <cstring>
+#include <iostream>
+#include <memory>
+#include <stack>
+#include <string>
+#include <vector>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

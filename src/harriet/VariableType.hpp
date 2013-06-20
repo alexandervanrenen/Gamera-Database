@@ -1,9 +1,9 @@
 #ifndef SCRIPTLANGUAGE_VARIABLETYPE_HPP_
 #define SCRIPTLANGUAGE_VARIABLETYPE_HPP_
 //---------------------------------------------------------------------------
-#include <string>
-#include <memory>
 #include <ios>
+#include <memory>
+#include <string>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

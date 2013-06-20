@@ -1,12 +1,12 @@
-#include "RelationSchema.hpp"
-#include "util/BinarySerializer.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
+#include "RelationSchema.hpp"
+#include "util/BinarySerializer.hpp"
 #include "util/Math.hpp"
 #include "util/Utility.hpp"
-#include <sstream>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 

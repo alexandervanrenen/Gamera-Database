@@ -1,9 +1,9 @@
-#include "gtest/gtest.h"
-#include "FunkesBufferManagerTest.hpp"
-#include "buffer_manager/BufferManager.hpp"
 #include "buffer_manager/BufferFrame.hpp"
-#include "test/TestConfig.hpp"
+#include "buffer_manager/BufferManager.hpp"
 #include "common/Config.hpp"
+#include "FunkesBufferManagerTest.hpp"
+#include "gtest/gtest.h"
+#include "test/TestConfig.hpp"
 #include "util/Utility.hpp"
 #include <array>
 #include <fstream>

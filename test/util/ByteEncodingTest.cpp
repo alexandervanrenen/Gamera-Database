@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "util/ByteEncoding.hpp"
 #include "test/TestConfig.hpp"
+#include "util/ByteEncoding.hpp"
 
 TEST(ByteEncoding, Check)
 {

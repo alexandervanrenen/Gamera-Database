@@ -1,8 +1,8 @@
 #include "BTreeSegment.hpp"
 #include "FSISegment.hpp"
 #include "SegmentManager.hpp"
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 using namespace std;
 

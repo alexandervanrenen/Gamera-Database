@@ -1,14 +1,14 @@
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
-#include "test/TestConfig.hpp"
-#include "segment_manager/SegmentManager.hpp"
-#include "schema/SchemaManager.hpp"
-#include "segment_manager/SPSegment.hpp"
-#include "schema/RelationSchema.hpp"
+#include "common/Config.hpp"
+#include "gtest/gtest.h"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
-#include "gtest/gtest.h"
+#include "schema/RelationSchema.hpp"
+#include "schema/SchemaManager.hpp"
+#include "segment_manager/SegmentManager.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include "test/TestConfig.hpp"
+#include "util/Utility.hpp"
 #include <string>
 
 using namespace std;

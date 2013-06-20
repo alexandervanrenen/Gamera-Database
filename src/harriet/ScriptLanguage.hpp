@@ -2,9 +2,9 @@
 #define SCRIPTLANGUAGE_SCRIPTLANGUAGE_HPP_
 //---------------------------------------------------------------------------
 #include "VariableType.hpp"
-#include <string>
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
+#include <string>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

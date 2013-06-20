@@ -1,7 +1,7 @@
-#include "test/TestConfig.hpp"
 #include "gtest/gtest.h"
-#include "harriet/Value.hpp"
 #include "harriet/ScriptLanguage.hpp"
+#include "harriet/Value.hpp"
+#include "test/TestConfig.hpp"
 #include <string>
 
 //using namespace dbi;

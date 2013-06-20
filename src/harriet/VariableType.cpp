@@ -1,7 +1,7 @@
-#include "VariableType.hpp"
 #include "ScriptLanguage.hpp"
-#include <sstream>
+#include "VariableType.hpp"
 #include <cassert>
+#include <sstream>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2013 Alexander van Renen (alexandervanrenen@gmail.com)

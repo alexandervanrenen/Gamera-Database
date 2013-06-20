@@ -1,13 +1,13 @@
 #pragma once
 
-#include "operator_cons/ScanOp.hpp"
-#include "harriet/ScriptLanguage.hpp"
-#include <vector>
-#include "segment_manager/SPSegment.hpp"
-#include "segment_manager/PageIdIterator.hpp"
 #include "common/TupleId.hpp"
-#include "segment_manager/Record.hpp"
+#include "harriet/ScriptLanguage.hpp"
+#include "operator_cons/ScanOp.hpp"
 #include "schema/RelationSchema.hpp"
+#include "segment_manager/PageIdIterator.hpp"
+#include "segment_manager/Record.hpp"
+#include "segment_manager/SPSegment.hpp"
+#include <vector>
 
 namespace dbi {
 

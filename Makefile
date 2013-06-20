@@ -23,7 +23,7 @@ src_files := $(patsubst src/%,build/src/%, $(patsubst %.cpp,%.o,$(wildcard src/*
 test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard test/*.cpp test/*/*.cpp test/*/*/*.cpp)))
 
 # Build database
-bin/database.so: libs src/query_parser/Parser.cpp $(src_files)
+bin/database.so: libs src/query/parser/Parser.cpp $(src_files)
 	$(build_dir) bin/gen bin/var
 	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a $(lf)
 
@@ -48,8 +48,8 @@ bin/client: libs build/client.o
 	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/gflags/libgflags.a $(lf)
 
 # Ensure latest parser version
-src/query_parser/Parser.cpp: src/query_parser/Parser.leg
-	./libs/greg-cpp/greg -o src/query_parser/Parser.cpp src/query_parser/Parser.leg
+src/query/parser/Parser.cpp: src/query/parser/Parser.leg
+	./libs/greg-cpp/greg -o src/query/parser/Parser.cpp src/query/parser/Parser.leg
 
 libs: libs/gtest libs/zmq libs/greg-cpp libs/gflags
 
@@ -156,11 +156,11 @@ libs/gflags:
 clean:
 	rm bin -rf
 	rm build -rf
-	touch src/query_parser/Parser.cpp
+	touch src/query/parser/Parser.cpp
 
 # Clean up =)
 clean-complete:
 	rm bin -rf
 	rm build -rf
 	rm libs -rf
-	rm src/query_parser/Parser.cpp
+	rm src/query/parser/Parser.cpp

@@ -1,15 +1,15 @@
-#include "Expression.hpp"
-#include "Utility.hpp"
 #include "Environment.hpp"
+#include "Expression.hpp"
 #include "Function.hpp"
+#include "Utility.hpp"
 #include "Value.hpp"
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <list>
-#include <stack>
 #include <cassert>
 #include <cmath>
+#include <iostream>
+#include <list>
+#include <sstream>
+#include <stack>
+#include <vector>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2013 Alexander van Renen (alexandervanrenen@gmail.com)

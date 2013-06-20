@@ -1,9 +1,9 @@
 #include "zmq/zmq.hpp"
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <assert.h>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 using namespace std;
 

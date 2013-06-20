@@ -2,8 +2,8 @@
 #define SCRIPTLANGUAGE_GENERICALLOCATORPOLICIES_HPP
 //---------------------------------------------------------------------------
 #include "GenericAllocatorPolicies.hpp"
-#include <stdint.h>
 #include <cassert>
+#include <stdint.h>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

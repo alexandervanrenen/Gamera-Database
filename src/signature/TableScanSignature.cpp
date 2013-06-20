@@ -11,11 +11,11 @@ namespace dbi {
 TableScanSignature::TableScanSignature(const qopt::TableAccessInfo& tableAccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, uint32_t registerOffset)
 : tableAccessInfo(tableAccessInfo)
 {
-   // Gather available columns (transform the AttributeSchema into a AttributeSignature)
+   // Gather available columns (transform the ColumnSchema into a ColumnSignature)
    vector<AttributeSignature> availableColumns;
    for(uint32_t i=0; i<tableAccessInfo.schema.getAttributes().size(); i++) {
       auto& attribute = tableAccessInfo.schema.getAttributes()[i];
-      availableColumns.push_back(AttributeSignature{attribute.name, tableAccessInfo.tableQualifier, attribute.notNull, attribute.primaryKey, attribute.type, i, tableAccessInfo.tableId});
+      availableColumns.push_back(AttributeSignature{attribute.name, tableAccessInfo.tableQualifier, attribute.notNull, attribute.type, i, tableAccessInfo.tableId});
    }
 
    // Create mapping TableTupleIndex -> GlobalRegisterIndex (columnIndexes[2]=5 means that the column in the tables tuple with index 5 is loaded into global register at index 2)
@@ -23,7 +23,7 @@ TableScanSignature::TableScanSignature(const qopt::TableAccessInfo& tableAccessI
    for(auto& req : requiredColumns) {
       // Not all required attributes of the query are related to this table
       if(req.tableIndex == tableAccessInfo.tableId) {
-         auto attribute = getAttribute(availableColumns, req.tableIndex, req.attributeSchema.name);
+         auto attribute = getAttribute(availableColumns, req.tableIndex, req.columnSchema.name);
          attributes.push_back(attribute);
          columnMapping.push_back(attributes.back().index);
          attributes.back().index = (index++) + registerOffset;

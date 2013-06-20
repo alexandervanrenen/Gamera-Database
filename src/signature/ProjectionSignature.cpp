@@ -19,7 +19,7 @@ void ProjectionSignature::prepare(const Signature& source)
 {
    // Create projection
    for(auto& iter : target)
-      attributes.push_back(source.getAttribute(iter.tableIndex, iter.attributeSchema.name));
+      attributes.push_back(source.getAttribute(iter.tableIndex, iter.columnSchema.name));
 }
 
 set<qopt::ColumnAccessInfo> ProjectionSignature::getRequiredColumns() const

@@ -11,11 +11,11 @@ const vector<AttributeSignature>& Signature::getAttributes() const
    return attributes;
 }
 
-void Signature::dump(std::ostream& os) const
+void Signature::dump(ostream& os) const
 {
    os << "[ ";
    for(uint32_t i=0; i<attributes.size(); i++)
-      os << attributes[i].alias << "." << attributes[i].name << (i+1!=attributes.size()?" | ":"");
+      os << attributes[i].alias << "." << attributes[i].name << "(" << attributes[i].index << ")" << (i+1!=attributes.size()?" | ":"");
    os << " ]";
 }
 
@@ -28,33 +28,57 @@ bool Signature::hasAttribute(const string& alias, const string& name) const
    return false;
 }
 
-uint32_t Signature::getAttributeIndex(const string& alias, const string& name) const
+const AttributeSignature& Signature::getAttribute(const string& alias, const string& columnName) const
+{
+   return getAttribute(attributes, alias, columnName);
+}
+
+const AttributeSignature& Signature::getAttribute(uint32_t tableIndex, const string& columnName) const
+{
+   return getAttribute(attributes, tableIndex, columnName);
+}
+
+const AttributeSignature& Signature::getAttribute(const vector<AttributeSignature>& attributes, const string& alias, const string& columnName)
 {
    uint32_t resultIndex = attributes.size(); // invalid index
 
    // Try to find a matching identifier
    if(alias != "") {
       for(uint32_t i=0; i<attributes.size(); i++)
-         if(attributes[i].name==name && alias==attributes[i].alias) {
+         if(attributes[i].name==columnName && alias==attributes[i].alias) {
             if(resultIndex==attributes.size())
                resultIndex = i; else
-               throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+               throw harriet::Exception{"ambiguous identifier '" + alias + "." + columnName + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
          }
    } else {
       for(uint32_t i=0; i<attributes.size(); i++)
-         if(attributes[i].name==name) {
+         if(attributes[i].name==columnName) {
             if(resultIndex==attributes.size())
                resultIndex = i; else
-               throw harriet::Exception{"ambiguous identifier '" + alias + "." + name + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+               throw harriet::Exception{"ambiguous identifier '" + alias + "." + columnName + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
          }
    }
 
    if(resultIndex != attributes.size())
-      return resultIndex;
+      return attributes[resultIndex];
 
-   ostringstream os;
-   dump(os);
-   throw harriet::Exception{"unknown identifier: '" + alias + "." + name + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
+   throw harriet::Exception{"unknown identifier: '" + alias + "." + columnName + "'"};
+}
+
+const AttributeSignature& Signature::getAttribute(const vector<AttributeSignature>& attributes, uint32_t tableIndex, const string& columnName)
+{
+   uint32_t resultIndex = attributes.size(); // invalid index
+   for(uint32_t i=0; i<attributes.size(); i++)
+      if(attributes[i].name==columnName && attributes[i].tableIndex==tableIndex) {
+         if(resultIndex==attributes.size())
+            resultIndex = i; else
+            throw harriet::Exception{"ambiguous identifier '" + to_string(tableIndex) + "." + columnName + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
+      }
+
+   if(resultIndex != attributes.size())
+      return attributes[resultIndex];
+
+   throw harriet::Exception{"unknown identifier: '" + to_string(tableIndex) + "." + columnName + "'"};  
 }
 
 }

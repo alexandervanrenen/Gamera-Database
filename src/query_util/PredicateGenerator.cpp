@@ -50,9 +50,9 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    // First -- Resolve all variables in the condition and add to the predicate
    {
       ColumnResolver columnResolver(env);
-      vector<const harriet::Variable*> freeVariables = predicate->condition->getAllVariables();
+      vector<std::unique_ptr<harriet::Expression>*> freeVariables = predicate->condition->getAllVariables(&predicate->condition);
       for(auto variable : freeVariables) {
-         ColumnResolver::Result result = columnResolver.resolveSelection(variable->getIdentifier(), tableAccessVec);
+         ColumnResolver::Result result = columnResolver.resolveSelection(*variable, tableAccessVec);
          if(result.has()) {
             predicate->columns.push_back(result.get());
             predicate->tables.insert(predicate->columns.back().tableIndex);
@@ -64,7 +64,7 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    {
       harriet::Environment env;
       for(auto& iter : predicate->columns)
-         env.add(iter.scriptName, harriet::Value::createDefault(iter.columnSchema.type));
+         env.add(iter.getVariable().getIdentifier(), harriet::Value::createDefault(iter.columnSchema.type));
       if(predicate->condition->evaluate(env).type.type != harriet::VariableType::Type::TBool) {
          ostringstream os;
          predicate->condition->print(os);

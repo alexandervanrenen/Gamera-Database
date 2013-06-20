@@ -16,8 +16,25 @@ namespace dbi {
 
 namespace qopt {
 
+ChainOptimizer::ChainOptimizer(std::vector<harriet::Value>& globalRegister)
+: globalRegister(globalRegister)
+{
+
+}
+
 ChainOptimizer::~ChainOptimizer()
 {
+}
+
+unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates, set<ColumnAccessInfo>& projections)
+{
+   // Create a tree describing the order in which the tables are joined
+   auto accessTree = createAccessTree(relations, predicates);
+
+   set<ColumnAccessInfo> requiredColumns = accessTree->getRequiredColumns();
+   for(auto& iter : projections)
+      requiredColumns.insert(iter);
+   return accessTree->toPlan(requiredColumns, globalRegister);
 }
 
 namespace {
@@ -37,7 +54,7 @@ namespace {
    }
 }
 
-unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates)
+unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates) const
 {
    // Check that there is no predicate referring to no table
    assert(none_of(predicates.begin(), predicates.end(), [](unique_ptr<Predicate>& p){return p->tables.empty();}));
@@ -137,12 +154,7 @@ unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& rel
 
    assert(workSet.size() == 1);
    assert(predicates.size() == 0);
-   auto plan = workSet[0]->toPlan();
-   return plan;
-}
-
-ChainOptimizer::Solution::~Solution()
-{
+   return move(workSet[0]);
 }
 
 }

@@ -18,7 +18,7 @@ class Operator;
 /// Insert the tuples provided into the given table -- this is a root operator (can not have a parent)
 class InsertOperator : public RootOperator {
 public:
-   InsertOperator(std::unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema);
+   InsertOperator(std::unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema, std::vector<harriet::Value>& globalRegister);
    virtual ~InsertOperator();
    virtual void dump(std::ostream& os) const;
 
@@ -30,6 +30,7 @@ private:
    std::unique_ptr<Operator> source;
    SPSegment& target;
    const RelationSchema& targetSchema;
+   std::vector<harriet::Value>& globalRegister;
 };
 
 }

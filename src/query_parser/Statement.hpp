@@ -3,6 +3,7 @@
 #include "Visitor.hpp"
 #include "Common.hpp"
 #include "harriet/Value.hpp"
+#include "query_util/TableAccessInfo.hpp"
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -43,6 +44,9 @@ struct SelectStatement : public Statement {
 
    std::unique_ptr<RootOperator> queryPlan;
 
+   std::vector<qopt::TableAccessInfo> tableAccessVec; // Temporary here .. move to script
+   std::vector<harriet::Value> globalRegister; // Temporary here .. move to script
+
    virtual Statement::Type getType() const {return Statement::Type::kSelectStatement;}
 
    virtual void acceptVisitor(Visitor& visitor);
@@ -72,6 +76,7 @@ struct InsertStatement : public Statement {
    std::vector<harriet::Value> values;
 
    std::unique_ptr<RootOperator> queryPlan;
+   std::vector<harriet::Value> globalRegister; // Temporary here .. move to script
 
    virtual Statement::Type getType() const {return Statement::Type::kInsertStatement;}
 

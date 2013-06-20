@@ -12,6 +12,7 @@
 #include "schema/SchemaManager.hpp"
 #include "operator/TableScanOperator.hpp"
 #include "harriet/Expression.hpp"
+#include "harriet/Environment.hpp"
 #include <iostream>
 
 using namespace std;
@@ -44,12 +45,13 @@ Result Database::executeQuery(const std::string& query)
       auto roots = script::parse(query);
       for(auto& root : roots->statements) {
          // Plan generation
-         script::PlanGenerationVisitor geny(*segmentManager, *schemaManager);
+         harriet::Environment env;
+         script::PlanGenerationVisitor geny(*segmentManager, *schemaManager, env);
          root->acceptVisitor(geny);
 
-         // // Print script
-         // script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
-         // root->acceptVisitor(printy);
+         // Print script
+         script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
+         root->acceptVisitor(printy);
 
          // Interpret script
          script::ExecutionVisitor inty(*segmentManager, *schemaManager);

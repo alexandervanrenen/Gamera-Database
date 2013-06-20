@@ -28,7 +28,7 @@ public:
    virtual void print(std::ostream& stream) const = 0;
 
    virtual Value evaluate(Environment& environment) const = 0;
-   virtual std::vector<const Variable*> getAllVariables() const = 0;
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) = 0; // Pointer to the place where I am stored
 
    virtual ExpressionType getExpressionType() const = 0;
 
@@ -44,7 +44,7 @@ public:
    virtual ~Variable(){};
    virtual void print(std::ostream& stream) const;
    virtual Value evaluate(Environment& environment) const;
-   virtual std::vector<const Variable*> getAllVariables() const {return {{this}};}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) {return std::vector<std::unique_ptr<Expression>*>(1, self);}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TVariable;}
    const std::string& getIdentifier() const {return identifier;}
 
@@ -58,13 +58,13 @@ public:
    virtual ~ValueExpression(){};
    virtual void print(std::ostream& stream) const;
    virtual Value evaluate(Environment& environment) const;
-   virtual std::vector<const Variable*> getAllVariables() const {return std::vector<const Variable*>();}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>*) {return std::vector<std::unique_ptr<Expression>*>();}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TValue;}
    Value value;
 };
 //---------------------------------------------------------------------------
 class UnaryOperator : public Expression {
-   virtual std::vector<const Variable*> getAllVariables() const {return child->getAllVariables();}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self);
    virtual void print(std::ostream& stream) const;
 public:
    virtual void addChild(std::unique_ptr<Expression> child);
@@ -92,7 +92,7 @@ protected:
 class BinaryOperator : public Expression {
 public:
    virtual ~BinaryOperator(){}
-   virtual std::vector<const Variable*> getAllVariables() const {auto l=lhs->getAllVariables(); auto r=rhs->getAllVariables(); l.insert(l.end(), r.begin(), r.end()); return l;}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self);
    std::unique_ptr<Expression> lhs;
    std::unique_ptr<Expression> rhs;
 protected:

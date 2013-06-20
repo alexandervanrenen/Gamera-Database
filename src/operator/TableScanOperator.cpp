@@ -12,14 +12,17 @@ using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(SPSegment& source, const RelationSchema& underlyingSchema, const string& alias)
-: source(source)
-, underlyingSchema(underlyingSchema)
-, signature(underlyingSchema, alias)
+TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
+: tableaccessInfo(tableaccessInfo)
+, signature(tableaccessInfo, requiredColumns, globalRegister.size())
 , state(kClosed)
-, nextPage(source.endPageId())
+, nextPage(tableaccessInfo.segment.endPageId())
 , positionInCurrentPage(0)
+, globalRegister(globalRegister)
+, registerOffset(globalRegister.size())
 {
+   for(uint32_t i=0; i<signature.getAttributes().size(); i++)
+      globalRegister.emplace_back(harriet::Value::createDefault(harriet::VariableType()));
 }
 
 TableScanOperator::~TableScanOperator()
@@ -31,15 +34,16 @@ const Signature& TableScanOperator::getSignature() const
    return signature;
 }
 
-void TableScanOperator::checkTypes() const throw(harriet::Exception)
+void TableScanOperator::prepare(vector<harriet::Value>& globalRegister, const set<qopt::ColumnAccessInfo>& requiredColumns)
 {
-   return;
+   throw;
 }
 
 void TableScanOperator::dump(ostream& os, uint32_t lvl) const
 {
-   os << "|" << string(lvl, '.') << "TableScan " << underlyingSchema.getName() << " ";
+   os << "|" << string(lvl, '.') << "TableScan " << tableaccessInfo.schema.getName() << " ";
    signature.dump(os);
+   os << " into [ " << registerOffset << " ]";
 }
 
 void TableScanOperator::open()
@@ -48,7 +52,7 @@ void TableScanOperator::open()
    state = kOpen;
 
    // Initialize
-   nextPage = source.beginPageId();
+   nextPage = tableaccessInfo.segment.beginPageId();
    positionInCurrentPage = 0; // next will load the data
    assert(recordsInCurrentPage.size() == 0);
 }
@@ -57,32 +61,23 @@ bool TableScanOperator::next()
 {
    assert(state == kOpen);
 
-   // Check if end is reached
-   if(positionInCurrentPage == recordsInCurrentPage.size() && nextPage == source.endPageId())
-      return false;
-
-   // Current page has more elements
-   positionInCurrentPage++;
-   if(positionInCurrentPage < recordsInCurrentPage.size()) {
-      return true;
-   }
-
    // Find next page
-   while(positionInCurrentPage >= recordsInCurrentPage.size() && nextPage != source.endPageId()) {
-      recordsInCurrentPage = source.getAllRecordsOfPage(*nextPage);
+   while(positionInCurrentPage >= recordsInCurrentPage.size() && nextPage != tableaccessInfo.segment.endPageId()) {
+      recordsInCurrentPage = tableaccessInfo.segment.getAllRecordsOfPage(*nextPage);
       positionInCurrentPage = 0;
       ++nextPage;
    }
 
    // Return if a page was found
-   return positionInCurrentPage < recordsInCurrentPage.size();
-}
-
-vector<harriet::Value> TableScanOperator::getOutput()
-{
-   assert(positionInCurrentPage < recordsInCurrentPage.size());
-   auto tuple = underlyingSchema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
-   return move(tuple);
+   if(positionInCurrentPage < recordsInCurrentPage.size()) {
+      auto tuple = tableaccessInfo.schema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
+      auto& mapping = signature.getMapping();
+      for(uint32_t targetIndex=0; targetIndex<mapping.size(); targetIndex++)
+         globalRegister[registerOffset + targetIndex] = move(tuple[mapping[targetIndex]]);
+      positionInCurrentPage++;
+      return true;
+   }
+   return false;
 }
 
 void TableScanOperator::close()

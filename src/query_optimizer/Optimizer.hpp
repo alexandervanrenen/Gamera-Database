@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <set>
 
 namespace harriet { class Expression; class Environment; }
 
@@ -16,12 +17,13 @@ namespace qopt {
 
 class Predicate;
 class TableAccessInfo;
+class ColumnAccessInfo;
 
 /// Interface for all optimizers
 class Optimizer {
 public:
    virtual ~Optimizer();
-   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates) = 0;
+   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates, std::set<ColumnAccessInfo>& projections) = 0;
 };
 
 }

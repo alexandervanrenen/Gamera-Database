@@ -1,16 +1,19 @@
 #include "SelectionOperator.hpp"
+#include "query_util/Predicate.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
+#include <iostream>
 #include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
-SelectionOperator::SelectionOperator(std::unique_ptr<Operator> source, unique_ptr<harriet::Expression> expression)
+SelectionOperator::SelectionOperator(unique_ptr<Operator> source, unique_ptr<qopt::Predicate> predicate, vector<harriet::Value>& globalRegister)
 : source(move(source))
 , state(kClosed)
-, signature(this->source->getSignature(), move(expression))
+, signature(this->source->getSignature(), move(predicate))
+, globalRegister(globalRegister)
 {
 }
 
@@ -23,9 +26,9 @@ const Signature& SelectionOperator::getSignature() const
    return signature;
 }
 
-void SelectionOperator::checkTypes() const throw(harriet::Exception)
+void SelectionOperator::prepare(vector<harriet::Value>&, const set<qopt::ColumnAccessInfo>&)
 {
-   return;
+   throw;
 }
 
 void SelectionOperator::dump(ostream& os, uint32_t lvl) const
@@ -47,19 +50,10 @@ bool SelectionOperator::next()
 {
    assert(state == kOpen);
    while(source->next()) {
-      tuple = source->getOutput();
-      if(signature.fullfillsPredicates(tuple))
+      if(signature.fullfillsPredicates(globalRegister))
          return true;
    }
    return false;
-}
-
-vector<harriet::Value> SelectionOperator::getOutput()
-{
-   vector<harriet::Value> result;
-   for(auto& iter : tuple)
-      result.emplace_back(iter.createCopy());
-   return move(result);
 }
 
 void SelectionOperator::close()

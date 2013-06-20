@@ -7,7 +7,7 @@ using namespace std;
 
 namespace dbi {
 
-CrossProductOperator::CrossProductOperator(std::unique_ptr<Operator> lhs, std::unique_ptr<Operator> rhs)
+CrossProductOperator::CrossProductOperator(unique_ptr<Operator> lhs, unique_ptr<Operator> rhs)
 : lhs(move(lhs))
 , rhs(move(rhs))
 , state(kClosed)
@@ -24,9 +24,9 @@ const Signature& CrossProductOperator::getSignature() const
    return signature;
 }
 
-void CrossProductOperator::checkTypes() const throw(harriet::Exception)
+void CrossProductOperator::prepare(vector<harriet::Value>& globalRegister, const set<qopt::ColumnAccessInfo>& requiredColumns)
 {
-   return;
+   throw "not implemented";
 }
 
 void CrossProductOperator::dump(ostream& os, uint32_t lvl) const
@@ -63,15 +63,15 @@ bool CrossProductOperator::next()
    return false;
 }
 
-vector<harriet::Value> CrossProductOperator::getOutput()
-{
-      auto lhsTuple = lhs->getOutput();
-      auto rhsTuple = rhs->getOutput();
-      lhsTuple.reserve(lhsTuple.size() + rhsTuple.size());
-      for(auto& iter : rhsTuple)
-         lhsTuple.emplace_back(move(iter));
-      return lhsTuple;
-}
+// vector<harriet::Value> CrossProductOperator::getOutput()
+// {
+//       auto lhsTuple = lhs->getOutput();
+//       auto rhsTuple = rhs->getOutput();
+//       lhsTuple.reserve(lhsTuple.size() + rhsTuple.size());
+//       for(auto& iter : rhsTuple)
+//          lhsTuple.emplace_back(move(iter));
+//       return lhsTuple;
+// }
 
 void CrossProductOperator::close()
 {

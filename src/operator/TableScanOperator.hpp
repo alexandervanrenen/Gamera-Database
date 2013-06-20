@@ -4,6 +4,7 @@
 #include "OperatorState.hpp"
 #include "signature/TableScanSignature.hpp"
 #include "segment_manager/PageIdIterator.hpp"
+#include "query_util/TableAccessInfo.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -15,27 +16,28 @@ class SPSegment;
 /// Interprets the records provided by a RecordScanOperator
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(SPSegment& source, const RelationSchema& underlyingSchema, const std::string& alias);
+   TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const std::set<qopt::ColumnAccessInfo>& requiredColumns, std::vector<harriet::Value>& globalRegister);
    virtual ~TableScanOperator();
 
    virtual const Signature& getSignature() const;
-   virtual void checkTypes() const throw(harriet::Exception);
+   virtual void prepare(std::vector<harriet::Value>& globalRegister, const std::set<qopt::ColumnAccessInfo>& requiredColumns);
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
    virtual bool next();
-   virtual std::vector<harriet::Value> getOutput();
    virtual void close();
 
 private:
-   SPSegment& source;
-   const RelationSchema& underlyingSchema;
-   const TableScanSignature signature;
+   const qopt::TableAccessInfo tableaccessInfo;
+   TableScanSignature signature;
 
    OperatorState state;
    PageIdIterator nextPage;
    std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
    uint32_t positionInCurrentPage;
+
+   std::vector<harriet::Value>& globalRegister;
+   uint32_t registerOffset;
 };
 
 }

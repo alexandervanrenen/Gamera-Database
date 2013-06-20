@@ -1,17 +1,21 @@
 #include "ProjectionOperator.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
+#include "harriet/Value.hpp"
+#include "query_util/ColumnAccessInfo.hpp"
 #include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
-ProjectionOperator::ProjectionOperator(std::unique_ptr<Operator> source, const vector<ColumnReference>& projectedAttributes)
+ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, const vector<qopt::ColumnAccessInfo>& projectedAttributes, vector<harriet::Value>& globalRegister)
 : source(move(source))
 , state(kClosed)
-, signature(this->source->getSignature(), projectedAttributes)
+, signature(projectedAttributes)
 {
+   signature.prepare(this->source->getSignature());
+   state = kClosed;
 }
 
 ProjectionOperator::~ProjectionOperator()
@@ -23,9 +27,15 @@ const Signature& ProjectionOperator::getSignature() const
    return signature;
 }
 
-void ProjectionOperator::checkTypes() const throw(harriet::Exception)
+void ProjectionOperator::prepare(vector<harriet::Value>& globalRegister, const set<qopt::ColumnAccessInfo>& requiredColumns)
 {
-   return;
+   throw;
+   // assert(state == kUnprepared);
+   // assert(requiredColumns.size()==0); // No one is above a projection
+
+   // source->prepare(globalRegister, signature.getRequiredColumns());
+   // signature.prepare(source->getSignature());
+   // state = kClosed;
 }
 
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
@@ -47,15 +57,6 @@ bool ProjectionOperator::next()
 {
    assert(state == kOpen);
    return source->next();
-}
-
-vector<harriet::Value> ProjectionOperator::getOutput()
-{
-   auto tuple = source->getOutput();
-   vector<harriet::Value> result;
-   for(auto iter : signature.getProjection())
-      result.push_back(move(tuple[iter]));
-   return result;
 }
 
 void ProjectionOperator::close()

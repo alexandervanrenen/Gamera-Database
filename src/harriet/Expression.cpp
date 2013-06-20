@@ -46,6 +46,11 @@ Value ValueExpression::evaluate(Environment&) const
    return value.createCopy();
 }
 //---------------------------------------------------------------------------
+vector<unique_ptr<Expression>*> UnaryOperator::getAllVariables(unique_ptr<Expression>*)
+{
+   return child->getAllVariables(&child);
+}
+//---------------------------------------------------------------------------
 void UnaryOperator::print(ostream& stream) const
 {
    stream << " ( " << getSign();
@@ -68,6 +73,18 @@ Value NotOperator::evaluate(Environment&) const
 {
    // return child->evaluate(environment)->computeNot();
    throw;
+}
+//---------------------------------------------------------------------------
+vector<unique_ptr<Expression>*> BinaryOperator::getAllVariables(unique_ptr<Expression>*)
+{
+   vector<unique_ptr<Expression>*> result;
+   auto lhsVariables = lhs->getAllVariables(&lhs);
+   for(auto var : lhsVariables)
+      result.push_back(var);
+   auto rhsVariables = rhs->getAllVariables(&rhs);
+   for(auto var : rhsVariables)
+      result.push_back(var);
+   return result;
 }
 //---------------------------------------------------------------------------
 void BinaryOperator::addChildren(unique_ptr<Expression> lhsChild, unique_ptr<Expression> rhsChild)
@@ -129,7 +146,7 @@ Value ExponentiationOperator::evaluate(Environment&) const
    throw;
 }
 //---------------------------------------------------------------------------
-AndOperator::AndOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {
+AndOperator::AndOperator(unique_ptr<Expression> lhs, unique_ptr<Expression> rhs) {
    this->lhs = move(lhs);
    this->rhs = move(rhs);
 }

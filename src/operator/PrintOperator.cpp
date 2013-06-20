@@ -4,6 +4,7 @@
 #include "harriet/Value.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include "util/Utility.hpp"
+#include "query_util/ColumnAccessInfo.hpp"
 #include "signature/Signature.hpp"
 #include <iostream>
 #include <iomanip>
@@ -13,8 +14,9 @@ using namespace std;
 
 namespace dbi {
 
-PrintOperator::PrintOperator(unique_ptr<Operator> source, ostream& out)
-: source(move(source))
+PrintOperator::PrintOperator(unique_ptr<Operator> source, ostream& out, vector<harriet::Value>& globalRegister)
+: globalRegister(globalRegister)
+, source(move(source))
 , out(out)
 {
 }
@@ -25,8 +27,6 @@ PrintOperator::~PrintOperator()
 
 void PrintOperator::checkTypes() const throw(harriet::Exception)
 {
-   // Check if everything below works out
-   source->checkTypes();
 }
 
 void PrintOperator::dump(ostream& os) const
@@ -57,10 +57,9 @@ void PrintOperator::execute()
    uint64_t tupleCount = 0;
    source->open();
    while(source->next()) {
-      auto result = source->getOutput();
       out << "| ";
       for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-         out << setw(columnWidths[i]) << result[i] << " | ";
+         out << setw(columnWidths[i]) << globalRegister[signature.getAttributes()[i].index] << " | ";
       out << endl;
       tupleCount++;
    }

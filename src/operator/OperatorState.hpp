@@ -3,7 +3,7 @@
 namespace dbi {
 
 enum OperatorState {
-   kOpen, kClosed
+   kUnprepared, kOpen, kClosed
 };
 
 }

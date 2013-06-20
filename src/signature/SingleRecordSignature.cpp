@@ -9,7 +9,7 @@ namespace dbi {
 SingleRecordSignature::SingleRecordSignature(const vector<harriet::Value>& values)
 {
    for(auto& iter : values)
-      attributes.push_back(AttributeSignature{"", "", true, iter.type});
+      attributes.push_back(AttributeSignature{"", "", true, true, iter.type, 0});
 }
 
 }

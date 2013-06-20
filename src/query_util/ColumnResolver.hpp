@@ -2,12 +2,15 @@
 
 #include "TableAccessInfo.hpp"
 #include "ColumnAccessInfo.hpp"
+#include "harriet/Expression.hpp"
 #include <memory>
 #include <vector>
 
 namespace harriet { class Environment; class Expression; }
 
 namespace dbi {
+
+class ColumnReference;
 
 namespace qopt {
 
@@ -23,12 +26,13 @@ public:
       std::unique_ptr<ColumnAccessInfo> column;
    };
 
-   Result resolveSelection(const std::string& name, const std::vector<TableAccessInfo>& tableAccessVec) const;
-   ColumnAccessInfo resolveProjection(const std::string& name, const std::vector<TableAccessInfo>& tableAccessVec) const;
+   Result resolveSelection(std::unique_ptr<harriet::Expression>& variable, const std::vector<TableAccessInfo>& tableAccessVec) const;
+   ColumnAccessInfo resolveProjection(ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
 
 private:
    const harriet::Environment& env;
-   static std::pair<uint32_t, const ColumnSchema*> tryFindColumn(const std::string& name, const std::vector<TableAccessInfo>& tableAccessVec);
+
+   static std::pair<uint32_t, const ColumnSchema*> tryFindColumn(const ColumnReference& ref, const std::vector<TableAccessInfo>& tableAccessVec);
 };
 
 }

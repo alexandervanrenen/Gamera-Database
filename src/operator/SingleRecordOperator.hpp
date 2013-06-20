@@ -14,16 +14,15 @@ class BufferManager;
 /// Its used for a static input for the insert operator (e.g. insert into Students values(26120,"Fichte",10);)
 class SingleRecordOperator : public Operator {
 public:
-   SingleRecordOperator(std::vector<harriet::Value>&& input);
+   SingleRecordOperator(std::vector<harriet::Value>&& input, std::vector<harriet::Value>& globalRegister);
    virtual ~SingleRecordOperator();
 
    virtual const Signature& getSignature() const;
-   virtual void checkTypes() const throw(harriet::Exception);
+   virtual void prepare(std::vector<harriet::Value>& globalRegister, const std::set<qopt::ColumnAccessInfo>& requiredColumns);
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
    virtual bool next();
-   virtual std::vector<harriet::Value> getOutput();
    virtual void close();
 
 private:
@@ -31,6 +30,9 @@ private:
    bool hasNext;
    const SingleRecordSignature signature;
    std::vector<harriet::Value> tuple;
+
+   std::vector<harriet::Value>& globalRegister;
+   uint32_t registerOffset;
 };
 
 }

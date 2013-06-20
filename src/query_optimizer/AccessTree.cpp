@@ -34,12 +34,21 @@ Leafe::~Leafe()
 {
 }
 
-unique_ptr<Operator> Leafe::toPlan() const
+unique_ptr<Operator> Leafe::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
 {
-   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table.segment, table.schema, table.tableQualifier);
+   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table, requiredColumns, globalRegister);
    
    if(predicate != nullptr)
-      result = util::make_unique<SelectionOperator>(move(result), move(predicate->condition));
+      result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);
+   return result;
+}
+
+set<ColumnAccessInfo> Leafe::getRequiredColumns() const
+{
+   set<ColumnAccessInfo> result;
+   if(predicate != nullptr)
+      for(auto& iter : predicate->columns)
+         result.insert(iter);
    return result;
 }
 
@@ -56,11 +65,35 @@ Node::~Node()
 {
 }
 
-unique_ptr<Operator> Node::toPlan() const
+unique_ptr<Operator> Node::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
 {
-   unique_ptr<Operator> result = util::make_unique<CrossProductOperator>(lhs->toPlan(), rhs->toPlan());
+   auto lPlan = lhs->toPlan(requiredColumns, globalRegister);
+   auto rPlan = rhs->toPlan(requiredColumns, globalRegister);
+   unique_ptr<Operator> result = util::make_unique<CrossProductOperator>(move(lPlan), move(rPlan));
    if(predicate != nullptr)
-      result = util::make_unique<SelectionOperator>(move(result), move(predicate->condition));
+      result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);
+   return result;
+}
+
+set<ColumnAccessInfo> Node::getRequiredColumns() const
+{
+   set<ColumnAccessInfo> result;
+
+   // Self
+   if(predicate != nullptr)
+      for(auto& iter : predicate->columns)
+         result.insert(iter);
+
+   // Lhs
+   auto lhsResult = lhs->getRequiredColumns();
+   for(auto& iter : lhsResult)
+      result.insert(iter);
+
+   // Lhs
+   auto rhsResult = rhs->getRequiredColumns();
+   for(auto& iter : rhsResult)
+      result.insert(iter);
+
    return result;
 }
 

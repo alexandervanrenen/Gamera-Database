@@ -12,10 +12,11 @@ class RelationSchema;
 namespace qopt {
 
 struct TableAccessInfo {
-   TableAccessInfo(const RelationSchema& schema, SPSegment& segment, const std::string& tableQualifier) : schema(schema), segment(segment), tableQualifier(tableQualifier) {}
+   TableAccessInfo(const RelationSchema& schema, SPSegment& segment, const std::string& tableQualifier, uint32_t tableId) : schema(schema), segment(segment), tableQualifier(tableQualifier), tableId(tableId) {}
    const RelationSchema& schema;
    SPSegment& segment;
    const std::string tableQualifier; // The name given by the user or the actual table name
+   uint32_t tableId; // Index in the table vector from the FROM clause
 };
 
 }

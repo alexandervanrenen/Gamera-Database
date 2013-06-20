@@ -3,6 +3,7 @@
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
 #include "segment_manager/SPSegment.hpp"
+#include "query_util/ColumnAccessInfo.hpp"
 #include "signature/Signature.hpp"
 #include <iostream>
 
@@ -10,10 +11,11 @@ using namespace std;
 
 namespace dbi {
 
-InsertOperator::InsertOperator(unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema)
+InsertOperator::InsertOperator(unique_ptr<Operator> source, SPSegment& target, const RelationSchema& targetSchema, vector<harriet::Value>& globalRegister)
 : source(move(source))
 , target(target)
 , targetSchema(targetSchema)
+, globalRegister(globalRegister)
 {
 }
 
@@ -29,9 +31,6 @@ void InsertOperator::dump(ostream& os) const
 
 void InsertOperator::checkTypes() const throw(harriet::Exception)
 {
-   // Check if everything below works out
-   source->checkTypes();
-
    // See if we can insert the provided types into the table
    auto& sourceSchema = source->getSignature();
    if(sourceSchema.getAttributes().size() != targetSchema.getAttributes().size())
@@ -45,7 +44,9 @@ void InsertOperator::execute()
 {
    source->open();
    while(source->next()) {
-      auto result = source->getOutput();
+      vector<harriet::Value> result;
+      for(uint32_t i=0; i<source->getSignature().getAttributes().size(); i++)
+         result.push_back(move(globalRegister[i]));
       target.insert(targetSchema.tupleToRecord(result));
    }
    source->close();

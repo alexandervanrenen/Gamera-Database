@@ -14,21 +14,22 @@ namespace dbi {
 
 namespace qopt {
 
-unique_ptr<Operator> DummyOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<std::unique_ptr<Predicate>>& predicates)
+unique_ptr<Operator> DummyOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<std::unique_ptr<Predicate>>& predicates, set<ColumnAccessInfo>& projections)
 {
-   // Cross-Product it with all other input relations
-   unique_ptr<Operator> result;
-   for(uint32_t i=0; i<relations.size(); i++) {
-      auto nextLevel = util::make_unique<TableScanOperator>(relations[i].segment, relations[i].schema, relations[i].tableQualifier);
-      if(i==0)
-         result = move(nextLevel); else
-         result = util::make_unique<CrossProductOperator>(move(nextLevel), move(result));
-   }
+   throw;
+   // // Cross-Product it with all other input relations
+   // unique_ptr<Operator> result;
+   // for(uint32_t i=0; i<relations.size(); i++) {
+   //    auto nextLevel = util::make_unique<TableScanOperator>(relations[i]);
+   //    if(i==0)
+   //       result = move(nextLevel); else
+   //       result = util::make_unique<CrossProductOperator>(move(nextLevel), move(result));
+   // }
 
-   // Create selections
-   for(auto& predicate : predicates)
-      result = util::make_unique<SelectionOperator>(move(result), move(predicate->condition));
-   return result;
+   // // Create selections
+   // for(auto& predicate : predicates)
+   //    result = util::make_unique<SelectionOperator>(move(result), move(predicate));
+   // return result;
 }
 
 }

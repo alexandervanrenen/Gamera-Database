@@ -14,7 +14,7 @@ void Predicate::dump(ostream& os) const
    condition->print(os);
    os << endl << "columns:";
    for(auto iter : columns)
-      os << " " << iter.scriptName;
+      iter.variable->print(os);
    os << endl << "tables:";
    for(auto iter : tables)
       os << " " << iter;

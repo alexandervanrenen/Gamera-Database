@@ -3,6 +3,8 @@
 #include "Visitor.hpp"
 #include <cstdint>
 
+namespace harriet { class Environment; }
+
 namespace dbi {
 
 class SchemaManager;
@@ -13,7 +15,7 @@ namespace script {
 /// 
 class PlanGenerationVisitor : public Visitor {
 public:
-   PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager);
+   PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, const harriet::Environment& environment);
    virtual ~PlanGenerationVisitor();
 
    virtual void onPreVisit(SelectStatement& select);
@@ -22,6 +24,7 @@ public:
 private:
    SegmentManager& segmentManager;
    SchemaManager& schemaManager;
+   const harriet::Environment& environment;
 };
 
 }

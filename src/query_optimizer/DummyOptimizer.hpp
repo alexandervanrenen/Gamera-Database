@@ -13,7 +13,7 @@ namespace qopt {
 /// Very fast optimizer but very slow query speed. Only use for _VERY_ small inputs. (Manly used to establish a performance baseline)
 class DummyOptimizer : public Optimizer {
 public:
-   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates);
+   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates, std::set<ColumnAccessInfo>& projections);
 };
 
 }

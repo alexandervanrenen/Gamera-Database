@@ -1,27 +1,33 @@
 #include "ProjectionSignature.hpp"
-#include "query_parser/Common.hpp" // AAA
+#include "query_util/ColumnAccessInfo.hpp"
+#include <iostream>
 
 using namespace std;
 
 namespace dbi {
 
-ProjectionSignature::ProjectionSignature(const Signature& source, const vector<ColumnReference>& target)
+ProjectionSignature::ProjectionSignature(const vector<qopt::ColumnAccessInfo>& target)
+: target(target)
+{
+}
+
+ProjectionSignature::~ProjectionSignature()
+{
+}
+
+void ProjectionSignature::prepare(const Signature& source)
 {
    // Create projection
    for(auto& iter : target)
-      projection.push_back(source.getAttributeIndex(iter.tableQualifier, iter.columnName));
-
-   // Create new signature from projection
-   for(uint32_t i=0; i<projection.size(); i++) {
-      attributes.push_back(source.getAttributes()[projection[i]]);
-      attributes.back().name = source.getAttributes()[projection[i]].name;
-      attributes.back().alias = source.getAttributes()[projection[i]].alias;
-   }
+      attributes.push_back(source.getAttribute(iter.tableIndex, iter.attributeSchema.name));
 }
 
-vector<uint32_t> ProjectionSignature::getProjection() const
+set<qopt::ColumnAccessInfo> ProjectionSignature::getRequiredColumns() const
 {
-   return projection;
+   set<qopt::ColumnAccessInfo> result;
+   for(auto& iter : target)
+      result.insert(iter);
+   return result;
 }
 
 }

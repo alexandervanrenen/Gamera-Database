@@ -31,7 +31,6 @@ Database::Database(const DatabaseConfig& config, bool isInitialSetup)
 
 Database::~Database()
 {
-   cout << "-" << endl << "bye, have a good one ;)" << endl;
 }
 
 unique_ptr<QueryResultCollection> Database::executeQuery(const std::string& query)

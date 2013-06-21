@@ -49,6 +49,9 @@ public:
    /// Print to stream
    friend std::ostream& operator<< (std::ostream& os, const Value& v);
 
+   /// Operators for easy use in testing
+   friend bool operator== (const Value& lhs, const Value& rhs) { return lhs.computeEq(rhs).data.vbool; }
+
    /// Perform an operation -- creates new value
    Value computeAdd(const Value& rhs) const;
    Value computeSub(const Value& rhs) const;

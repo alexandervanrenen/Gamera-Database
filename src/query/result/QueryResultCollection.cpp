@@ -17,13 +17,13 @@ QueryResultCollection::~QueryResultCollection()
 {
 }
 
-void QueryResultCollection::addInsert(std::chrono::nanoseconds time, const string& tableName)
+void QueryResultCollection::addInsert(chrono::nanoseconds time, const string& tableName)
 {
    assert(!error);
    singleResults.push_back(util::make_unique<InsertResult>(time, tableName));
 }
 
-void QueryResultCollection::addCreate(std::chrono::nanoseconds time, const string& tableName)
+void QueryResultCollection::addCreate(chrono::nanoseconds time, const string& tableName)
 {
    assert(!error);
    singleResults.push_back(util::make_unique<CreateResult>(time, tableName));
@@ -54,9 +54,31 @@ void QueryResultCollection::setRuntimeError(const string& message)
    errorMessage = "A runtime error: " + message;
 }
 
-bool QueryResultCollection::hasError() const
+bool QueryResultCollection::good() const
 {
-   return error;
+   return !error;
+}
+
+uint32_t QueryResultCollection::size() const
+{
+   return singleResults.size();
+}
+
+vector<unique_ptr<QueryResult>>::iterator QueryResultCollection::begin()
+{
+   return singleResults.begin();
+}
+
+vector<unique_ptr<QueryResult>>::iterator QueryResultCollection::end()
+{
+   return singleResults.end();
+}
+
+SelectResult* QueryResultCollection::getAsSelect() const
+{
+   if(error || singleResults.size()!=1 || singleResults[0]->getType()!=QueryType::kSelect)
+      return nullptr; else
+      return reinterpret_cast<SelectResult*>(singleResults[0].get());
 }
 
 const string& QueryResultCollection::getErrorMessage() const

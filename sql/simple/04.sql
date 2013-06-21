@@ -5337,6 +5337,8 @@ insert into CountryLanguage values ('ZWE','Ndebele',false,16.2);
 insert into CountryLanguage values ('ZWE','Nyanja',false,2.2);
 insert into CountryLanguage values ('ZWE','Shona',false,72.1);
 
-select city.Name, city.District, city.Population
-from City city
-where city.ID = 3070;
+select city.Name, country.Name, city.District, city.Population, lang.Language
+from City city, Country country, CountryLanguage lang
+where city.ID = 3070
+  and country.Code = city.CountryCode
+  and lang.CountryCode = city.CountryCode;

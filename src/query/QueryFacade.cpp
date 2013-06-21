@@ -46,10 +46,12 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
          root->acceptVisitor(geny);
 
          // Print script
-         ostringstream treeOs;
+         ostringstream treeStream;
          if(showPlan) {
-            script::PrintVisitor printy(treeOs, script::PrintVisitor::PrintMode::kSelect);
-            roots->statements[0]->acceptVisitor(printy);
+            script::PrintVisitor printy(treeStream, script::PrintVisitor::PrintMode::kSelect);
+            root->acceptVisitor(printy);
+            if(treeStream.str().size() != 0)
+               result->addPrintOutput(treeStream.str());
          }
 
          // Interpret script

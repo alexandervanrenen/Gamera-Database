@@ -35,6 +35,11 @@ void QueryResultCollection::addSelect(chrono::nanoseconds time, vector<vector<ha
    singleResults.push_back(util::make_unique<SelectResult>(time, move(rows), columnNames));
 }
 
+void QueryResultCollection::addPrintOutput(const string& accessTree)
+{
+   accessTrees.push_back(accessTree);
+}
+
 void QueryResultCollection::setParserError(uint32_t line, uint32_t column)
 {
    assert(!error);
@@ -62,6 +67,8 @@ const string& QueryResultCollection::getErrorMessage() const
 
 void QueryResultCollection::print(ostream& os) const
 {
+   for(auto& iter : accessTrees)
+      os << iter << endl;
    for(auto& iter : singleResults)
       iter->print(os);
    if(error)

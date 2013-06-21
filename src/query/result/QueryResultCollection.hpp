@@ -19,6 +19,7 @@ public:
    void addInsert(std::chrono::nanoseconds time, const std::string& tableName);
    void addCreate(std::chrono::nanoseconds time, const std::string& tableName);
    void addSelect(std::chrono::nanoseconds time, std::vector<std::vector<harriet::Value>>&& rows, const std::vector<std::string>& columnNames);
+   void addPrintOutput(const std::string& accessTree);
 
    void setParserError(uint32_t line, uint32_t column);
    void setRuntimeError(const std::string& message);
@@ -30,6 +31,7 @@ public:
 
 private:
    std::vector<std::unique_ptr<QueryResult>> singleResults;
+   std::vector<std::string> accessTrees;
 
    bool error;
    std::string errorMessage;

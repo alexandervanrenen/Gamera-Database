@@ -25,6 +25,7 @@ public:
    virtual void onPostVisit(InsertStatement& insert);
    virtual void onPreVisit(BlockStatement& block);
    virtual void onPostVisit(BlockStatement& block);
+
 private:
    PrintMode printMode;
    std::ostream& out;

@@ -1,8 +1,8 @@
+#include "SegmentManager.hpp"
 #include "BTreeSegment.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include "FSISegment.hpp"
 #include "SegmentInventory.hpp"
-#include "SegmentManager.hpp"
 #include "SPSegment.hpp"
 #include "util/Utility.hpp"
 #include <cassert>

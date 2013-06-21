@@ -1,11 +1,11 @@
+#include "TableScanOperator.hpp"
 #include "harriet/Value.hpp"
+#include "query/signature/ColumnSignature.hpp"
 #include "query/util/TableAccessInfo.hpp"
 #include "schema/RelationSchema.hpp"
 #include "segment_manager/Record.hpp"
 #include "segment_manager/Record.hpp"
 #include "segment_manager/SPSegment.hpp"
-#include "query/signature/ColumnSignature.hpp"
-#include "TableScanOperator.hpp"
 #include <iostream>
 
 using namespace std;

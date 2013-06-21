@@ -10,11 +10,11 @@
 #include "query/parser/PrintVisitor.hpp"
 #include "query/parser/Statement.hpp"
 #include "query/parser/Visitor.hpp"
+#include "query/QueryFacade.hpp"
+#include "query/result/QueryResultCollection.hpp"
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "util/Utility.hpp"
-#include "query/result/QueryResultCollection.hpp"
-#include "query/QueryFacade.hpp"
 #include <iostream>
 
 using namespace std;

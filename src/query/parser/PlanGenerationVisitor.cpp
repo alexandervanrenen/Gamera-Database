@@ -1,3 +1,4 @@
+#include "PlanGenerationVisitor.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/ScriptLanguage.hpp"
@@ -8,7 +9,6 @@
 #include "query/operator/SelectionOperator.hpp"
 #include "query/operator/SingleRecordOperator.hpp"
 #include "query/operator/TableScanOperator.hpp"
-#include "PlanGenerationVisitor.hpp"
 #include "query/optimizer/ChainOptimizer.hpp"
 #include "query/optimizer/DummyOptimizer.hpp"
 #include "query/util/ColumnResolver.hpp"

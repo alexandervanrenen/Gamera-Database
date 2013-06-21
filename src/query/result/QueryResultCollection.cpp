@@ -1,8 +1,8 @@
 #include "QueryResultCollection.hpp"
 #include "QueryResult.hpp"
 #include "util/Utility.hpp"
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 

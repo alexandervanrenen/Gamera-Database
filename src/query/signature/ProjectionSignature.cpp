@@ -1,6 +1,6 @@
 #include "ProjectionSignature.hpp"
-#include "query/util/ColumnAccessInfo.hpp"
 #include "query/signature/ColumnSignature.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include <iostream>
 
 using namespace std;

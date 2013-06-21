@@ -1,7 +1,7 @@
+#include "PrintOperator.hpp"
 #include "harriet/ScriptLanguage.hpp"
 #include "harriet/Value.hpp"
 #include "Operator.hpp"
-#include "PrintOperator.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include "query/signature/Signature.hpp"
 #include "util/Utility.hpp"

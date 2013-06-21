@@ -1,10 +1,10 @@
-#include "harriet/Value.hpp"
 #include "InsertOperator.hpp"
+#include "harriet/Value.hpp"
 #include "Operator.hpp"
-#include "schema/RelationSchema.hpp"
-#include "segment_manager/SPSegment.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include "query/signature/Signature.hpp"
+#include "schema/RelationSchema.hpp"
+#include "segment_manager/SPSegment.hpp"
 #include <iostream>
 
 using namespace std;

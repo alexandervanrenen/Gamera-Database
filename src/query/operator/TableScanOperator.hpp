@@ -2,8 +2,8 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "segment_manager/PageIdIterator.hpp"
 #include "query/signature/TableScanSignature.hpp"
+#include "segment_manager/PageIdIterator.hpp"
 #include <cstdint>
 #include <memory>
 

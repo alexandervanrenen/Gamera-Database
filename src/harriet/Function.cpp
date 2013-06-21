@@ -1,6 +1,6 @@
+#include "Function.hpp"
 #include "Environment.hpp"
 #include "Expression.hpp"
-#include "Function.hpp"
 #include "Utility.hpp"
 #include "Value.hpp"
 #include <cassert>

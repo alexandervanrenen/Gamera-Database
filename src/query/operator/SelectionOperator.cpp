@@ -1,5 +1,5 @@
-#include "query/util/Predicate.hpp"
 #include "SelectionOperator.hpp"
+#include "query/util/Predicate.hpp"
 #include <iostream>
 
 using namespace std;

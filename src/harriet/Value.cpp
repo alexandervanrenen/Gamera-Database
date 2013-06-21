@@ -1,6 +1,6 @@
+#include "Value.hpp"
 #include "ScriptLanguage.hpp"
 #include "Utility.hpp"
-#include "Value.hpp"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>

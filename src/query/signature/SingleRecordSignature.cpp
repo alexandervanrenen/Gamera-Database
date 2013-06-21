@@ -1,7 +1,7 @@
+#include "SingleRecordSignature.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
 #include "query/signature/ColumnSignature.hpp"
-#include "SingleRecordSignature.hpp"
 
 using namespace std;
 

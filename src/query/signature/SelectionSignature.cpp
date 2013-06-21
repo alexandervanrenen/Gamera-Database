@@ -1,8 +1,8 @@
+#include "SelectionSignature.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
 #include "query/parser/Common.hpp"
-#include "SelectionSignature.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include "util/Utility.hpp"
 #include <algorithm>

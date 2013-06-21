@@ -1,5 +1,5 @@
-#include "common/Config.hpp"
 #include "Slot.hpp"
+#include "common/Config.hpp"
 #include <cassert>
 
 using namespace std;

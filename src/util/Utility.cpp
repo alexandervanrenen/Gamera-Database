@@ -1,5 +1,5 @@
-#include "Random.hpp"
 #include "Utility.hpp"
+#include "Random.hpp"
 #include <cassert>
 #include <cmath>
 #include <fcntl.h>

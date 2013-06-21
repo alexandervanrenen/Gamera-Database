@@ -1,6 +1,6 @@
+#include "SingleRecordOperator.hpp"
 #include "harriet/Value.hpp"
 #include "query/signature/ColumnSignature.hpp"
-#include "SingleRecordOperator.hpp"
 #include <cassert>
 #include <iostream>
 

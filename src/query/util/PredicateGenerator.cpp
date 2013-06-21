@@ -1,6 +1,6 @@
+#include "PredicateGenerator.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Expression.hpp"
-#include "PredicateGenerator.hpp"
 #include "query/parser/Common.hpp"
 #include "query/util/ColumnResolver.hpp"
 #include "TableAccessInfo.hpp"

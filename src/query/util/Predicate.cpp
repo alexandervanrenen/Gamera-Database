@@ -1,5 +1,5 @@
-#include "harriet/Expression.hpp"
 #include "Predicate.hpp"
+#include "harriet/Expression.hpp"
 #include <iostream>
 
 using namespace std;

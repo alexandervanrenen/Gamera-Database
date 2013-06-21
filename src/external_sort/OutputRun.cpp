@@ -1,5 +1,5 @@
-#include "InputRun.hpp"
 #include "OutputRun.hpp"
+#include "InputRun.hpp"
 #include "Page.hpp"
 #include "util/Utility.hpp"
 #include <cassert>

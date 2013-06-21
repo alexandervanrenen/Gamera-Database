@@ -1,13 +1,13 @@
 #include "ExecutionVisitor.hpp"
 #include "harriet/Expression.hpp"
+#include "query/operator/PrintOperator.hpp"
 #include "query/operator/RootOperator.hpp"
+#include "query/result/QueryResultCollection.hpp"
 #include "schema/RelationSchema.hpp"
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "Statement.hpp"
 #include "util/Utility.hpp"
-#include "query/operator/PrintOperator.hpp"
-#include "query/result/QueryResultCollection.hpp"
 #include <sstream>
 
 using namespace std;

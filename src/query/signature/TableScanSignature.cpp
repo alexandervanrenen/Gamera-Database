@@ -1,8 +1,8 @@
+#include "TableScanSignature.hpp"
+#include "query/signature/ColumnSignature.hpp"
 #include "query/util/ColumnAccessInfo.hpp"
 #include "query/util/TableAccessInfo.hpp"
 #include "schema/RelationSchema.hpp"
-#include "query/signature/ColumnSignature.hpp"
-#include "TableScanSignature.hpp"
 #include <iostream>
 
 using namespace std;

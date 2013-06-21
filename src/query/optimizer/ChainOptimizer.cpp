@@ -1,5 +1,5 @@
-#include "AccessTree.hpp"
 #include "ChainOptimizer.hpp"
+#include "AccessTree.hpp"
 #include "harriet/Expression.hpp"
 #include "query/operator/CrossProductOperator.hpp"
 #include "query/operator/SelectionOperator.hpp"

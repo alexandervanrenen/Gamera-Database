@@ -1,14 +1,14 @@
 #include "QueryFacade.hpp"
-#include "query/parser/Parser.hpp"
-#include "harriet/ScriptLanguage.hpp"
 #include "harriet/Environment.hpp"
+#include "harriet/ScriptLanguage.hpp"
 #include "parser/Statement.hpp"
+#include "query/parser/ExecutionVisitor.hpp"
+#include "query/parser/Parser.hpp"
 #include "query/parser/PlanGenerationVisitor.hpp"
 #include "query/parser/PrintVisitor.hpp"
-#include "query/parser/ExecutionVisitor.hpp"
 #include "query/result/QueryResult.hpp"
-#include "util/Utility.hpp"
 #include "query/result/QueryResultCollection.hpp"
+#include "util/Utility.hpp"
 #include <iostream>
 
 using namespace std;

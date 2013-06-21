@@ -1,5 +1,5 @@
-#include "harriet/Expression.hpp"
 #include "Signature.hpp"
+#include "harriet/Expression.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include <sstream>
 

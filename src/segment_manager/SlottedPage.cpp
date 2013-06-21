@@ -1,5 +1,5 @@
-#include "common/Config.hpp"
 #include "SlottedPage.hpp"
+#include "common/Config.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>

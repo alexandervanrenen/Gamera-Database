@@ -1,5 +1,5 @@
-#include "ScriptLanguage.hpp"
 #include "VariableType.hpp"
+#include "ScriptLanguage.hpp"
 #include <cassert>
 #include <sstream>
 //---------------------------------------------------------------------------

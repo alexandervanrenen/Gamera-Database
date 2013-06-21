@@ -1,7 +1,7 @@
+#include "Persister.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include "CompactExtentStore.hpp"
 #include "ExtentStore.hpp"
-#include "Persister.hpp"
 #include "SlottedPage.hpp"
 
 using namespace std;

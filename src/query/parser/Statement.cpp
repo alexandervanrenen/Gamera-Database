@@ -2,6 +2,7 @@
 #include "harriet/ScriptLanguage.hpp"
 #include "harriet/Value.hpp"
 #include "query/operator/RootOperator.hpp"
+#include "query/operator/PrintOperator.hpp"
 #include "Statement.hpp"
 #include "Visitor.hpp"
 

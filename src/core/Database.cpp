@@ -1,5 +1,5 @@
-#include "buffer_manager/BufferManager.hpp"
 #include "Database.hpp"
+#include "buffer_manager/BufferManager.hpp"
 #include "DatabaseConfig.hpp"
 #include "harriet/Environment.hpp"
 #include "harriet/Expression.hpp"
@@ -13,6 +13,8 @@
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "util/Utility.hpp"
+#include "query/result/QueryResultCollection.hpp"
+#include "query/QueryFacade.hpp"
 #include <iostream>
 
 using namespace std;
@@ -32,36 +34,11 @@ Database::~Database()
    cout << "-" << endl << "bye, have a good one ;)" << endl;
 }
 
-template <typename Signature>
-std::function<Signature> cast(void* f)
+unique_ptr<QueryResultCollection> Database::executeQuery(const std::string& query)
 {
-    return reinterpret_cast<Signature*>(f);
-}
-
-Result Database::executeQuery(const std::string& query)
-{
-   try {
-      // Parse query
-      auto roots = script::parse(query);
-      for(auto& root : roots->statements) {
-         // Plan generation
-         harriet::Environment env;
-         script::PlanGenerationVisitor geny(*segmentManager, *schemaManager, env);
-         root->acceptVisitor(geny);
-
-//         // Print script
-//         script::PrintVisitor printy(cout, script::PrintVisitor::PrintMode::kSelect);
-//         root->acceptVisitor(printy);
-
-         // Interpret script
-         script::ExecutionVisitor inty(*segmentManager, *schemaManager);
-         root->acceptVisitor(inty);
-      }
-   } catch(script::ParserException& e) {
-      cout << "unable to parse query (line: " << e.line << "; column: " << e.column << ")" << endl;
-      return Result();
-   }
-   return Result();
+   harriet::Environment env;
+   QueryFacade queryFacade(*segmentManager, *schemaManager);
+   return queryFacade.executeQuery(query, env, true);
 }
 
 }

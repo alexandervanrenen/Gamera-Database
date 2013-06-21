@@ -13,10 +13,9 @@ using namespace std;
 
 namespace dbi {
 
-PrintOperator::PrintOperator(unique_ptr<Operator> source, ostream& out, vector<harriet::Value>& globalRegister)
+PrintOperator::PrintOperator(unique_ptr<Operator> source, vector<harriet::Value>& globalRegister)
 : globalRegister(globalRegister)
 , source(move(source))
-, out(out)
 {
 }
 
@@ -34,37 +33,37 @@ void PrintOperator::dump(ostream& os) const
    source->dump(os, 3);
 }
 
+vector<vector<harriet::Value>>&& PrintOperator::getResult()
+{
+   return move(result);
+}
+
+vector<string> PrintOperator::getSuppliedColumns()
+{
+   vector<string> result;
+   for(auto& iter : source->getSignature().getAttributes())
+      result.push_back((iter.alias.size()!=0?(iter.alias+"."):"") + iter.name);
+   return result;
+}
+
+chrono::nanoseconds PrintOperator::getExecutionTime() const
+{
+   return executionTime;
+}
+
 void PrintOperator::execute()
 {
-   // Calculate column widths
-   uint32_t totalWidth = 1;
-   vector<uint32_t> columnWidths;
-   auto& signature = source->getSignature();
-   for(auto& iter : signature.getAttributes()) {
-      columnWidths.push_back(max((int)iter.name.size(), 10));
-      totalWidth += columnWidths.back() + 3;
-   }
-
-   // Print header
-   out << setfill(' ') << left << string(totalWidth, '-') << endl << "| ";
-   for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-      out << setw(columnWidths[i]) << signature.getAttributes()[i].name << " | ";
-   out << endl << string(totalWidth, '-') << endl;
-
    // Print content
+   auto& signature = source->getSignature();
    auto begin = chrono::high_resolution_clock::now();
-   uint64_t tupleCount = 0;
    source->open();
    while(source->next()) {
-      out << "| ";
+      result.push_back(vector<harriet::Value>());
       for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-         out << setw(columnWidths[i]) << globalRegister[signature.getAttributes()[i].index] << " | ";
-      out << endl;
-      tupleCount++;
+         result.back().emplace_back(globalRegister[signature.getAttributes()[i].index].createCopy());
    }
    auto end = chrono::high_resolution_clock::now();
-   out << string(totalWidth, '-') << endl;
-   out << "fetched " << tupleCount << " tuples in " << util::formatTime(chrono::duration_cast<chrono::nanoseconds>(end-begin), 3) << endl;
+   executionTime = chrono::duration_cast<chrono::nanoseconds>(end-begin);
 
    source->close();
 }

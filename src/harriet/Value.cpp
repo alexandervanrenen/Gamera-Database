@@ -174,7 +174,7 @@ ostream& operator<< (ostream& os, const Value& v)
       case VariableType::Type::TFloat:
          return os << v.data.vfloat;
       case VariableType::Type::TCharacter:
-         return os << string(v.data.vchar, v.type.length);
+         return os << string(v.data.vchar, strnlen(v.data.vchar, v.type.length));
       default:
          throw;
    }

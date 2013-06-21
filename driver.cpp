@@ -2,6 +2,7 @@
 #include "core/Database.hpp"
 #include "core/DatabaseConfig.hpp"
 #include "gflags/gflags.h"
+#include "query/result/QueryResultCollection.hpp"
 #include "util/Utility.hpp"
 #include <iostream>
 #include <string>
@@ -18,7 +19,7 @@ int main(int argc, char** argv)
 {
    // init gflags and read argv
    google::SetUsageMessage("gamera database driver");
-   google::SetVersionString("0.1");
+   google::SetVersionString("0.4");
    google::ParseCommandLineFlags(&argc, &argv, true);
 
    if(FLAGS_file == "") {
@@ -40,7 +41,8 @@ int main(int argc, char** argv)
 
    dbi::Database db(dbi::DatabaseConfig{FLAGS_swapfile, FLAGS_mainMemory}, !FLAGS_restart);
    string query = dbi::util::loadFileToMemory(FLAGS_file);
-   db.executeQuery(query);
+   auto result = db.executeQuery(query);
+   result->print(cout);
 
    return 0;
 }

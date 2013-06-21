@@ -105,5 +105,23 @@ VariableType::VariableType(Type type, uint16_t length)
    }
 }
 //---------------------------------------------------------------------------
+uint32_t VariableType::getMaxValuesASCIIRepresentationSize() const
+{
+   switch(type) {
+      case Type::TBool:
+         return 5; // false
+      case Type::TInteger:
+         assert(length == sizeof(int32_t));
+         return 11; // -10^10
+      case Type::TFloat:
+         assert(length == sizeof(float));
+         return 12; // Don't know
+      case Type::TCharacter:
+         return length;
+      case Type::TUndefined:
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 } // end of namespace harriet
 //---------------------------------------------------------------------------

@@ -68,7 +68,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    auto plan = opty.optimize(select.tableAccessVec, predicates, requiredProjectionColums);
 
    plan = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);
-   select.queryPlan = util::make_unique<PrintOperator>(move(plan), cout, select.globalRegister);
+   select.queryPlan = util::make_unique<PrintOperator>(move(plan), select.globalRegister);
 }
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)

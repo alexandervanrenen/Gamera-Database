@@ -17,6 +17,7 @@ namespace harriet {
 namespace dbi {
 
 class RootOperator;
+class PrintOperator;
 
 namespace script {
 
@@ -42,7 +43,7 @@ struct SelectStatement : public Statement {
    std::vector<TableReference> sources;
    std::vector<std::unique_ptr<harriet::Expression>> conditions;
 
-   std::unique_ptr<RootOperator> queryPlan;
+   std::unique_ptr<PrintOperator> queryPlan;
 
    std::vector<qopt::TableAccessInfo> tableAccessVec; // Temporary here .. move to script
    std::vector<harriet::Value> globalRegister; // Temporary here .. move to script

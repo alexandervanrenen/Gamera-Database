@@ -1,6 +1,7 @@
 #include "common/Config.hpp"
 #include "core/Database.hpp"
 #include "core/DatabaseConfig.hpp"
+#include "query/result/QueryResultCollection.hpp"
 #include "util/Utility.hpp"
 #include "zmq/zmq.hpp"
 #include <assert.h>

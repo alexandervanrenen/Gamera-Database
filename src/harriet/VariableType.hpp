@@ -34,6 +34,9 @@ public:
    friend bool operator== (const VariableType& lhs, const VariableType& rhs);
    friend bool operator!= (const VariableType& lhs, const VariableType& rhs);
    
+   /// How long is the ASCII representation of the value
+   uint32_t getMaxValuesASCIIRepresentationSize() const;
+
 private:
    explicit VariableType(Type type, uint16_t length);
 };

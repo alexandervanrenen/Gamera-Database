@@ -6,6 +6,8 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "Statement.hpp"
 #include "util/Utility.hpp"
+#include "query/operator/PrintOperator.hpp"
+#include "query/result/QueryResultCollection.hpp"
 #include <sstream>
 
 using namespace std;
@@ -14,10 +16,10 @@ namespace dbi {
 
 namespace script {
 
-ExecutionVisitor::ExecutionVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, bool verbose)
+ExecutionVisitor::ExecutionVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, QueryResultCollection& result)
 : segmentManager(segmentManager)
 , schemaManager(schemaManager)
-, verbose(verbose)
+, result(result)
 {
 }
 
@@ -25,24 +27,11 @@ ExecutionVisitor::~ExecutionVisitor()
 {
 }
 
-void ExecutionVisitor::onPreVisit(RootStatement&)
-{
-   cout << "begin query" << endl;
-}
-
-void ExecutionVisitor::onPostVisit(RootStatement&)
-{
-   cout << "end query" << endl;
-}
-
 void ExecutionVisitor::onPreVisit(SelectStatement& select)
 {
    select.queryPlan->checkTypes();
    select.queryPlan->execute();
-}
-
-void ExecutionVisitor::onPostVisit(SelectStatement&)
-{
+   result.addSelect(select.queryPlan->getExecutionTime(), select.queryPlan->getResult(), select.queryPlan->getSuppliedColumns());
 }
 
 void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
@@ -61,28 +50,14 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
    schema->setSegmentId(sid);
    schema->optimizePadding();
    schemaManager.addRelation(move(schema));
-}
-
-void ExecutionVisitor::onPostVisit(CreateTableStatement&)
-{
+   result.addCreate(chrono::nanoseconds(-1), createTable.tableName);
 }
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
    insert.queryPlan->checkTypes();
    insert.queryPlan->execute();
-}
-
-void ExecutionVisitor::onPostVisit(InsertStatement&)
-{
-}
-
-void ExecutionVisitor::onPreVisit(BlockStatement&)
-{
-}
-
-void ExecutionVisitor::onPostVisit(BlockStatement&)
-{
+   result.addInsert(chrono::nanoseconds(-1), insert.tableName);
 }
 
 }

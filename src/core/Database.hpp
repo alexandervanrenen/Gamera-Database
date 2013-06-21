@@ -9,15 +9,14 @@ class SegmentManager;
 class BufferManager;
 class SchemaManager;
 class DatabaseConfig;
-
-struct Result {};
+class QueryResultCollection;
 
 class Database {
 public:
    Database(const DatabaseConfig& config, bool isInitialSetup);
    ~Database();
 
-   Result executeQuery(const std::string& query);
+   std::unique_ptr<QueryResultCollection> executeQuery(const std::string& query);
 
 private:
    const DatabaseConfig& config;

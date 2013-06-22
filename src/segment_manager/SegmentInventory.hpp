@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Persister.hpp"
+#include "CompactExtentStore.hpp"
 #include "Extent.hpp"
 #include "ExtentStore.hpp"
-#include "CompactExtentStore.hpp"
+#include "Persister.hpp"
 #include <unordered_map>
 
 namespace dbi {

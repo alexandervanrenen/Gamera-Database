@@ -1,14 +1,15 @@
 #ifndef SCRIPTLANGUAGE_EXPRESSION_HPP_
 #define SCRIPTLANGUAGE_EXPRESSION_HPP_
 //---------------------------------------------------------------------------
-#include "ScriptLanguage.hpp"
 #include "GenericAllocator.hpp"
-#include <memory>
-#include <string>
-#include <iostream>
-#include <stack>
-#include <vector>
+#include "ScriptLanguage.hpp"
+#include "Value.hpp"
 #include <cstring>
+#include <iostream>
+#include <memory>
+#include <stack>
+#include <string>
+#include <vector>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -26,8 +27,8 @@ class Expression {
 public:
    virtual void print(std::ostream& stream) const = 0;
 
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const = 0;
-   virtual std::vector<const Variable*> getAllVariables() const = 0;
+   virtual Value evaluate(Environment& environment) const = 0;
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) = 0; // Pointer to the place where I am stored
 
    virtual ExpressionType getExpressionType() const = 0;
 
@@ -42,8 +43,8 @@ public:
    Variable(const std::string& identifier) : identifier(identifier) {}
    virtual ~Variable(){};
    virtual void print(std::ostream& stream) const;
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
-   virtual std::vector<const Variable*> getAllVariables() const {return {{this}};}
+   virtual Value evaluate(Environment& environment) const;
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) {return std::vector<std::unique_ptr<Expression>*>(1, self);}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TVariable;}
    const std::string& getIdentifier() const {return identifier;}
 
@@ -51,8 +52,19 @@ protected:
    std::string identifier;
 };
 //---------------------------------------------------------------------------
+class ValueExpression : public Expression {
+public:
+   ValueExpression(Value&& value) : value(std::move(value)) {}
+   virtual ~ValueExpression(){};
+   virtual void print(std::ostream& stream) const;
+   virtual Value evaluate(Environment& environment) const;
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>*) {return std::vector<std::unique_ptr<Expression>*>();}
+   virtual ExpressionType getExpressionType() const {return ExpressionType::TValue;}
+   Value value;
+};
+//---------------------------------------------------------------------------
 class UnaryOperator : public Expression {
-   virtual std::vector<const Variable*> getAllVariables() const {return child->getAllVariables();}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self);
    virtual void print(std::ostream& stream) const;
 public:
    virtual void addChild(std::unique_ptr<Expression> child);
@@ -64,14 +76,14 @@ protected:
 };
 //---------------------------------------------------------------------------
 class UnaryMinusOperator : public UnaryOperator {
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual ExpressionType getExpressionType() const {return ExpressionType::TUnaryMinusOperator;}
 protected:
    virtual const std::string getSign() const {return "-";}
 };
 //---------------------------------------------------------------------------
 class NotOperator : public UnaryOperator {
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual ExpressionType getExpressionType() const {return ExpressionType::TNotOperator;}
 protected:
    virtual const std::string getSign() const {return "!";}
@@ -80,7 +92,7 @@ protected:
 class BinaryOperator : public Expression {
 public:
    virtual ~BinaryOperator(){}
-   virtual std::vector<const Variable*> getAllVariables() const {auto l=lhs->getAllVariables(); auto r=rhs->getAllVariables(); l.insert(l.end(), r.begin(), r.end()); return l;}
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self);
    std::unique_ptr<Expression> lhs;
    std::unique_ptr<Expression> rhs;
 protected:
@@ -95,7 +107,7 @@ public:
    virtual ~AssignmentOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TAssignmentOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "=";}
 };
 //---------------------------------------------------------------------------
@@ -108,7 +120,7 @@ public:
    virtual ~PlusOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TPlusOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "+";}
 };
 //---------------------------------------------------------------------------
@@ -118,7 +130,7 @@ public:
    virtual ~MinusOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TMinusOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "-";}
 };
 //---------------------------------------------------------------------------
@@ -128,7 +140,7 @@ public:
    virtual ~MultiplicationOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TMultiplicationOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "*";}
 };
 //---------------------------------------------------------------------------
@@ -138,7 +150,7 @@ public:
    virtual ~DivisionOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TDivisionOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "/";}
 };
 //---------------------------------------------------------------------------
@@ -147,7 +159,7 @@ public:
    virtual ~ModuloOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TModuloOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "%";}
 };
 //---------------------------------------------------------------------------
@@ -156,7 +168,7 @@ public:
    virtual ~ExponentiationOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TExponentiationOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "^";}
 };
 //---------------------------------------------------------------------------
@@ -165,10 +177,11 @@ class LogicOperator : public BinaryOperator {
 //---------------------------------------------------------------------------
 class AndOperator : public LogicOperator {
 public:
+   AndOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs);
    virtual ~AndOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TAndOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "&";}
 };
 //---------------------------------------------------------------------------
@@ -177,7 +190,7 @@ public:
    virtual ~OrOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TOrOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "|";}
 };
 //---------------------------------------------------------------------------
@@ -191,7 +204,7 @@ public:
    virtual ~GreaterOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TGreaterOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return ">";}
 };
 //---------------------------------------------------------------------------
@@ -200,7 +213,7 @@ public:
    virtual ~LessOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TLessOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "<";}
 };
 //---------------------------------------------------------------------------
@@ -209,7 +222,7 @@ public:
    virtual ~GreaterEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TGreaterEqualOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return ">=";}
 };
 //---------------------------------------------------------------------------
@@ -218,7 +231,7 @@ public:
    virtual ~LessEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TLessEqualOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "<=";}
 };
 //---------------------------------------------------------------------------
@@ -228,7 +241,7 @@ public:
    virtual ~EqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TEqualOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "==";}
 };
 //---------------------------------------------------------------------------
@@ -237,7 +250,7 @@ public:
    virtual ~NotEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TNotEqualOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
    virtual const std::string getSign() const {return "!=";}
 };
 //---------------------------------------------------------------------------
@@ -248,7 +261,7 @@ public:
    virtual ~FunctionOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TFunctionOperator;}
 protected:
-   virtual std::unique_ptr<Value> evaluate(Environment& environment) const;
+   virtual Value evaluate(Environment& environment) const;
 
    const std::string functionName;
    const uint32_t functionIdentifier;

@@ -1,16 +1,16 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
+#include <iostream>
 #include <string.h>
+#include <string>
+#include <vector>
 
-#include "test/TestConfig.hpp"
 #include "buffer_manager/BufferManager.hpp"
+#include "common/Config.hpp"
+#include "segment_manager/Record.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "segment_manager/SPSegment.hpp"
-#include "segment_manager/Record.hpp"
-#include "common/Config.hpp"
+#include "test/TestConfig.hpp"
 
 const unsigned initialSize = 100; // in (slotted) pages
 const unsigned totalSize = initialSize + 50; // in (slotted) pages

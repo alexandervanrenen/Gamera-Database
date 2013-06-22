@@ -1,19 +1,19 @@
-#include "test/TestConfig.hpp"
 #include "btree/BTree.hpp"
-#include "util/Utility.hpp"
-#include "common/Config.hpp"
 #include "buffer_manager/BufferManager.hpp"
-#include "segment_manager/SegmentManager.hpp"
+#include "common/Config.hpp"
 #include "segment_manager/BTreeSegment.hpp"
-#include <gtest/gtest.h>
-#include <string>
-#include <cstdint>
+#include "segment_manager/SegmentManager.hpp"
+#include "test/TestConfig.hpp"
+#include "util/Utility.hpp"
 #include <cassert>
-#include <vector>
+#include <cstdint>
+#include <gtest/gtest.h>
 #include <sstream>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <thread>
+#include <vector>
 
 
 typedef dbi::TID TID;

@@ -1,5 +1,5 @@
-#include "buffer_manager/BufferManager.hpp"
 #include "Segment.hpp"
+#include "buffer_manager/BufferManager.hpp"
 #include "ExtentStore.hpp"
 #include "SegmentInventory.hpp"
 #include <cassert>

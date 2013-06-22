@@ -1,9 +1,9 @@
+#include "SPSegment.hpp"
 #include "buffer_manager/BufferManager.hpp"
 #include "FSISegment.hpp"
 #include "Record.hpp"
 #include "SegmentManager.hpp"
 #include "SlottedPage.hpp"
-#include "SPSegment.hpp"
 #include "util/ByteEncoding.hpp"
 #include <iostream>
 
@@ -130,7 +130,7 @@ void SPSegment::update(TupleId tid, const Record& record)
    throw;
 }
 
-vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId)
+vector<pair<TupleId, Record>> SPSegment::getAllRecordsOfPage(PageId pageId) const
 {
    auto& frame = fixGlobalPage(pageId, kShared);
    auto& sp = reinterpret_cast<SlottedPage&>(*frame.data());

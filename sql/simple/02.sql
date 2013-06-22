@@ -96,12 +96,12 @@ insert into pruefen values (28106, 5001, 2126, 1.0);
 insert into pruefen values (25403, 5041, 2125, 2.0);
 insert into pruefen values (27550, 4630, 2137, 2.0);
 
-  select s.Name, s.MatrNr
-  from Studenten s, hoeren h, Vorlesungen v, Professoren p
-  where s.MatrNr = h.MatrNr
-  and h.VorlNr = v.VorlNr
-  and v.gelesenVon = p.PersNr
-  and p.Name = 'Sokrates';
+select s.Name, s.MatrNr
+from Studenten s, hoeren h, Vorlesungen v, Professoren p
+where s.MatrNr = h.MatrNr
+and h.VorlNr = v.VorlNr
+and v.gelesenVon = p.PersNr
+and p.Name = 'Sokrates';
 
 select s1.Name , s1.MatrNr
 from Studenten s1 , Studenten s2 , hoeren h1, hoeren h2

@@ -1,6 +1,7 @@
 #ifndef __Utility
 #define __Utility
 
+#include <chrono>
 #include <fstream>
 #include <functional>
 #include <memory>
@@ -8,7 +9,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 namespace dbi {
 

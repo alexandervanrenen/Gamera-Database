@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "Record.hpp"
 #include "Extent.hpp"
+#include "Record.hpp"
 #include <unordered_map>
 #include <vector>
 

@@ -4,9 +4,9 @@
 #include "test/TestConfig.hpp"
 #include <array>
 #include <fstream>
-#include <string>
-#include <set>
 #include <iostream>
+#include <set>
+#include <string>
 
 using namespace std;
 using namespace dbi;

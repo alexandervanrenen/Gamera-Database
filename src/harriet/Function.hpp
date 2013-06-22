@@ -3,8 +3,8 @@
 //---------------------------------------------------------------------------
 #include "ScriptLanguage.hpp"
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)

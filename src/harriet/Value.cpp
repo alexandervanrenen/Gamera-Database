@@ -1,7 +1,11 @@
 #include "Value.hpp"
+#include "ScriptLanguage.hpp"
 #include "Utility.hpp"
 #include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <sstream>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -10,75 +14,125 @@ namespace harriet {
 Value::Value(const VariableType& type)
 : type(type)
 {
+}
+//---------------------------------------------------------------------------
+Value Value::createDefault(const VariableType& type)
+{
+   Value result(type);
    switch(type.type) {
       case VariableType::Type::TBool:
-         data.vbool = false;
-         return;
+         result.data.vbool = false;
+         return result;
       case VariableType::Type::TInteger:
-         data.vint = 0;
-         return;
+         result.data.vint = 0;
+         return result;
       case VariableType::Type::TFloat:
-         data.vfloat = .0f;
-         return;
+         result.data.vfloat = .0f;
+         return result;
       case VariableType::Type::TCharacter:
-         data.vchar = static_cast<char*>(malloc(type.length));
-         memset(data.vchar, '\0', type.length);
-         return;
+         result.data.vchar = static_cast<char*>(malloc(type.length));
+         memset(result.data.vchar, '\0', type.length);
+         return result;
+      case VariableType::Type::TUndefined:
+         result.data.vchar = nullptr;
+         return result;
    }
-   throw;
+   throw "unreachable";
 }
 //---------------------------------------------------------------------------
-Value::Value(const VariableType& type, const char* ptr)
-: type(type)
+Value Value::createFromRecord(const VariableType& type, const char* ptr)
 {
+   Value result(type);
    switch(type.type) {
       case VariableType::Type::TBool:
-         data.vbool = reinterpret_cast<const bool&>(*ptr);
-         return;
+         result.data.vbool = reinterpret_cast<const bool&>(*ptr);
+         return result;
       case VariableType::Type::TInteger:
-         data.vint = reinterpret_cast<const int32_t&>(*ptr);
-         return;
+         result.data.vint = reinterpret_cast<const int32_t&>(*ptr);
+         return result;
       case VariableType::Type::TFloat:
-         data.vfloat = reinterpret_cast<const float&>(*ptr);
-         return;
+         result.data.vfloat = reinterpret_cast<const float&>(*ptr);
+         return result;
       case VariableType::Type::TCharacter:
-         data.vchar = static_cast<char*>(malloc(type.length));
-         memset(data.vchar, '\0', type.length);
-         memcpy(data.vchar, ptr, type.length);
-         return;
+         result.data.vchar = static_cast<char*>(malloc(type.length));
+         memset(result.data.vchar, '\0', type.length);
+         memcpy(result.data.vchar, ptr, type.length);
+         return result;
+      default:
+         throw;
    }
-   throw;
 }
 //---------------------------------------------------------------------------
-Value::Value(bool value, bool)
-: type(VariableType::Type::TBool, sizeof(bool))
+Value Value::createBool(bool value, bool)
 {
-   data.vbool = value;
+   Value result(VariableType::createBoolType());
+   result.data.vbool = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(int32_t value, bool)
-: type(VariableType::Type::TInteger, sizeof(int32_t))
+Value Value::createInteger(int32_t value, bool)
 {
-   data.vint = value;
+   Value result(VariableType::createIntegerType());
+   result.data.vint = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(float value, bool)
-: type(VariableType::Type::TFloat, sizeof(int32_t))
+Value Value::createFloat(float value, bool)
 {
-   data.vfloat = value;
+   Value result(VariableType::createFloatType());
+   result.data.vfloat = value;
+   return result;
 }
 //---------------------------------------------------------------------------
-Value::Value(const string& value, int32_t max, bool)
-: type(VariableType::Type::TCharacter, max)
+Value Value::createCharacter(const string& value, uint16_t max, bool)
 {
-   data.vchar = static_cast<char*>(malloc(type.length));
-   memset(data.vchar, '\0', type.length);
-   assert(value.size() <= type.length);
-   memcpy(data.vchar, value.data(), min(static_cast<uint16_t>(value.size()), type.length));
+   assert(value.size() <= max);
+   Value result(VariableType::createCharacterType(max));
+   result.data.vchar = static_cast<char*>(malloc(max));
+   memset(result.data.vchar, '\0', max);
+   memcpy(result.data.vchar, value.data(), value.size());
+   return result;
+}
+//---------------------------------------------------------------------------
+Value Value::createCharacter(char* value, uint16_t max, bool)
+{
+   Value result(VariableType::createCharacterType(max));
+   result.data.vchar = value;
+   return result;
+}
+//---------------------------------------------------------------------------
+Value Value::createCopy() const
+{
+   Value result(type);
+   if(type.type == VariableType::Type::TCharacter) {
+      // Got to copy pointer
+      result.data.vchar = static_cast<char*>(malloc(type.length));
+      memcpy(result.data.vchar, data.vchar, type.length);
+   } else {
+      result.data = data;
+   }
+   return result;
+}
+//---------------------------------------------------------------------------
+Value::Value(Value&& other)
+: type(other.type)
+, data(other.data)
+{
+   other.data.vchar = nullptr;
+}
+//---------------------------------------------------------------------------
+Value& Value::operator=(Value&& other)
+{
+   type = other.type;
+   data = other.data;
+   other.data.vchar = nullptr;
+   return *this;
 }
 //---------------------------------------------------------------------------
 Value::~Value()
 {
+   if(type.type==VariableType::Type::TCharacter && data.vchar!=nullptr)
+      free(data.vchar);
 }
 //---------------------------------------------------------------------------
 void Value::marschall(char* ptr) const
@@ -96,37 +150,22 @@ void Value::marschall(char* ptr) const
       case VariableType::Type::TCharacter:
          memcpy(ptr, data.vchar, type.length);
          return;
+      default:
+         throw;
    }
-   throw;
 }
 //---------------------------------------------------------------------------
-void Value::print(ostream& os) const
+string Value::str() const
 {
+   assert(type.type != VariableType::Type::TUndefined);
+   ostringstream os;
    os << *this;
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> Value::evaluate(Environment&) const
-{
-   return make_unique<Value>(*this);
-}
-//---------------------------------------------------------------------------
-unique_ptr<Value> Value::evaluate() const
-{
-   return make_unique<Value>(*this);
-}
-//---------------------------------------------------------------------------
-vector<const Variable*> Value::getAllVariables() const
-{
-   return vector<const Variable*>();
-}
-//---------------------------------------------------------------------------
-ExpressionType Value::getExpressionType() const
-{
-   return ExpressionType::TValue;
+   return os.str();
 }
 //---------------------------------------------------------------------------
 ostream& operator<< (ostream& os, const Value& v)
 {
+   assert(v.type.type != VariableType::Type::TUndefined);
    switch(v.type.type) {
       case VariableType::Type::TBool:
          return os << v.data.vbool;
@@ -135,15 +174,15 @@ ostream& operator<< (ostream& os, const Value& v)
       case VariableType::Type::TFloat:
          return os << v.data.vfloat;
       case VariableType::Type::TCharacter:
-         return os << string(v.data.vchar, v.type.length);
+         return os << string(v.data.vchar, strnlen(v.data.vchar, v.type.length));
       default:
          throw;
    }
 }
 //---------------------------------------------------------------------------
 namespace {
-void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(harriet::Exception) { throw harriet::Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
-void doError(const string& operatorSign, const Value& lhs) throw(harriet::Exception) { throw harriet::Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
+void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(Exception) { throw Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
+void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
 }
 //---------------------------------------------------------------------------
 Value Value::computeAdd(const Value& rhs) const
@@ -180,6 +219,40 @@ Value Value::computeSub(const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
+Value Value::computeMul(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeMul(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeMul(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeMul(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeMul(*this, rhs);
+      default:
+         doError("*" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::computeDiv(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeDiv(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeDiv(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeDiv(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeDiv(*this, rhs);
+      default:
+         doError("/" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::computeEq (const Value& rhs) const
 {
    switch(type.type) {
@@ -197,13 +270,78 @@ Value Value::computeEq (const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Bool::computeAdd(const Value&, const Value&)
+Value Value::computeAnd (const Value& rhs) const
 {
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeAnd(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeAnd(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeAnd(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeAnd(*this, rhs);
+      default:
+         doError("&" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::computeLeq(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeLeq(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeLeq(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeLeq(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeLeq(*this, rhs);
+      default:
+         doError("<=" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::computeGeq(const Value& rhs) const
+{
+   switch(type.type) {
+      case VariableType::Type::TBool:
+         return Bool::computeGeq(*this, rhs);
+      case VariableType::Type::TInteger:
+         return Integer::computeGeq(*this, rhs);
+      case VariableType::Type::TFloat:
+         return Float::computeGeq(*this, rhs);
+      case VariableType::Type::TCharacter:
+         return Character::computeGeq(*this, rhs);
+      default:
+         doError(">=" , *this, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeAdd(const Value& lhs, const Value& rhs)
+{
+   doError("+", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Bool::computeSub(const Value&, const Value&)
+Value Value::Bool::computeSub(const Value& lhs, const Value& rhs)
 {
+   doError("-", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeMul(const Value& lhs, const Value& rhs)
+{
+   doError("*", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeDiv(const Value& lhs, const Value& rhs)
+{
+   doError("/", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
@@ -211,76 +349,359 @@ Value Value::Bool::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TBool:
-         return Value(lhs.data.vbool==rhs.data.vbool);
+         return createBool(lhs.data.vbool==rhs.data.vbool);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Integer::computeAdd(const Value&, const Value&)
+Value Value::Bool::computeAnd(const Value& lhs, const Value& rhs)
 {
+   switch(rhs.type.type) {
+      case VariableType::Type::TBool:
+         return createBool(lhs.data.vbool && rhs.data.vbool);
+      default:
+         doError("&", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Bool::computeLeq(const Value& lhs, const Value& rhs)
+{
+   doError("<=", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Integer::computeSub(const Value&, const Value&)
+Value Value::Bool::computeGeq(const Value& lhs, const Value& rhs)
 {
+   doError(">=", lhs, rhs);
    throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeAdd(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint + rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint + rhs.data.vfloat);
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeSub(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint - rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint - rhs.data.vfloat);
+      default:
+         doError("-", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeMul(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createInteger(lhs.data.vint * rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vint * rhs.data.vfloat);
+      default:
+         doError("*", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeDiv(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         if(rhs.data.vint == 0) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }          
+         else
+            return createInteger(lhs.data.vint / rhs.data.vint);
+      case VariableType::Type::TFloat:
+         if(rhs.data.vfloat == 0.0f) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }
+         else
+            return createFloat(lhs.data.vint / rhs.data.vfloat);
+      default:
+         doError("/", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Integer::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.data.vint==rhs.data.vint);
+         return createBool(lhs.data.vint==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.data.vint==rhs.data.vfloat);
+         return createBool(lhs.data.vint==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Float::computeAdd(const Value&, const Value&)
+Value Value::Integer::computeAnd(const Value& lhs, const Value& rhs)
 {
+   doError("&", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Float::computeSub(const Value&, const Value&)
+Value Value::Integer::computeLeq(const Value& lhs, const Value& rhs)
 {
-   throw;
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vint <= rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createBool(lhs.data.vint <= rhs.data.vfloat);
+      default:
+         doError("<=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Integer::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vint >= rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createBool(lhs.data.vint >= rhs.data.vfloat);
+      default:
+         doError(">=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeAdd(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat + rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat + rhs.data.vfloat);
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeSub(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat - rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat - rhs.data.vfloat);
+      default:
+         doError("-", lhs, rhs);
+         throw;
+    }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeMul(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         return createFloat(lhs.data.vfloat * rhs.data.vint);
+      case VariableType::Type::TFloat:
+         return createFloat(lhs.data.vfloat * rhs.data.vfloat);
+      default:
+         doError("*", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeDiv(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type){
+      case VariableType::Type::TInteger:
+         if(rhs.data.vint == 0) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }          
+         else
+            return createFloat(lhs.data.vfloat / rhs.data.vint);
+      case VariableType::Type::TFloat:
+         if(rhs.data.vfloat == 0.0f) {
+            doError("/ by 0", lhs, rhs);
+            throw;
+         }
+         else
+            return createFloat(lhs.data.vfloat / rhs.data.vfloat);
+      default:
+         doError("/", lhs, rhs);
+         throw;
+   }
 }
 //---------------------------------------------------------------------------
 Value Value::Float::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
       case VariableType::Type::TInteger:
-         return Value(lhs.data.vint==rhs.data.vint);
+         return createBool(lhs.data.vfloat==rhs.data.vint);
       case VariableType::Type::TFloat:
-         return Value(lhs.data.vint==rhs.data.vfloat);
+         return createBool(lhs.data.vfloat==rhs.data.vfloat);
       default:
          doError("==" , lhs, rhs);
          throw;
    }
 }
 //---------------------------------------------------------------------------
-Value Value::Character::computeAdd(const Value&, const Value&)
+Value Value::Float::computeAnd(const Value& lhs, const Value& rhs)
 {
+   doError("&", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
-Value Value::Character::computeSub(const Value&, const Value&)
+Value Value::Float::computeLeq(const Value& lhs, const Value& rhs)
 {
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vfloat <= rhs.data.vint);
+      case VariableType::Type::TFloat: 
+         return createBool(lhs.data.vfloat <= rhs.data.vfloat);
+      default:
+         doError("<=" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Float::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TInteger:
+         return createBool(lhs.data.vfloat >= rhs.data.vint);
+      case VariableType::Type::TFloat: 
+         return createBool(lhs.data.vfloat >= rhs.data.vfloat);
+      default:
+         doError(">=" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeAdd(const Value& lhs, const Value& rhs)
+{
+   // TODO: auto conversion to char* to make appending of numbers possible
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         char* res = static_cast<char*>(malloc(lhs.type.length + rhs.type.length));
+         char* writeHead = res;
+         // Copy right hand side
+         for(char* readHead=lhs.data.vchar; readHead!=lhs.data.vchar+lhs.type.length&&*readHead!='\0';)
+            *(writeHead++) = *(readHead++);
+         // Copy left hand side
+         for(char* readHead=rhs.data.vchar; readHead!=rhs.data.vchar+rhs.type.length&&*readHead!='\0';)
+            *(writeHead++) = *(readHead++);
+         // Fill with \0
+         while(writeHead != res+lhs.type.length+rhs.type.length)
+            *(writeHead++) = '\0';
+         return createCharacter(res, lhs.type.length + rhs.type.length);
+      }
+      default:
+         doError("+", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeSub(const Value& lhs, const Value& rhs)
+{
+   doError("-", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeMul(const Value& lhs, const Value& rhs)
+{
+   doError("*", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeDiv(const Value& lhs, const Value& rhs)
+{
+   doError("/", lhs, rhs);
    throw;
 }
 //---------------------------------------------------------------------------
 Value Value::Character::computeEq (const Value& lhs, const Value& rhs)
 {
    switch(rhs.type.type) {
-      case VariableType::Type::TCharacter:
-         return Value(strncmp(lhs.data.vchar, rhs.data.vchar, lhs.type.length==rhs.type.length?lhs.type.length:min(lhs.type.length, rhs.type.length)+1) == 0);
+      case VariableType::Type::TCharacter: {
+         bool isContentEq = 0==memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(lhs.type.length == rhs.type.length) {
+            return createBool(isContentEq);
+         } else if(lhs.type.length < rhs.type.length) {
+            return createBool(rhs.data.vchar[lhs.type.length]=='\0' && isContentEq);
+         } else {
+            return createBool(lhs.data.vchar[rhs.type.length]=='\0' && isContentEq);
+         }
+      }
       default:
          doError("==" , lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeAnd(const Value& lhs, const Value& rhs)
+{
+   doError("&", lhs, rhs);
+   throw;
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeLeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         auto cmpVal = memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(cmpVal != 0) {
+            return createBool(cmpVal < 0 );
+         } else {
+            // inputs are equals within their minimum size and the longer one has a termination symbol at (minSize + 1)
+            if((lhs.type.length < rhs.type.length && rhs.data.vchar[lhs.type.length]=='\0') ||
+               (lhs.type.length > rhs.type.length && lhs.data.vchar[rhs.type.length]=='\0')) {
+               return createBool(true);
+            } else {
+               return createBool(lhs.type.length <= rhs.type.length);
+            }
+         }
+      }
+      default:
+         doError("<=", lhs, rhs);
+         throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::Character::computeGeq(const Value& lhs, const Value& rhs)
+{
+   switch(rhs.type.type) {
+      case VariableType::Type::TCharacter: {
+         auto cmpVal =  memcmp(lhs.data.vchar, rhs.data.vchar, min(lhs.type.length, rhs.type.length));
+         if(cmpVal != 0) {
+            return createBool(cmpVal > 0 );
+         } else {
+            // inputs are equals within their minimum size and the longer one has a termination symbol at (minSize + 1)
+            if((lhs.type.length < rhs.type.length && rhs.data.vchar[lhs.type.length]=='\0') ||
+               (lhs.type.length > rhs.type.length && lhs.data.vchar[rhs.type.length]=='\0')) {
+               return createBool(true);
+            } else {
+               return createBool(lhs.type.length >= rhs.type.length);
+            }
+         }
+      }
+      default:
+         doError(">=", lhs, rhs);
          throw;
    }
 }

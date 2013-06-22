@@ -187,6 +187,7 @@ protected:
 //---------------------------------------------------------------------------
 class OrOperator : public LogicOperator {
 public:
+   OrOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs);
    virtual ~OrOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TOrOperator;}
 protected:
@@ -219,6 +220,7 @@ protected:
 //---------------------------------------------------------------------------
 class GreaterEqualOperator : public ComparisonOperator {
 public:
+   GreaterEqualOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~GreaterEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TGreaterEqualOperator;}
 protected:

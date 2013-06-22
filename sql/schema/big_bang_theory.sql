@@ -12,6 +12,7 @@ insert into Relations values('best friends', 0, 2);
 insert into Relations values('best friends', 4, 3);
 insert into Relations values('sex', 1, 0);
 
-select p1.firstname
-from Persons p1
-where p1.id = 2;
+select firstname
+from Persons
+where firstname = 'Lenard'
+  and (id+1)*2*2 = 4;

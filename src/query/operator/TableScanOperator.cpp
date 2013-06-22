@@ -2,6 +2,7 @@
 #include "harriet/Value.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include "query/util/TableAccessInfo.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include "schema/RelationSchema.hpp"
 #include "segment_manager/Record.hpp"
 #include "segment_manager/Record.hpp"

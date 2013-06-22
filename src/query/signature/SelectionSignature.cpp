@@ -83,7 +83,8 @@ bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple
    // => something wired
    harriet::Environment env;
    for(auto& iter : variableMapping)
-      env.add(iter.name, tuple[iter.position].createCopy());
+      if(!env.isInLocalScope(iter.name))
+         env.add(iter.name, tuple[iter.position].createCopy());
    return predicate->condition->evaluate(env).data.vbool;
 }
 
@@ -108,8 +109,6 @@ vector<SelectionSignature::VariableMapping> SelectionSignature::getFreeVariables
          throw harriet::Exception{"unknown identifier: '" + reinterpret_cast<harriet::Variable&>(**iter).getIdentifier() + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
       }
    }
-   sort(result.begin(), result.end(), [](const VariableMapping& lhs, const VariableMapping& rhs){return lhs.name<rhs.name;});
-   result.erase(unique(result.begin(), result.end(), [](const VariableMapping& lhs, const VariableMapping& rhs){return lhs.name==rhs.name;}), result.end());
    return result;
 }
 

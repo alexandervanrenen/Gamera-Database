@@ -109,11 +109,12 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
 # --------------------------------------------------------------------------------------------------------------
 Expression = b:Bool                                        { $$.expression = move(b.expression); }
            | s:Sum                                         { $$.expression = move(s.expression); }
-Bool = t:TRUE                                              { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
-     | f:FALSE                                             { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
-     | b:Sum                                               { }
-     ( - EQ - i:Sum                                        { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(i.expression)); }
-     )+                                                    { $$.expression = move(b.expression); }
+Bool = b:BOOL_VAL                                          { b.expression = util::make_unique<harriet::ValueExpression>(harriet::Value::createBool(b.boolean)); }
+     ( - EQ - j:Bool                                       { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(j.expression)); }
+     )*                                                    { $$.expression = move(b.expression); }
+     | s:Sum                                               { }
+     ( - EQ - i:Sum                                        { s.expression = util::make_unique<harriet::EqualOperator>(move(s.expression), move(i.expression)); }
+     )+                                                    { $$.expression = move(s.expression); }
 Sum = p:Product                                            { }
     ( - PLUS - i:Product                                   { p.expression = util::make_unique<harriet::PlusOperator>(move(p.expression), move(i.expression)); }
     | - MINUS - i:Product                                  { p.expression = util::make_unique<harriet::MinusOperator>(move(p.expression), move(i.expression)); }
@@ -122,7 +123,7 @@ Product = v:Factor                                         { }
         ( - TIMES - i:Product                              { v.expression = util::make_unique<harriet::MultiplicationOperator>(move(v.expression), move(i.expression)); }
         | - DIVIDE - i:Product                             { v.expression = util::make_unique<harriet::DivisionOperator>(move(v.expression), move(i.expression)); }
         )*                                                 { $$.expression = move(v.expression); }
-Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
+Factor = OPEN - e:Sum - CLOSE                              { $$.expression = move(e.expression); }
        | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
        | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
 # --------------------------------------------------------------------------------------------------------------
@@ -193,15 +194,18 @@ unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
   input.clear();
   input.str(query);
 
+  GREG g;
   try {
-    GREG g;
     yyinit(&g);
     while (yyparse(&g));
     yydeinit(&g);
   } catch (int) {
+    yydeinit(&g);
     throw ParserException("parser error: ", lineNumber+1, columnNumber);
   }
 
+  if(result == nullptr)
+     return util::make_unique<RootStatement>(std::vector<std::unique_ptr<Statement>>());
   return move(result);
 }
 

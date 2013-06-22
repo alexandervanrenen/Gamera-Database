@@ -4,6 +4,7 @@
 #include "query/operator/CrossProductOperator.hpp"
 #include "query/operator/SelectionOperator.hpp"
 #include "query/operator/TableScanOperator.hpp"
+#include "query/operator/ZeroRecordOperator.hpp"
 #include "query/util/Predicate.hpp"
 #include "query/util/TableAccessInfo.hpp"
 #include "util/Utility.hpp"
@@ -16,8 +17,9 @@ namespace dbi {
 
 namespace qopt {
 
-ChainOptimizer::ChainOptimizer(std::vector<harriet::Value>& globalRegister)
+ChainOptimizer::ChainOptimizer(std::vector<harriet::Value>& globalRegister, const harriet::Environment& env)
 : globalRegister(globalRegister)
+, env(env)
 {
 
 }
@@ -31,10 +33,16 @@ unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& rel
    // Create a tree describing the order in which the tables are joined
    auto accessTree = createAccessTree(relations, predicates);
 
-   set<ColumnAccessInfo> requiredColumns = accessTree->getRequiredColumns();
-   for(auto& iter : projections)
-      requiredColumns.insert(iter);
-   return accessTree->toPlan(requiredColumns, globalRegister);
+   if(accessTree) {
+      // A normal access tree was produced
+      set<ColumnAccessInfo> requiredColumns = accessTree->getRequiredColumns();
+      for(auto& iter : projections)
+         requiredColumns.insert(iter);
+      return accessTree->toPlan(requiredColumns, globalRegister);
+   } else {
+      // Some brain dead idiot used 'false' in the were clause
+      return util::make_unique<ZeroRecordOperator>(projections);
+   }
 }
 
 // namespace {
@@ -56,8 +64,21 @@ unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& rel
 
 unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates) const
 {
-   // Check that there is no predicate referring to no table
-   assert(none_of(predicates.begin(), predicates.end(), [](unique_ptr<Predicate>& p){return p->tables.empty();}));
+   // Handle predicates referring to no table
+   for(auto iter = predicates.begin(); iter != predicates.end();) {
+      if((*iter)->tables.empty()) {
+         harriet::Value constantCondition = (*iter)->condition->evaluate(env);
+         if(constantCondition.data.vbool) {
+            // A true constant can be ignored
+            iter = predicates.erase(iter);
+         } else {
+            // A false constant leads to an empty result
+            return nullptr;
+         }
+      } else {
+         iter++;
+      }
+   }
 
    // Find start points -- a predicate referring a single relation
    vector<std::unique_ptr<AccessTree>> workSet;
@@ -65,9 +86,9 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
       workSet.push_back(util::make_unique<Leafe>(nullptr, i, relations[i]));
 
    // Iterative join all the basic table access
-   bool changed = true;
-   while(changed) {
-      changed = false;
+   bool keepOptimizing = true;
+   while(keepOptimizing) {
+      keepOptimizing = false;
 //      debug(workSet);
 
       // Try to apply a predicate referring to a single tree
@@ -87,11 +108,11 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
             assert(workSet[*requiredTrees.begin()]->predicate == nullptr);
             workSet[*requiredTrees.begin()]->predicate = move(*predicate);
             predicates.erase(predicate);
-            changed = true;
+            keepOptimizing = true;
             break;
          }
       }
-      if(changed)
+      if(keepOptimizing)
          continue;
 
       // Try to join two trees with a predicate
@@ -113,11 +134,11 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
             predicates.erase(predicate);
             workSet.erase(std::remove_if(workSet.begin(), workSet.end(), [](const unique_ptr<AccessTree>& a){return a==nullptr;}), workSet.end());
             workSet.push_back(move(node));
-            changed = true;
+            keepOptimizing = true;
             break;
          }
       }
-      if(changed)
+      if(keepOptimizing)
          continue;
 
       // Cross product with anything even remotely useful
@@ -137,7 +158,7 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
          unique_ptr<AccessTree> node = util::make_unique<Node>(nullptr, move(workSet[*requiredTrees.begin()]), move(workSet[*(++requiredTrees.begin())]));
          workSet.erase(std::remove_if(workSet.begin(), workSet.end(), [](const unique_ptr<AccessTree>& a){return a==nullptr;}), workSet.end());
          workSet.push_back(move(node));
-         changed = true;
+         keepOptimizing = true;
          break;
       }
    }

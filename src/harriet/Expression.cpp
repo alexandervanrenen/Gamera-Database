@@ -30,7 +30,7 @@ void Variable::print(ostream& stream) const
    stream << identifier;
 }
 //---------------------------------------------------------------------------
-Value Variable::evaluate(Environment& environment) const
+Value Variable::evaluate(const Environment& environment) const
 {
    const Value& result = environment.read(identifier);
    return result.createCopy();
@@ -41,7 +41,7 @@ void ValueExpression::print(ostream& stream) const
    stream << value;
 }
 //---------------------------------------------------------------------------
-Value ValueExpression::evaluate(Environment&) const
+Value ValueExpression::evaluate(const Environment&) const
 {
    return value.createCopy();
 }
@@ -63,13 +63,13 @@ void UnaryOperator::addChild(unique_ptr<Expression> child)
    this->child = ::move(child);
 }
 //---------------------------------------------------------------------------
-Value UnaryMinusOperator::evaluate(Environment&) const
+Value UnaryMinusOperator::evaluate(const Environment&) const
 {
    // return child->evaluate(environment)->computeInv();
    throw;
 }
 //---------------------------------------------------------------------------
-Value NotOperator::evaluate(Environment&) const
+Value NotOperator::evaluate(const Environment&) const
 {
    // return child->evaluate(environment)->computeNot();
    throw;
@@ -103,7 +103,7 @@ void BinaryOperator::print(ostream& stream) const
    stream << " ) ";
 }
 //---------------------------------------------------------------------------
-Value AssignmentOperator::evaluate(Environment&) const
+Value AssignmentOperator::evaluate(const Environment&) const
 {
    if(lhs->getExpressionType() != ExpressionType::TVariable)
       throw harriet::Exception("need variable as left hand side of assignment operator");
@@ -112,35 +112,33 @@ throw;
    // return lhs->evaluate(environment);
 }
 //---------------------------------------------------------------------------
-Value PlusOperator::evaluate(Environment& environment) const
+Value PlusOperator::evaluate(const Environment& environment) const
 {
    return lhs->evaluate(environment).computeAdd(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value MinusOperator::evaluate(Environment& environment) const
+Value MinusOperator::evaluate(const Environment& environment) const
 {
    return lhs->evaluate(environment).computeSub(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value MultiplicationOperator::evaluate(Environment&) const
+Value MultiplicationOperator::evaluate(const Environment& environment) const
 {
-   // return lhs->evaluate(environment)->computeMul(*rhs->evaluate(environment));
-   throw;
+   return lhs->evaluate(environment).computeMul(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value DivisionOperator::evaluate(Environment&) const
+Value DivisionOperator::evaluate(const Environment& environment) const
 {
-   // return lhs->evaluate(environment)->computeDiv(*rhs->evaluate(environment));
-   throw;
+   return lhs->evaluate(environment).computeDiv(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value ModuloOperator::evaluate(Environment&) const
+Value ModuloOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeMod(*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value ExponentiationOperator::evaluate(Environment&) const
+Value ExponentiationOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeExp(*rhs->evaluate(environment));
    throw;
@@ -151,47 +149,47 @@ AndOperator::AndOperator(unique_ptr<Expression> lhs, unique_ptr<Expression> rhs)
    this->rhs = move(rhs);
 }
 //---------------------------------------------------------------------------
-Value AndOperator::evaluate(Environment& environment) const
+Value AndOperator::evaluate(const Environment& environment) const
 {
    return lhs->evaluate(environment).computeAnd(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value OrOperator::evaluate(Environment&) const
+Value OrOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeOr (*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value GreaterOperator::evaluate(Environment&) const
+Value GreaterOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeGt (*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value LessOperator::evaluate(Environment&) const
+Value LessOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeLt (*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value GreaterEqualOperator::evaluate(Environment&) const
+Value GreaterEqualOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeGeq(*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value LessEqualOperator::evaluate(Environment&) const
+Value LessEqualOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeLeq(*rhs->evaluate(environment));
    throw;
 }
 //---------------------------------------------------------------------------
-Value EqualOperator::evaluate(Environment& environment) const
+Value EqualOperator::evaluate(const Environment& environment) const
 {
    return lhs->evaluate(environment).computeEq(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value NotEqualOperator::evaluate(Environment&) const
+Value NotEqualOperator::evaluate(const Environment&) const
 {
    // return lhs->evaluate(environment)->computeNeq(*rhs->evaluate(environment));
    throw;
@@ -204,7 +202,7 @@ FunctionOperator::FunctionOperator(const string& functionName, uint32_t function
 {
 }
 //---------------------------------------------------------------------------
-Value FunctionOperator::evaluate(Environment&) const
+Value FunctionOperator::evaluate(const Environment&) const
 {
    throw;
    // // build arguments

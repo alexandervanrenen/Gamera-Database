@@ -33,13 +33,14 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
    unique_ptr<script::RootStatement> roots;
    try {
       roots = script::parse(query);
+      assert(roots != nullptr);
    } catch(script::ParserException& e) {
       result->setParserError(e.line, e.column);
       return result;
    }
 
    // Execute query
-   try {
+
       for(auto& root : roots->statements) {
          // Plan generation
          script::PlanGenerationVisitor geny(segmentManager, schemaManager, environment);
@@ -58,10 +59,6 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
          script::ExecutionVisitor exy(segmentManager, schemaManager, *result);
          root->acceptVisitor(exy);
       }
-   } catch(harriet::Exception& e) {
-      result->setRuntimeError(e.message);
-      return result;
-   }
 
    return result;
 }

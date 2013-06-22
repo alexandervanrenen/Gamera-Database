@@ -27,7 +27,7 @@ class Expression {
 public:
    virtual void print(std::ostream& stream) const = 0;
 
-   virtual Value evaluate(Environment& environment) const = 0;
+   virtual Value evaluate(const Environment& environment) const = 0;
    virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) = 0; // Pointer to the place where I am stored
 
    virtual ExpressionType getExpressionType() const = 0;
@@ -43,7 +43,7 @@ public:
    Variable(const std::string& identifier) : identifier(identifier) {}
    virtual ~Variable(){};
    virtual void print(std::ostream& stream) const;
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>* self) {return std::vector<std::unique_ptr<Expression>*>(1, self);}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TVariable;}
    const std::string& getIdentifier() const {return identifier;}
@@ -57,7 +57,7 @@ public:
    ValueExpression(Value&& value) : value(std::move(value)) {}
    virtual ~ValueExpression(){};
    virtual void print(std::ostream& stream) const;
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>*) {return std::vector<std::unique_ptr<Expression>*>();}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TValue;}
    Value value;
@@ -76,14 +76,14 @@ protected:
 };
 //---------------------------------------------------------------------------
 class UnaryMinusOperator : public UnaryOperator {
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual ExpressionType getExpressionType() const {return ExpressionType::TUnaryMinusOperator;}
 protected:
    virtual const std::string getSign() const {return "-";}
 };
 //---------------------------------------------------------------------------
 class NotOperator : public UnaryOperator {
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual ExpressionType getExpressionType() const {return ExpressionType::TNotOperator;}
 protected:
    virtual const std::string getSign() const {return "!";}
@@ -107,7 +107,7 @@ public:
    virtual ~AssignmentOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TAssignmentOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "=";}
 };
 //---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ public:
    virtual ~PlusOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TPlusOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "+";}
 };
 //---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ public:
    virtual ~MinusOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TMinusOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "-";}
 };
 //---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ public:
    virtual ~MultiplicationOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TMultiplicationOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "*";}
 };
 //---------------------------------------------------------------------------
@@ -150,7 +150,7 @@ public:
    virtual ~DivisionOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TDivisionOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "/";}
 };
 //---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ public:
    virtual ~ModuloOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TModuloOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "%";}
 };
 //---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ public:
    virtual ~ExponentiationOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TExponentiationOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "^";}
 };
 //---------------------------------------------------------------------------
@@ -181,7 +181,7 @@ public:
    virtual ~AndOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TAndOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "&";}
 };
 //---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ public:
    virtual ~OrOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TOrOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "|";}
 };
 //---------------------------------------------------------------------------
@@ -204,7 +204,7 @@ public:
    virtual ~GreaterOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TGreaterOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return ">";}
 };
 //---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ public:
    virtual ~LessOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TLessOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "<";}
 };
 //---------------------------------------------------------------------------
@@ -222,7 +222,7 @@ public:
    virtual ~GreaterEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TGreaterEqualOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return ">=";}
 };
 //---------------------------------------------------------------------------
@@ -231,7 +231,7 @@ public:
    virtual ~LessEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TLessEqualOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "<=";}
 };
 //---------------------------------------------------------------------------
@@ -241,7 +241,7 @@ public:
    virtual ~EqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TEqualOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "==";}
 };
 //---------------------------------------------------------------------------
@@ -250,7 +250,7 @@ public:
    virtual ~NotEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TNotEqualOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
    virtual const std::string getSign() const {return "!=";}
 };
 //---------------------------------------------------------------------------
@@ -261,7 +261,7 @@ public:
    virtual ~FunctionOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TFunctionOperator;}
 protected:
-   virtual Value evaluate(Environment& environment) const;
+   virtual Value evaluate(const Environment& environment) const;
 
    const std::string functionName;
    const uint32_t functionIdentifier;

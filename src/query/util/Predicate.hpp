@@ -13,7 +13,7 @@ namespace dbi {
 namespace qopt {
 
 struct Predicate {
-   std::vector<ColumnAccessInfo> columns;
+   std::vector<ColumnAccessInfo> columns; // Non unique, because an expression can refer multiple times to the same column
    std::set<uint32_t> tables;
    std::unique_ptr<harriet::Expression> condition;
 

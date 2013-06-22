@@ -1,4 +1,5 @@
 #include "ProjectionOperator.hpp"
+#include "query/signature/ColumnSignature.hpp"
 #include <cassert>
 #include <iostream>
 

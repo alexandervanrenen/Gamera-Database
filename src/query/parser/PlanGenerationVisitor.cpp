@@ -64,7 +64,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    predicates = predicateGenerator.createPredicates(select.conditions, select.tableAccessVec);
 
    // Let the optimizer build a nice access tree from the table access' and the predicates
-   qopt::ChainOptimizer opty(select.globalRegister);
+   qopt::ChainOptimizer opty(select.globalRegister, environment);
    auto plan = opty.optimize(select.tableAccessVec, predicates, requiredProjectionColums);
 
    plan = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);

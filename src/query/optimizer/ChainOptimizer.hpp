@@ -18,13 +18,14 @@ class AccessTree;
 /// WARNING: This algorithm assumes that each predicate refers to at least one table (handled by an assert)
 class ChainOptimizer : public Optimizer {
 public:
-   ChainOptimizer(std::vector<harriet::Value>& globalRegister);
+   ChainOptimizer(std::vector<harriet::Value>& globalRegister, const harriet::Environment& env);
    virtual ~ChainOptimizer();
    virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates, std::set<ColumnAccessInfo>& projections);
 
 private:
    std::unique_ptr<AccessTree> createAccessTree(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates) const;
    std::vector<harriet::Value>& globalRegister;
+   const harriet::Environment& env;
 };
 
 }

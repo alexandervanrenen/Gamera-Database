@@ -33,6 +33,8 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
          // If so merge condition expression and drop one predicate
          if((*outerIter)->tables == (*innerIter)->tables) {
             (*outerIter)->condition = util::make_unique<harriet::AndOperator>(move((*outerIter)->condition), move((*innerIter)->condition));
+            for(auto& iter : (*innerIter)->columns)
+               (*outerIter)->columns.push_back(iter);
             innerIter = predicates.erase(innerIter);
          } else 
             innerIter++;
@@ -63,8 +65,10 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    // Second -- Check type of condition
    {
       harriet::Environment env;
-      for(auto& iter : predicate->columns)
-         env.add(iter.getVariable().getIdentifier(), harriet::Value::createDefault(iter.columnSchema.type));
+      for(auto& iter : predicate->columns) {
+         if(!env.isInLocalScope(iter.getVariable().getIdentifier()))
+            env.add(iter.getVariable().getIdentifier(), harriet::Value::createDefault(iter.columnSchema.type));
+      }
       if(predicate->condition->evaluate(env).type.type != harriet::VariableType::Type::TBool) {
          ostringstream os;
          predicate->condition->print(os);

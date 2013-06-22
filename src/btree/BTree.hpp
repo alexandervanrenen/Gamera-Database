@@ -47,8 +47,8 @@ private:
     template <typename V = PageId>
     struct KeyEqual {
         C c{};
-        Key k;
-        KeyEqual(Key k) {this->k = k;}
+        const Key& k;
+        KeyEqual(const Key& key) : k(key) {}
         bool operator()(std::pair<Key, V>& a) const {
             return !c(a.first, k) && !c(k, a.first);
         }
@@ -147,7 +147,7 @@ public:
     }
     
     template <uint64_t N, typename V = TID>
-    void insertLeafValue(std::array<std::pair<Key, V>, N>& values, uint64_t& nextindex, Key k, V tid) {
+    void insertLeafValue(std::array<std::pair<Key, V>, N>& values, uint64_t& nextindex, const Key& k, const V& tid) {
         auto it = std::upper_bound(values.begin(), values.begin()+nextindex, k, KeyCompare<V>());
         if (it == values.end()) { // insert value at the end
             values[nextindex++] = {k, tid};
@@ -158,7 +158,7 @@ public:
         }
     }
     
-    bool insert(Key k, TID tid) {
+    bool insert(const Key& k, const TID& tid) {
         assert(rootnode != nullptr);
         guard.lock();
         Node* node = rootnode;
@@ -282,7 +282,7 @@ public:
     }
 
 
-    std::pair<Key, PageId> insertInLeaf(LeafNode* leaf, Key k, TID tid) { 
+    std::pair<Key, PageId> insertInLeaf(LeafNode* leaf, const Key& k, const TID& tid) { 
         assert(leaf != nullptr);
         if (leaf->nextindex < leaf->values.size()) { // node is not full
             insertLeafValue<LeafNode::numkeys>(leaf->values, leaf->nextindex, k, tid);
@@ -316,7 +316,7 @@ public:
     }
 
 
-    std::pair<BufferFrame*, LeafNode*> leafLookup(Key k) {
+    std::pair<BufferFrame*, LeafNode*> leafLookup(const Key& k) {
         assert(rootnode != nullptr);
         guard.lock();
         Node* node = rootnode;
@@ -347,7 +347,7 @@ public:
         return {nodeframe, leafnode};
     }
 
-    bool lookup(Key k, TID& tid) {
+    bool lookup(const Key& k, TID& tid) {
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
         auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(k));
@@ -362,7 +362,7 @@ public:
     }
 
 
-    bool erase(Key k) {
+    bool erase(const Key& k) {
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
         auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(k));
@@ -419,7 +419,7 @@ public:
         LeafNode* node;
         BufferFrame* frame;
         ValuesIterator it;
-        Key last;
+        const Key& last;
         bool finished = false;
         public:
 
@@ -475,14 +475,13 @@ public:
             return !finished;
         }
 
-        Iterator(BTree<Key, C>* pointer, BufferFrame* frame, LeafNode* node, ValuesIterator it, Key last) : it(it) {
+        Iterator(BTree<Key, C>* pointer, BufferFrame* frame, LeafNode* node, ValuesIterator it, const Key& last) : it(it), last(last) {
             tree = pointer;
             this->node = node;
             this->frame = frame;
-            this->last = last;
         }
 
-        Iterator(BTree<Key, C>* pointer) {
+        Iterator(BTree<Key, C>* pointer, const Key& last) : last(last) {
             tree = pointer;
             finished = true;
             this->node = nullptr;
@@ -497,18 +496,18 @@ public:
     };
 
 
-    Iterator lookupRange(Key first, Key last) { 
+    Iterator lookupRange(const Key& first, const Key& last) { 
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(first);
         LeafNode* leafnode = p.second;
         auto it = std::find_if(leafnode->values.begin(), leafnode->values.begin()+leafnode->nextindex, KeyEqual<TID>(first));
         if (it != leafnode->values.begin()+leafnode->nextindex)
             return *new Iterator{this, p.first, leafnode, it, last};
         else
-            return *new Iterator{this};
+            return *new Iterator{this, last};
     }
 
     Iterator* end() {
-        return new Iterator{this};
+        return new Iterator{this, Key()};
     }
     
     void visualizeNode(std::ofstream& out, PageId id) {

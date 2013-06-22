@@ -37,22 +37,22 @@ unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& rel
    return accessTree->toPlan(requiredColumns, globalRegister);
 }
 
-namespace {
-   void debug(vector<std::unique_ptr<AccessTree>>& workSet)
-   {
-      cout << "----" << endl;
-      for(auto& tree : workSet) {
-         cout << ">> tree:";
-         for(auto iter : tree->coveredRelations)
-            cout << " " << iter;
-         cout << endl;
-         if(tree->predicate != nullptr)
-            tree->predicate->dump(cout);
-         cout << endl;
-      }
-      cout << "----" << endl;
-   }
-}
+// namespace {
+//    void debug(vector<std::unique_ptr<AccessTree>>& workSet)
+//    {
+//       cout << "----" << endl;
+//       for(auto& tree : workSet) {
+//          cout << ">> tree:";
+//          for(auto iter : tree->coveredRelations)
+//             cout << " " << iter;
+//          cout << endl;
+//          if(tree->predicate != nullptr)
+//             tree->predicate->dump(cout);
+//          cout << endl;
+//       }
+//       cout << "----" << endl;
+//    }
+// }
 
 unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates) const
 {

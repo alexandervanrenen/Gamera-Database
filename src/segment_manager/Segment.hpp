@@ -31,8 +31,8 @@ public:
    PageIdIterator endPageId() const;
 
    /// Get extents for this segment (extent is added by the segment inventory)
-   virtual const Extent grow() = 0;
-   virtual const Extent grow(uint64_t numPages) = 0;
+   virtual const Extent grow();
+   virtual const Extent grow(uint64_t numPages);
 
 private:
    const SegmentId id;

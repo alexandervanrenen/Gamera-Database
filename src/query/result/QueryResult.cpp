@@ -42,7 +42,6 @@ void SelectResult::print(ostream& os) const
    os << endl << string(totalWidth, '-') << endl;
 
    // Print content
-   auto begin = chrono::high_resolution_clock::now();
    uint64_t tupleCount = 0;
    for(auto& row : result) {
       os << "| ";
@@ -52,7 +51,7 @@ void SelectResult::print(ostream& os) const
       tupleCount++;
    }
    os << string(totalWidth, '-') << endl;
-   os << "fetched " << tupleCount << " tuples in " << util::formatTime(nanos, 3) << endl;
+   os << "Fetched " << tupleCount << " tuples in " << util::formatTime(nanos, 3) << endl;
 }
 
 CreateResult::CreateResult(chrono::nanoseconds nanos, const string& tableName)
@@ -67,6 +66,7 @@ CreateResult::~CreateResult()
 
 void CreateResult::print(ostream& os) const
 {
+   os << "Success: Created table '" << tableName << "' in " << util::formatTime(nanos, 3) << endl;
 }
 
 InsertResult::InsertResult(chrono::nanoseconds nanos, const string& tableName)
@@ -81,6 +81,7 @@ InsertResult::~InsertResult()
 
 void InsertResult::print(ostream& os) const
 {
+   os << "Success: Insert into '" << tableName << "' in " << util::formatTime(nanos, 3) << endl;
 }
 
 }

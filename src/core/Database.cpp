@@ -22,7 +22,6 @@ using namespace std;
 namespace dbi {
 
 Database::Database(const DatabaseConfig& config, bool isInitialSetup)
-: config(config)
 {
    bufferManager = util::make_unique<BufferManager>(config.storageFile, config.memoryPages);
    segmentManager = util::make_unique<SegmentManager>(*bufferManager, isInitialSetup);

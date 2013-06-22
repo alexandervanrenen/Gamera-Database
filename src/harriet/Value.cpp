@@ -182,7 +182,7 @@ ostream& operator<< (ostream& os, const Value& v)
 //---------------------------------------------------------------------------
 namespace {
 void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(Exception) { throw Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
-void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
+// void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
 }
 //---------------------------------------------------------------------------
 Value Value::computeAdd(const Value& rhs) const

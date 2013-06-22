@@ -1,6 +1,8 @@
 #ifndef SCRIPTLANGUAGE_UTILITY_HPP_
 #define SCRIPTLANGUAGE_UTILITY_HPP_
 //---------------------------------------------------------------------------
+#include <sstream>
+//---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
 // See the file LICENSE.txt for copying permission.

@@ -19,7 +19,6 @@ public:
    std::unique_ptr<QueryResultCollection> executeQuery(const std::string& query);
 
 private:
-   const DatabaseConfig& config;
    std::unique_ptr<SegmentManager> segmentManager;
    std::unique_ptr<BufferManager> bufferManager;
    std::unique_ptr<SchemaManager> schemaManager;

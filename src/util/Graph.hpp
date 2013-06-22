@@ -45,7 +45,7 @@ public:
         KeyMap& k = (*it).second;
         //k.clear();
         for (auto p : k) {
-            p.second = false;
+            if (p.second) p.second = false;
         }
     }
 

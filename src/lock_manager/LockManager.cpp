@@ -40,6 +40,19 @@ bool LockManager::lock(TupleId tid, TxId tx, bool exclusive) {
     while (true) {
         TupleBoolMap::accessor a;
         bool res = locks.insert(a, {tid, exclusive});
+        
+        // Make sure no transaction tries to lock a tuple a second time
+        TupleTxMap::const_accessor catx;
+        if (transactions.find(catx, tid)) {
+            if (std::find(catx->second.cbegin(), catx->second.cend(), tx) != catx->second.cend()) {
+                // Already locked and no upgrade
+                if (a->second) return false;
+                else if (!a->second && !exclusive) return false;
+            }
+        }
+        catx.release();
+
+        // Tuple not yet locked or only shared locked
         if (res || (!exclusive && !a->second)) {
             TupleTxMap::accessor atx;
             transactions.insert(atx, tid);
@@ -49,18 +62,21 @@ bool LockManager::lock(TupleId tid, TxId tx, bool exclusive) {
             atup->second.push_back(tid);
             break;
         }
-        // Make sure no transaction tries to lock a tuple a second time
-        TupleTxMap::const_accessor catx;
-        if (transactions.find(catx, tid)) {
-            if (std::find(catx->second.cbegin(), catx->second.cend(), tx) != catx->second.cend())
-                throw AlreadyLockedException();
+        
+        // Transaction wants lock upgrade from shared to exclusive
+        if (!res && !a->second && exclusive) {
+            TupleTxMap::accessor atrans;
+            // Transaction is the only one to hold the shared lock -> upgrade possible
+            if (transactions.find(atrans, tid) && atrans->second.size() == 1) {
+                a->second = exclusive;
+                return true;
+            }
         }
-        catx.release();
-        //printf("T%d waiting for %d\n",  int(tx), int(tid.toInteger()));
+
         // Tuple is locked, wait
         if (deadlock(tx, tid))
             throw DeadlockException(); 
-        if (first) {
+        if (first) { // Enter transaction into waiterlist
             TupleTxMap::accessor atup;
             waiterlist.insert(atup, tid);
             atup->second.push_back(tx);
@@ -77,6 +93,7 @@ bool LockManager::lock(TupleId tid, TxId tx, bool exclusive) {
         a.release();
         cv->wait(ul);
     }
+    // Transaction has waited a minimum of one round
     if (!first) {
         waitgraph.clearNode(tx);
         TupleTxMap::accessor atup;

@@ -9,7 +9,9 @@
 
 void threadTest(dbi::LockManager* lm, int thread) {
     for (uint64_t i=1; i < 100; i++) {
-        lm->lock(dbi::TupleId(i), thread);
+        try {
+            lm->lock(dbi::TupleId(i), thread);
+        } catch (dbi::DeadlockException e) {}
     }
     lm->unlockAll(thread);
 }
@@ -72,6 +74,21 @@ TEST(LockManagerTest, SimpleTest) {
     ASSERT_TRUE(m.noLocks());
     ASSERT_TRUE(m.lock(TupleId(1), 2));
     ASSERT_FALSE(m.noLocks());
+    m.unlockAll(2);
+    ASSERT_TRUE(m.noLocks());
+}
+
+TEST(LockManagerTest, Upgrade) {
+    typedef dbi::TupleId TupleId;
+    dbi::LockManager m;
+    ASSERT_TRUE(m.lock(TupleId(1), 1));
+    ASSERT_FALSE(m.lock(TupleId(1), 1));
+    // Shared lock on 2
+    ASSERT_TRUE(m.lock(TupleId(2), 1, false));
+    ASSERT_TRUE(m.lock(TupleId(2), 2, false));
+    m.unlockAll(1);
+    // Lock upgrade on 2
+    ASSERT_TRUE(m.lock(TupleId(2), 2, true));
     m.unlockAll(2);
     ASSERT_TRUE(m.noLocks());
 }

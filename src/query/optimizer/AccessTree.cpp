@@ -35,10 +35,10 @@ Leafe::~Leafe()
 {
 }
 
-unique_ptr<Operator> Leafe::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
+unique_ptr<Operator> Leafe::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
 {
-   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table, requiredColumns, globalRegister);
-   
+   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table, requiredColumns, globalRegister, registerOffset);
+
    if(predicate != nullptr)
       result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);
    return result;
@@ -66,10 +66,10 @@ Node::~Node()
 {
 }
 
-unique_ptr<Operator> Node::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
+unique_ptr<Operator> Node::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
 {
-   auto lPlan = lhs->toPlan(requiredColumns, globalRegister);
-   auto rPlan = rhs->toPlan(requiredColumns, globalRegister);
+   auto lPlan = lhs->toPlan(requiredColumns, globalRegister, registerOffset);
+   auto rPlan = rhs->toPlan(requiredColumns, globalRegister, registerOffset);
    unique_ptr<Operator> result = util::make_unique<CrossProductOperator>(move(lPlan), move(rPlan));
    if(predicate != nullptr)
       result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);

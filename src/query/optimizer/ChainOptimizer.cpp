@@ -38,9 +38,14 @@ unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& rel
       set<ColumnAccessInfo> requiredColumns = accessTree->getRequiredColumns();
       for(auto& iter : projections)
          requiredColumns.insert(iter);
-      return accessTree->toPlan(requiredColumns, globalRegister);
+      for(auto& iter : requiredColumns)
+         globalRegister.emplace_back(harriet::Value::createDefault(iter.columnSchema.type));
+      uint32_t registerOffset = 0;
+      auto plan = accessTree->toPlan(requiredColumns, globalRegister, registerOffset);
+      assert(globalRegister.size() == registerOffset);
+      return plan;
    } else {
-      // Some brain dead idiot used 'false' in the were clause
+      // Some brain dead idiot used 'false' in the where clause
       return util::make_unique<ZeroRecordOperator>(projections);
    }
 }

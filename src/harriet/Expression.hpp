@@ -21,7 +21,7 @@ class Environment;
 class Value;
 class Variable;
 //---------------------------------------------------------------------------
-enum struct ExpressionType : uint8_t {TVariable, TValue, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
+enum struct ExpressionType : uint8_t {TVariable, TValue, TValueReference, TUnaryMinusOperator, TNotOperator, TIntegerCast, TFloatCast, TBoolCast, TAssignmentOperator, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TModuloOperator, TExponentiationOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator, TFunctionOperator};
 //---------------------------------------------------------------------------
 class Expression {
 public:
@@ -61,6 +61,17 @@ public:
    virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>*) {return std::vector<std::unique_ptr<Expression>*>();}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TValue;}
    Value value;
+};
+//---------------------------------------------------------------------------
+class ValueReferenceExpression : public Expression { // A non owning value
+public:
+   ValueReferenceExpression(Value* value) : value(value) {}
+   virtual ~ValueReferenceExpression(){};
+   virtual void print(std::ostream& stream) const;
+   virtual Value evaluate(const Environment& environment) const;
+   virtual std::vector<std::unique_ptr<Expression>*> getAllVariables(std::unique_ptr<Expression>*) {return std::vector<std::unique_ptr<Expression>*>();}
+   virtual ExpressionType getExpressionType() const {return ExpressionType::TValueReference;}
+   Value* value;
 };
 //---------------------------------------------------------------------------
 class UnaryOperator : public Expression {

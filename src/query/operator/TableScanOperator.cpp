@@ -13,17 +13,16 @@ using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
+TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
 : tableaccessInfo(tableaccessInfo)
-, signature(tableaccessInfo, requiredColumns, globalRegister.size())
+, signature(tableaccessInfo, requiredColumns, registerOffset)
 , state(kClosed)
 , nextPage(tableaccessInfo.segment.endPageId())
 , positionInCurrentPage(0)
 , globalRegister(globalRegister)
-, registerOffset(globalRegister.size())
+, registerOffset(registerOffset)
 {
-   for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-      globalRegister.emplace_back(harriet::Value::createDefault(harriet::VariableType()));
+   registerOffset += signature.getAttributes().size();
 }
 
 TableScanOperator::~TableScanOperator()

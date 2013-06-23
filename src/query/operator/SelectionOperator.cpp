@@ -10,7 +10,7 @@ namespace dbi {
 SelectionOperator::SelectionOperator(unique_ptr<Operator> source, unique_ptr<qopt::Predicate> predicate, vector<harriet::Value>& globalRegister)
 : source(move(source))
 , state(kClosed)
-, signature(this->source->getSignature(), move(predicate))
+, signature(this->source->getSignature(), move(predicate), globalRegister)
 , globalRegister(globalRegister)
 {
 }

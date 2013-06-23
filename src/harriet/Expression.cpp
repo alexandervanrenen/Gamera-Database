@@ -46,6 +46,16 @@ Value ValueExpression::evaluate(const Environment&) const
    return value.createCopy();
 }
 //---------------------------------------------------------------------------
+void ValueReferenceExpression::print(ostream& stream) const
+{
+   stream << *value;
+}
+//---------------------------------------------------------------------------
+Value ValueReferenceExpression::evaluate(const Environment&) const
+{
+   return value->createCopy();
+}
+//---------------------------------------------------------------------------
 vector<unique_ptr<Expression>*> UnaryOperator::getAllVariables(unique_ptr<Expression>*)
 {
    return child->getAllVariables(&child);

@@ -17,7 +17,7 @@ class Record;
 /// Interprets the records provided by a RecordScanOperator
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const std::set<qopt::ColumnAccessInfo>& requiredColumns, std::vector<harriet::Value>& globalRegister);
+   TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const std::set<qopt::ColumnAccessInfo>& requiredColumns, std::vector<harriet::Value>& globalRegister, uint32_t& registerPosition);
    virtual ~TableScanOperator();
 
    virtual const Signature& getSignature() const;

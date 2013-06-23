@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <ios>
 //---------------------------------------------------------------------------
 // Harriet Script Language
 // Copyright (c) 2012, 2013 Alexander van Renen (alexandervanrenen@gmail.com)
@@ -33,6 +34,9 @@ public:
    bool hasFunction(const std::string& identifier);
    std::vector<const Function*> getFunction(const std::string& identifier); // all functions with same name
    const Function* getFunction(uint32_t id); // specific function
+
+   // helper
+   void dump(std::ostream& os);
 
 private:
    Environment* parent;

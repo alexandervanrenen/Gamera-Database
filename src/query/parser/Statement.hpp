@@ -39,7 +39,7 @@ struct SelectStatement : public Statement {
    SelectStatement(std::vector<ColumnReference>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions);
    ~SelectStatement();
 
-   std::vector<ColumnReference> selections;
+   std::vector<ColumnReference> projections;
    std::vector<TableReference> sources;
    std::vector<std::unique_ptr<harriet::Expression>> conditions;
 

@@ -16,18 +16,16 @@ ColumnResolver::ColumnResolver(const harriet::Environment& env)
 {
 }
 
-ColumnResolver::Result ColumnResolver::resolveSelection(unique_ptr<harriet::Expression>& variable, const vector<TableAccessInfo>& tableAccessVec) const
+ColumnResolver::Result ColumnResolver::resolveSelection(ColumnReference& column, const vector<TableAccessInfo>& tableAccessVec) const
 {
-   assert(variable->getExpressionType() == harriet::ExpressionType::TVariable);
-
-   pair<uint32_t, const ColumnSchema*> result = tryFindColumn(ColumnReference(reinterpret_cast<harriet::Variable&>(*variable).getIdentifier()), tableAccessVec);
+   pair<uint32_t, const ColumnSchema*> result = tryFindColumn(column, tableAccessVec);
    if(result.first != static_cast<uint32_t>(-1)) {
       // We found a column
-      return Result(util::make_unique<ColumnAccessInfo>(variable, *result.second, result.first));
+      return Result(util::make_unique<ColumnAccessInfo>(column, *result.second, result.first));
    } else {
       // No column found => look in environment
-      if(!env.isInAnyScope(reinterpret_cast<harriet::Variable&>(*variable).getIdentifier()))
-         throw harriet::Exception{"unknown identifier: '" + reinterpret_cast<harriet::Variable&>(*variable).getIdentifier() + "'"};
+      if(!env.isInAnyScope(column.str()))
+         throw harriet::Exception{"unknown identifier: '" + column.str() + "'"};
       return Result(nullptr);
    }
 }
@@ -38,9 +36,7 @@ ColumnAccessInfo ColumnResolver::resolveProjection(ColumnReference& column, cons
    pair<uint32_t, const ColumnSchema*> result = tryFindColumn(column, tableAccessVec);
    if(result.first == static_cast<uint32_t>(-1))
       throw harriet::Exception{"unknown identifier: '" + column.tableQualifier + "." + column.columnName + "'"};
-   auto ptr = util::make_unique<harriet::Variable>("TODO: fix this by introducing a ProjectionClass");
-   auto hack = new unique_ptr<harriet::Expression>(move(ptr)); // TODO: fix this by introducing a ProjectionClass
-   return ColumnAccessInfo(*hack, *result.second, result.first);
+   return ColumnAccessInfo(column, *result.second, result.first);
 }
 
 pair<uint32_t, const ColumnSchema*> ColumnResolver::tryFindColumn(const ColumnReference& ref, const vector<TableAccessInfo>& tableAccessVec)

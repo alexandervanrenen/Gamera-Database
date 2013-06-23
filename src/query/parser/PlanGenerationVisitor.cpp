@@ -53,7 +53,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    qopt::ColumnResolver resolver(environment);
    set<qopt::ColumnAccessInfo> requiredProjectionColums;
    vector<qopt::ColumnAccessInfo> projectionTargets; // These tow are redundant... this will change with the Projection class
-   for(auto& iter : select.selections) {
+   for(auto& iter : select.projections) {
       requiredProjectionColums.insert(resolver.resolveProjection(iter, select.tableAccessVec));
       projectionTargets.push_back(resolver.resolveProjection(iter, select.tableAccessVec));
    }

@@ -7,6 +7,7 @@
 #include "query/operator/ZeroRecordOperator.hpp"
 #include "query/util/Predicate.hpp"
 #include "query/util/TableAccessInfo.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include "util/Utility.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -21,7 +22,6 @@ ChainOptimizer::ChainOptimizer(std::vector<harriet::Value>& globalRegister, cons
 : globalRegister(globalRegister)
 , env(env)
 {
-
 }
 
 ChainOptimizer::~ChainOptimizer()
@@ -66,7 +66,7 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
 {
    // Handle predicates referring to no table
    for(auto iter = predicates.begin(); iter != predicates.end();) {
-      if((*iter)->tables.empty()) {
+      if((*iter)->requiredColumns.empty()) {
          harriet::Value constantCondition = (*iter)->condition->evaluate(env);
          if(constantCondition.data.vbool) {
             // A true constant can be ignored
@@ -93,16 +93,7 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
 
       // Try to apply a predicate referring to a single tree
       for(auto predicate=predicates.begin(); predicate!=predicates.end(); predicate++) {
-         set<uint32_t> requiredRelations((*predicate)->tables.begin(), (*predicate)->tables.end());
-         set<uint32_t> requiredTrees;
-         for(uint32_t i=0; i<workSet.size(); i++) {
-            for(auto suppliedTableId : workSet[i]->coveredRelations) {
-               if(requiredRelations.count(suppliedTableId) == 1) {
-                  requiredTrees.insert(i);
-                  requiredRelations.erase(suppliedTableId);
-               }
-            }
-         }
+         set<uint32_t> requiredTrees = getRequiredTrees(**predicate, workSet);
 
          if(requiredTrees.size() == 1) {
             assert(workSet[*requiredTrees.begin()]->predicate == nullptr);
@@ -117,16 +108,7 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
 
       // Try to join two trees with a predicate
       for(auto predicate=predicates.begin(); predicate!=predicates.end(); predicate++) {
-         set<uint32_t> requiredRelations((*predicate)->tables.begin(), (*predicate)->tables.end());
-         set<uint32_t> requiredTrees;
-         for(uint32_t i=0; i<workSet.size(); i++) {
-            for(auto suppliedTableId : workSet[i]->coveredRelations) {
-               if(requiredRelations.count(suppliedTableId) == 1) {
-                  requiredTrees.insert(i);
-                  requiredRelations.erase(suppliedTableId);
-               }
-            }
-         }
+         set<uint32_t> requiredTrees = getRequiredTrees(**predicate, workSet);
          assert(requiredTrees.size() > 1);
 
          if(requiredTrees.size() == 2) {
@@ -143,16 +125,7 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
 
       // Cross product with anything even remotely useful
       for(auto predicate=predicates.begin(); predicate!=predicates.end(); predicate++) {
-         set<uint32_t> requiredRelations((*predicate)->tables.begin(), (*predicate)->tables.end());
-         set<uint32_t> requiredTrees;
-         for(uint32_t i=0; i<workSet.size(); i++) {
-            for(auto suppliedTableId : workSet[i]->coveredRelations) {
-               if(requiredRelations.count(suppliedTableId) == 1) {
-                  requiredTrees.insert(i);
-                  requiredRelations.erase(suppliedTableId);
-               }
-            }
-         }
+         set<uint32_t> requiredTrees = getRequiredTrees(**predicate, workSet);
          assert(requiredTrees.size() > 2);
 
          unique_ptr<AccessTree> node = util::make_unique<Node>(nullptr, move(workSet[*requiredTrees.begin()]), move(workSet[*(++requiredTrees.begin())]));
@@ -176,6 +149,21 @@ unique_ptr<AccessTree> ChainOptimizer::createAccessTree(const vector<TableAccess
    assert(workSet.size() == 1);
    assert(predicates.size() == 0);
    return move(workSet[0]);
+}
+
+set<uint32_t> ChainOptimizer::getRequiredTrees(const Predicate& predicate, vector<unique_ptr<AccessTree> >& workSet) const
+{
+   set<uint32_t> requiredRelations = predicate.getRequiredTables();
+   set<uint32_t> requiredTrees;
+   for(uint32_t i=0; i<workSet.size(); i++) {
+      for(auto suppliedTableId : workSet[i]->coveredRelations) {
+         if(requiredRelations.count(suppliedTableId) == 1) {
+            requiredTrees.insert(i);
+            requiredRelations.erase(suppliedTableId);
+         }
+      }
+   }
+   return requiredTrees;
 }
 
 }

@@ -179,16 +179,14 @@ Value LessOperator::evaluate(const Environment&) const
    throw;
 }
 //---------------------------------------------------------------------------
-Value GreaterEqualOperator::evaluate(const Environment&) const
+Value GreaterEqualOperator::evaluate(const Environment& environment) const
 {
-   // return lhs->evaluate(environment)->computeGeq(*rhs->evaluate(environment));
-   throw;
+   return lhs->evaluate(environment).computeGeq(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
-Value LessEqualOperator::evaluate(const Environment&) const
+Value LessEqualOperator::evaluate(const Environment& environment) const
 {
-   // return lhs->evaluate(environment)->computeLeq(*rhs->evaluate(environment));
-   throw;
+   return lhs->evaluate(environment).computeLeq(rhs->evaluate(environment));
 }
 //---------------------------------------------------------------------------
 Value EqualOperator::evaluate(const Environment& environment) const

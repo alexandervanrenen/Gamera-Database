@@ -6,6 +6,7 @@
 #include "query/operator/TableScanOperator.hpp"
 #include "query/util/Predicate.hpp"
 #include "query/util/TableAccessInfo.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include "util/Utility.hpp"
 #include <cassert>
 
@@ -47,7 +48,7 @@ set<ColumnAccessInfo> Leafe::getRequiredColumns() const
 {
    set<ColumnAccessInfo> result;
    if(predicate != nullptr)
-      for(auto& iter : predicate->columns)
+      for(auto& iter : predicate->requiredColumns)
          result.insert(iter);
    return result;
 }
@@ -81,7 +82,7 @@ set<ColumnAccessInfo> Node::getRequiredColumns() const
 
    // Self
    if(predicate != nullptr)
-      for(auto& iter : predicate->columns)
+      for(auto& iter : predicate->requiredColumns)
          result.insert(iter);
 
    // Lhs

@@ -1,6 +1,7 @@
 #include "SelectionOperator.hpp"
 #include "query/util/Predicate.hpp"
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 

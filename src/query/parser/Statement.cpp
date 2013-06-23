@@ -29,7 +29,7 @@ bool Statement::isGlobal() const
 }
 
 SelectStatement::SelectStatement(vector<ColumnReference>&& selectors, vector<TableReference>&& sources, vector<unique_ptr<harriet::Expression>>&& conditions)
-: selections(move(selectors))
+: projections(move(selectors))
 , sources(move(sources))
 , conditions(move(conditions))
 {

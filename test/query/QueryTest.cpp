@@ -67,6 +67,11 @@ TEST_F(QueryTest, SelectionGood)
 
    ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where firstname = 'Lenard' and (id+1)*2*2 = 4;"), expectedLen));
    ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where firstname = 'Lenard' and id=id;"), expectedLen));
+
+   ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where 0>=id;"), expectedLen));
+   ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where id<=0;"), expectedLen));
+   ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where 0<=id;"), expectedAll));
+   ASSERT_TRUE(validateResult(db.executeQuery("select firstname from Persons where id>=0;"), expectedAll));
 }
 
 TEST_F(QueryTest, ProjectionGood)

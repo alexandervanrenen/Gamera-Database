@@ -124,5 +124,13 @@ const Function* Environment::getFunction(uint32_t id)
    throw;
 }
 //---------------------------------------------------------------------------
+void Environment::dump(ostream& os)
+{
+   for(auto& iter : data)
+      os << iter.first << " = " << iter.second << endl;
+   if(parent != nullptr)
+      parent->dump(os);
+}
+//---------------------------------------------------------------------------
 } // end of namespace harriet
 //---------------------------------------------------------------------------

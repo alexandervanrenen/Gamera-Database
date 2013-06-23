@@ -110,6 +110,7 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
 Expression = c:Conjuction                                  { }
             ( - EQ - i:Conjuction                          { c.expression = util::make_unique<harriet::EqualOperator>(move(c.expression), move(i.expression)); }
             | - GEQ - i:Conjuction                         { c.expression = util::make_unique<harriet::GreaterEqualOperator>(move(c.expression), move(i.expression)); }
+            | - LEQ - i:Conjuction                         { c.expression = util::make_unique<harriet::LessEqualOperator>(move(c.expression), move(i.expression)); }
             )*                                             { $$.expression = move(c.expression); }
 Conjuction = s:Sum                                         { }
            ( - L_AND - i:Sum                               { s.expression = util::make_unique<harriet::AndOperator>(move(s.expression), move(i.expression)); }
@@ -125,7 +126,7 @@ Product = f:Factor                                         { }
         )*                                                 { $$.expression = move(f.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
        | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
-       | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
+       | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.str()); }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
@@ -158,6 +159,7 @@ TIMES = '*'                                                { }
 DIVIDE = '/'                                               { }
 EQ = "=" | "=="                                            { }
 GEQ = ">="                                                 { }
+LEQ = "<="                                                 { }
 L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 # --------------------------------------------------------------------------------------------------------------

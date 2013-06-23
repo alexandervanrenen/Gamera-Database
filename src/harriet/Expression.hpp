@@ -230,6 +230,7 @@ protected:
 //---------------------------------------------------------------------------
 class LessEqualOperator : public ComparisonOperator {
 public:
+   LessEqualOperator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs) {this->lhs=move(lhs); this->rhs=move(rhs);}
    virtual ~LessEqualOperator(){}
    virtual ExpressionType getExpressionType() const {return ExpressionType::TLessEqualOperator;}
 protected:

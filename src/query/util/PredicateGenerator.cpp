@@ -31,10 +31,10 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
    for(auto outerIter = predicates.begin(); outerIter != predicates.end(); outerIter++) {    
       for(auto innerIter = outerIter + 1; innerIter != predicates.end();) {
          // If so merge condition expression and drop one predicate
-         if((*outerIter)->tables == (*innerIter)->tables) {
+         if((*outerIter)->getRequiredTables() == (*innerIter)->getRequiredTables()) {
             (*outerIter)->condition = util::make_unique<harriet::AndOperator>(move((*outerIter)->condition), move((*innerIter)->condition));
-            for(auto& iter : (*innerIter)->columns)
-               (*outerIter)->columns.push_back(iter);
+            for(auto& iter : (*innerIter)->requiredColumns)
+               (*outerIter)->requiredColumns.insert(iter);
             innerIter = predicates.erase(innerIter);
          } else 
             innerIter++;
@@ -54,21 +54,21 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
       ColumnResolver columnResolver(env);
       vector<std::unique_ptr<harriet::Expression>*> freeVariables = predicate->condition->getAllVariables(&predicate->condition);
       for(auto variable : freeVariables) {
-         ColumnResolver::Result result = columnResolver.resolveSelection(*variable, tableAccessVec);
-         if(result.has()) {
-            predicate->columns.push_back(result.get());
-            predicate->tables.insert(predicate->columns.back().tableIndex);
-         }
+         assert((*variable)->getExpressionType() == harriet::ExpressionType::TVariable);
+         ColumnReference columnReference(reinterpret_cast<harriet::Variable&>(**variable).getIdentifier());
+         ColumnResolver::Result result = columnResolver.resolveSelection(columnReference, tableAccessVec);
+         if(result.has())
+            predicate->requiredColumns.insert(result.get());
       }
    }
 
    // Second -- Check type of condition
    {
       harriet::Environment env;
-      for(auto& iter : predicate->columns) {
-         if(!env.isInLocalScope(iter.getVariable().getIdentifier()))
-            env.add(iter.getVariable().getIdentifier(), harriet::Value::createDefault(iter.columnSchema.type));
-      }
+      for(auto& iter : predicate->requiredColumns)
+         if(!env.isInLocalScope(iter.columnReference.str()))
+            env.add(iter.columnReference.str(), harriet::Value::createDefault(iter.columnSchema.type));
+
       if(predicate->condition->evaluate(env).type.type != harriet::VariableType::Type::TBool) {
          ostringstream os;
          predicate->condition->print(os);

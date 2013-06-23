@@ -27,6 +27,7 @@ public:
 private:
    std::vector<harriet::Value> values;
    std::vector<harriet::Value*> valueReferences;
+   friend class IndexKeyComparator;
 };
 
 }

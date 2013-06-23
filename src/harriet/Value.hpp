@@ -58,9 +58,12 @@ public:
    Value computeMul(const Value& rhs) const;
    Value computeDiv(const Value& rhs) const;
    Value computeEq (const Value& rhs) const;
+   Value computeNeq(const Value& rhs) const;
    Value computeAnd(const Value& rhs) const;
    Value computeLeq(const Value& rhs) const;
+   Value computeLt (const Value& rhs) const;
    Value computeGeq(const Value& rhs) const;
+   Value computeGt (const Value& rhs) const;
 
 private:
    /// Operations on boolean values

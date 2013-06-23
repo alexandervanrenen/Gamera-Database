@@ -19,224 +19,310 @@ using namespace std;
 //---------------------------------------------------------------------------
 namespace harriet {
 //---------------------------------------------------------------------------
+Expression::Expression(ExpressionType type)
+: type(type)
+, value(Value::createDefault(VariableType::createUndefinedType()))
+{
+}
+//---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createUndefinedExpression()
+{
+   return unique_ptr<Expression>(new Expression(ExpressionType::TUndefined));
+}
+//---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createVariableExpression(const string& identifier)
+{
+   auto result = unique_ptr<Expression>(new Expression(ExpressionType::TVariable));
+   result->identifier = identifier;
+   return result;
+}
+//---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createValueExpression(Value&& value)
+{
+   auto result = unique_ptr<Expression>(new Expression(ExpressionType::TValue));
+   result->value = move(value);
+   return result;
+}
+//---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createValueReferenceExpression(Value* value)
+{
+   auto result = unique_ptr<Expression>(new Expression(ExpressionType::TValueReference));
+   result->data.valueReference= value;
+   return result;
+}
+//---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createBinaryExpression(ExpressionType type, unique_ptr<Expression> lhs, unique_ptr<Expression> rhs)
+{
+   auto result = unique_ptr<Expression>(new Expression(type));
+   result->data.lhs = lhs.release();
+   result->data.rhs = rhs.release();
+   return result;
+}
+//---------------------------------------------------------------------------
+Expression::Expression(Expression&& other)
+: type(other.type)
+, value(Value::createDefault(VariableType::createUndefinedType()))
+{
+   other.type = ExpressionType::TUndefined;
+
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         identifier = move(other.identifier);
+         return;
+      case ExpressionType::TValue:
+         value = move(other.value);
+         return;
+      case ExpressionType::TValueReference:
+         data.valueReference = other.data.valueReference;
+         other.data.valueReference = nullptr;
+         return;
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         data.lhs = other.data.lhs;
+         other.data.lhs = nullptr;
+         data.rhs = other.data.rhs;
+         other.data.rhs = nullptr;
+         return;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+Expression& Expression::operator= (Expression&& other)
+{
+   type = other.type;
+   other.type = ExpressionType::TUndefined;
+
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         identifier = move(other.identifier);
+         return *this;
+      case ExpressionType::TValue:
+         value = move(other.value);
+         return *this;
+      case ExpressionType::TValueReference:
+         data.valueReference = other.data.valueReference;
+         other.data.valueReference = nullptr;
+         return *this;
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         data.lhs = other.data.lhs;
+         other.data.lhs = nullptr;
+         data.rhs = other.data.rhs;
+         other.data.rhs = nullptr;
+         return *this;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+Expression::~Expression()
+{
+   switch(type) {
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         delete data.lhs;
+         delete data.rhs;
+         return;
+      default:
+         return;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+void Expression::print(ostream& stream) const
+{
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         stream << identifier; return;
+      case ExpressionType::TValue:
+         stream << value; return;
+      case ExpressionType::TValueReference:
+         stream << *data.valueReference; return;
+      case ExpressionType::TPlusOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TMinusOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TMultiplicationOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TDivisionOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TAndOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TOrOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TGreaterOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TLessOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TGreaterEqualOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TLessEqualOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TEqualOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+      case ExpressionType::TNotEqualOperator:
+         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+Value Expression::evaluate(const Environment& environment) const
+{
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         return environment.read(identifier).createCopy();
+      case ExpressionType::TValue:
+         return value.createCopy();
+      case ExpressionType::TValueReference:
+         return data.valueReference->createCopy();
+      case ExpressionType::TPlusOperator:
+         return data.lhs->evaluate(environment).computeAdd(data.rhs->evaluate(environment));
+      case ExpressionType::TMinusOperator:
+         return data.lhs->evaluate(environment).computeSub(data.rhs->evaluate(environment));
+      case ExpressionType::TMultiplicationOperator:
+         return data.lhs->evaluate(environment).computeMul(data.rhs->evaluate(environment));
+      case ExpressionType::TDivisionOperator:
+         return data.lhs->evaluate(environment).computeDiv(data.rhs->evaluate(environment));
+      case ExpressionType::TAndOperator:
+         return data.lhs->evaluate(environment).computeAnd(data.rhs->evaluate(environment));
+      case ExpressionType::TOrOperator:
+         throw;
+      case ExpressionType::TGreaterOperator:
+         throw;
+      case ExpressionType::TLessOperator:
+         throw;
+      case ExpressionType::TGreaterEqualOperator:
+         return data.lhs->evaluate(environment).computeGeq(data.rhs->evaluate(environment));
+      case ExpressionType::TLessEqualOperator:
+         return data.lhs->evaluate(environment).computeLeq(data.rhs->evaluate(environment));
+      case ExpressionType::TEqualOperator:
+         if(data.lhs->type == ExpressionType::TValueReference && data.rhs->type == ExpressionType::TValue) {
+            return data.lhs->data.valueReference->computeEq(data.rhs->value);
+         } else if(data.lhs->type == ExpressionType::TValueReference && data.rhs->type == ExpressionType::TValueReference) {
+            return data.lhs->data.valueReference->computeEq(*data.rhs->data.valueReference);
+         } else {
+            return data.lhs->evaluate(environment).computeEq(data.rhs->evaluate(environment));
+         }
+      case ExpressionType::TNotEqualOperator:
+         throw;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+ExpressionType Expression::getExpressionType() const
+{
+   return type;
+}
+//---------------------------------------------------------------------------
+vector<string> Expression::getAllVariableNames()
+{
+   vector<string> result;
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         result.push_back(identifier); return result;
+      case ExpressionType::TValue:
+      case ExpressionType::TValueReference:
+            return result;
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         auto lhsResult = data.lhs->getAllVariableNames();
+         for(auto iter : lhsResult)
+            result.push_back(iter);
+         auto rhsResult = data.rhs->getAllVariableNames();
+         for(auto iter : rhsResult)
+            result.push_back(iter);
+         return result;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
+vector<Expression**> Expression::getAllVariables(Expression** self)
+{
+   vector<Expression**> result;
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         result.push_back(self); return result;
+      case ExpressionType::TValue:
+      case ExpressionType::TValueReference:
+            return result;
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         auto lhsResult = data.lhs->getAllVariables(&data.lhs);
+         for(auto iter : lhsResult)
+            result.push_back(iter);
+         auto rhsResult = data.rhs->getAllVariables(&data.rhs);
+         for(auto iter : rhsResult)
+            result.push_back(iter);
+         return result;
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
 bool Expression::isLogicOperator() const
 {
    ExpressionType t = getExpressionType();
    return t==ExpressionType::TAndOperator || t==ExpressionType::TOrOperator || t==ExpressionType::TGreaterOperator || t==ExpressionType::TLessOperator || t==ExpressionType::TGreaterEqualOperator || t==ExpressionType::TLessEqualOperator || t==ExpressionType::TEqualOperator || t==ExpressionType::TNotEqualOperator;
-}
-//---------------------------------------------------------------------------
-void Variable::print(ostream& stream) const
-{
-   stream << identifier;
-}
-//---------------------------------------------------------------------------
-Value Variable::evaluate(const Environment& environment) const
-{
-   const Value& result = environment.read(identifier);
-   return result.createCopy();
-}
-//---------------------------------------------------------------------------
-void ValueExpression::print(ostream& stream) const
-{
-   stream << value;
-}
-//---------------------------------------------------------------------------
-Value ValueExpression::evaluate(const Environment&) const
-{
-   return value.createCopy();
-}
-//---------------------------------------------------------------------------
-void ValueReferenceExpression::print(ostream& stream) const
-{
-   stream << *value;
-}
-//---------------------------------------------------------------------------
-Value ValueReferenceExpression::evaluate(const Environment&) const
-{
-   return value->createCopy();
-}
-//---------------------------------------------------------------------------
-vector<unique_ptr<Expression>*> UnaryOperator::getAllVariables(unique_ptr<Expression>*)
-{
-   return child->getAllVariables(&child);
-}
-//---------------------------------------------------------------------------
-void UnaryOperator::print(ostream& stream) const
-{
-   stream << " ( " << getSign();
-   child->print(stream);
-   stream << " ) ";
-}
-//---------------------------------------------------------------------------
-void UnaryOperator::addChild(unique_ptr<Expression> child)
-{
-   this->child = ::move(child);
-}
-//---------------------------------------------------------------------------
-Value UnaryMinusOperator::evaluate(const Environment&) const
-{
-   // return child->evaluate(environment)->computeInv();
-   throw;
-}
-//---------------------------------------------------------------------------
-Value NotOperator::evaluate(const Environment&) const
-{
-   // return child->evaluate(environment)->computeNot();
-   throw;
-}
-//---------------------------------------------------------------------------
-vector<unique_ptr<Expression>*> BinaryOperator::getAllVariables(unique_ptr<Expression>*)
-{
-   vector<unique_ptr<Expression>*> result;
-   auto lhsVariables = lhs->getAllVariables(&lhs);
-   for(auto var : lhsVariables)
-      result.push_back(var);
-   auto rhsVariables = rhs->getAllVariables(&rhs);
-   for(auto var : rhsVariables)
-      result.push_back(var);
-   return result;
-}
-//---------------------------------------------------------------------------
-void BinaryOperator::addChildren(unique_ptr<Expression> lhsChild, unique_ptr<Expression> rhsChild)
-{
-   assert(lhs==nullptr && rhs==nullptr);
-   lhs = ::move(lhsChild);
-   rhs = ::move(rhsChild);
-}
-//---------------------------------------------------------------------------
-void BinaryOperator::print(ostream& stream) const
-{
-   stream << " ( ";
-   lhs->print(stream);
-   stream << getSign();
-   rhs->print(stream);
-   stream << " ) ";
-}
-//---------------------------------------------------------------------------
-Value AssignmentOperator::evaluate(const Environment&) const
-{
-   if(lhs->getExpressionType() != ExpressionType::TVariable)
-      throw harriet::Exception("need variable as left hand side of assignment operator");
-throw;
-   // environment.update(reinterpret_cast<Variable*>(lhs.get())->getIdentifier(), rhs->evaluate(environment));
-   // return lhs->evaluate(environment);
-}
-//---------------------------------------------------------------------------
-Value PlusOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeAdd(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value MinusOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeSub(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value MultiplicationOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeMul(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value DivisionOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeDiv(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value ModuloOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeMod(*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-Value ExponentiationOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeExp(*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-AndOperator::AndOperator(unique_ptr<Expression> lhs, unique_ptr<Expression> rhs)
-{
-   this->lhs = move(lhs);
-   this->rhs = move(rhs);
-}
-//---------------------------------------------------------------------------
-Value AndOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeAnd(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-OrOperator::OrOperator(unique_ptr<Expression> lhs, unique_ptr<Expression> rhs)
-{
-   this->lhs = move(lhs);
-   this->rhs = move(rhs);
-}
-//---------------------------------------------------------------------------
-Value OrOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeOr (*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-Value GreaterOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeGt (*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-Value LessOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeLt (*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-Value GreaterEqualOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeGeq(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value LessEqualOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeLeq(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value EqualOperator::evaluate(const Environment& environment) const
-{
-   return lhs->evaluate(environment).computeEq(rhs->evaluate(environment));
-}
-//---------------------------------------------------------------------------
-Value NotEqualOperator::evaluate(const Environment&) const
-{
-   // return lhs->evaluate(environment)->computeNeq(*rhs->evaluate(environment));
-   throw;
-}
-//---------------------------------------------------------------------------
-FunctionOperator::FunctionOperator(const string& functionName, uint32_t functionIdentifier, vector<unique_ptr<Expression>>& arguments)
-: functionName(functionName)
-, functionIdentifier(functionIdentifier)
-, arguments(::move(arguments))
-{
-}
-//---------------------------------------------------------------------------
-Value FunctionOperator::evaluate(const Environment&) const
-{
-   throw;
-   // // build arguments
-   // vector<unique_ptr<Value>> evaluetedArguments;
-   // auto function = environment.getFunction(functionIdentifier);
-   // for(uint32_t i=0; i<arguments.size(); i++) {
-   //    auto result = arguments[i]->evaluate(environment);
-   //    if(result->type != function->getArgumentType(i))
-   //       throw harriet::Exception{"type missmatch in function '" + function->getName() + "' for argument '" + to_string(i) + "' unable to convert '" + result->type.str() + "' to '" + function->getArgumentType(i).str() + "'"};
-   //    evaluetedArguments.push_back(::move(result));
-   // }
-
-   // // call function
-   // return function->execute(evaluetedArguments, environment);
-}
-//---------------------------------------------------------------------------
-void FunctionOperator::print(ostream& stream) const
-{
-   stream << functionName << " id:" << functionIdentifier << endl;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

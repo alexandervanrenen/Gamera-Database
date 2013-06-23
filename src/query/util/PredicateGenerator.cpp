@@ -32,7 +32,7 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
       for(auto innerIter = outerIter + 1; innerIter != predicates.end();) {
          // If so merge condition expression and drop one predicate
          if((*outerIter)->getRequiredTables() == (*innerIter)->getRequiredTables()) {
-            (*outerIter)->condition = util::make_unique<harriet::AndOperator>(move((*outerIter)->condition), move((*innerIter)->condition));
+            (*outerIter)->condition = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TAndOperator, move((*outerIter)->condition), move((*innerIter)->condition));
             for(auto& iter : (*innerIter)->requiredColumns)
                (*outerIter)->requiredColumns.insert(iter);
             innerIter = predicates.erase(innerIter);
@@ -52,11 +52,9 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    // First -- Resolve all variables in the condition and add to the predicate
    {
       ColumnResolver columnResolver(env);
-      vector<std::unique_ptr<harriet::Expression>*> freeVariables = predicate->condition->getAllVariables(&predicate->condition);
-      for(auto variable : freeVariables) {
-         assert((*variable)->getExpressionType() == harriet::ExpressionType::TVariable);
-         ColumnReference columnReference(reinterpret_cast<harriet::Variable&>(**variable).getIdentifier());
-         ColumnResolver::Result result = columnResolver.resolveSelection(columnReference, tableAccessVec);
+      vector<string> freeVariables = predicate->condition->getAllVariableNames();
+      for(auto& variable : freeVariables) {
+         ColumnResolver::Result result = columnResolver.resolveSelection(ColumnReference(variable), tableAccessVec);
          if(result.has())
             predicate->requiredColumns.insert(result.get());
       }

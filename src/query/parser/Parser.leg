@@ -108,25 +108,25 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
        )* CLOSE                                            { $$ = move(a); }
 # --------------------------------------------------------------------------------------------------------------
 Expression = c:Conjuction                                  { }
-            ( - EQ - i:Conjuction                          { c.expression = util::make_unique<harriet::EqualOperator>(move(c.expression), move(i.expression)); }
-            | - GEQ - i:Conjuction                         { c.expression = util::make_unique<harriet::GreaterEqualOperator>(move(c.expression), move(i.expression)); }
-            | - LEQ - i:Conjuction                         { c.expression = util::make_unique<harriet::LessEqualOperator>(move(c.expression), move(i.expression)); }
+            ( - EQ - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TEqualOperator, move(c.expression), move(i.expression)); }
+            | - GEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TGreaterEqualOperator, move(c.expression), move(i.expression)); }
+            | - LEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TLessEqualOperator, move(c.expression), move(i.expression)); }
             )*                                             { $$.expression = move(c.expression); }
 Conjuction = s:Sum                                         { }
-           ( - L_AND - i:Sum                               { s.expression = util::make_unique<harriet::AndOperator>(move(s.expression), move(i.expression)); }
-           | - L_OR - i:Sum                                { s.expression = util::make_unique<harriet::OrOperator>(move(s.expression), move(i.expression)); }
+           ( - L_AND - i:Sum                               { s.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TAndOperator, move(s.expression), move(i.expression)); }
+           | - L_OR - i:Sum                                { s.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TOrOperator, move(s.expression), move(i.expression)); }
            )*                                              { $$.expression = move(s.expression); }
 Sum = p:Product                                            { }
-    ( - PLUS - i:Product                                   { p.expression = util::make_unique<harriet::PlusOperator>(move(p.expression), move(i.expression)); }
-    | - MINUS - i:Product                                  { p.expression = util::make_unique<harriet::MinusOperator>(move(p.expression), move(i.expression)); }
+    ( - PLUS - i:Product                                   { p.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TPlusOperator, move(p.expression), move(i.expression)); }
+    | - MINUS - i:Product                                  { p.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TMinusOperator, move(p.expression), move(i.expression)); }
     )*                                                     { $$.expression = move(p.expression); }
 Product = f:Factor                                         { }
-        ( - TIMES - i:Product                              { f.expression = util::make_unique<harriet::MultiplicationOperator>(move(f.expression), move(i.expression)); }
-        | - DIVIDE - i:Product                             { f.expression = util::make_unique<harriet::DivisionOperator>(move(f.expression), move(i.expression)); }
+        ( - TIMES - i:Product                              { f.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TMultiplicationOperator, move(f.expression), move(i.expression)); }
+        | - DIVIDE - i:Product                             { f.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TDivisionOperator, move(f.expression), move(i.expression)); }
         )*                                                 { $$.expression = move(f.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
-       | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
-       | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.str()); }
+       | v:VALUE                                           { $$.expression = harriet::Expression::createValueExpression(move(v.value)); }
+       | c:ColumnReference                                 { $$.expression = harriet::Expression::createVariableExpression(c.columnReference.str()); }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }

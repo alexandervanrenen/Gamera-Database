@@ -16,7 +16,7 @@ ColumnResolver::ColumnResolver(const harriet::Environment& env)
 {
 }
 
-ColumnResolver::Result ColumnResolver::resolveSelection(ColumnReference& column, const vector<TableAccessInfo>& tableAccessVec) const
+ColumnResolver::Result ColumnResolver::resolveSelection(const ColumnReference& column, const vector<TableAccessInfo>& tableAccessVec) const
 {
    pair<uint32_t, const ColumnSchema*> result = tryFindColumn(column, tableAccessVec);
    if(result.first != static_cast<uint32_t>(-1)) {
@@ -30,7 +30,7 @@ ColumnResolver::Result ColumnResolver::resolveSelection(ColumnReference& column,
    }
 }
 
-ColumnAccessInfo ColumnResolver::resolveProjection(ColumnReference& column, const vector<TableAccessInfo>& tableAccessVec) const
+ColumnAccessInfo ColumnResolver::resolveProjection(const ColumnReference& column, const vector<TableAccessInfo>& tableAccessVec) const
 {
    // Check the tables if attribute not found we can not project on it
    pair<uint32_t, const ColumnSchema*> result = tryFindColumn(column, tableAccessVec);

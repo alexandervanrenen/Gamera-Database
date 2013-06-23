@@ -21,17 +21,21 @@ SelectionSignature::SelectionSignature(const Signature& source, unique_ptr<qopt:
    for(auto& attribute : source.getAttributes())
       attributes.push_back(attribute);
 
-   vector<unique_ptr<harriet::Expression>*> freeVariables = predicate->condition->getAllVariables(&predicate->condition);
+   // Replace the column references in the condition with pointer to the global register
+   auto condition = predicate->condition.release();
+   vector<harriet::Expression**> freeVariables = condition->getAllVariables(&condition);
    for(auto iter : freeVariables) {
-      ColumnReference c(reinterpret_cast<harriet::Variable&>(**iter).getIdentifier());
+      ColumnReference c((*iter)->identifier);
       if(hasAttribute(c.tableQualifier, c.columnName)) {
-         *iter = util::make_unique<harriet::ValueReferenceExpression>(&golbalRegister[getAttribute(c.tableQualifier, c.columnName).index]);
+         delete *iter;
+         *iter = harriet::Expression::createValueReferenceExpression(&golbalRegister[getAttribute(c.tableQualifier, c.columnName).index]).release();
       } else {
          ostringstream os;
          dump(os);
-         throw harriet::Exception{"unknown identifier: '" + reinterpret_cast<harriet::Variable&>(**iter).getIdentifier() + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
+         throw harriet::Exception{"unknown identifier: '" + (*iter)->identifier + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
       }
    }
+   predicate->condition.reset(condition);
 }
 
 bool SelectionSignature::fullfillsPredicates(const vector<harriet::Value>& tuple) const

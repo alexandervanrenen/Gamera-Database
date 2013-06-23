@@ -5,4 +5,4 @@ insert into studenten values(2, 6, 'benjamin', 'schwarz', 24);
 
 select name, nachname
 from studenten
-where id = 1;
+where id = 1; 

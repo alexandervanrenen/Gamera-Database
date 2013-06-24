@@ -14,7 +14,7 @@ namespace dbi {
 
 namespace qopt {
 
-unique_ptr<Operator> DummyOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<std::unique_ptr<Predicate>>& predicates, set<ColumnAccessInfo>& projections)
+unique_ptr<Operator> DummyOptimizer::optimize(const vector<TableAccessInfo>&, vector<std::unique_ptr<Predicate>>&, set<ColumnAccessInfo>&)
 {
    throw;
    // // Cross-Product it with all other input relations

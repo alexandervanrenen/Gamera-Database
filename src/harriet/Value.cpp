@@ -182,7 +182,7 @@ ostream& operator<< (ostream& os, const Value& v)
 //---------------------------------------------------------------------------
 namespace {
 void doError(const string& operatorSign, const Value& lhs, const Value& rhs) throw(Exception) { throw Exception{"binary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "' and '" + rhs.type.str() + "'"}; }
-void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
+// void doError(const string& operatorSign, const Value& lhs) throw(Exception) { throw Exception{"unary operator '" + operatorSign + "' does not accept '" + lhs.type.str() + "'"}; }
 }
 //---------------------------------------------------------------------------
 Value Value::computeAdd(const Value& rhs) const
@@ -270,6 +270,18 @@ Value Value::computeEq (const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
+Value Value::computeNeq(const Value& rhs) const
+{
+   try {
+      auto val = computeEq(rhs);
+      val.data.vbool = !val.data.vbool;
+      return val;
+   } catch(Exception& e) {
+      doError("!=" , *this, rhs);
+      throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::computeAnd (const Value& rhs) const
 {
    switch(type.type) {
@@ -304,6 +316,18 @@ Value Value::computeLeq(const Value& rhs) const
    }
 }
 //---------------------------------------------------------------------------
+Value Value::computeLt(const Value& rhs) const
+{
+   try {
+      auto val = computeGeq(rhs);
+      val.data.vbool = !val.data.vbool;
+      return val;
+   } catch(Exception& e) {
+      doError("<" , *this, rhs);
+      throw;
+   }
+}
+//---------------------------------------------------------------------------
 Value Value::computeGeq(const Value& rhs) const
 {
    switch(type.type) {
@@ -318,6 +342,18 @@ Value Value::computeGeq(const Value& rhs) const
       default:
          doError(">=" , *this, rhs);
          throw;
+   }
+}
+//---------------------------------------------------------------------------
+Value Value::computeGt(const Value& rhs) const
+{
+   try {
+      auto val = computeLeq(rhs);
+      val.data.vbool = !val.data.vbool;
+      return val;
+   } catch(Exception& e) {
+      doError(">" , *this, rhs);
+      throw;
    }
 }
 //---------------------------------------------------------------------------

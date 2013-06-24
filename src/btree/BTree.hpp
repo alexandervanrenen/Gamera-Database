@@ -424,9 +424,9 @@ public:
         public:
 
         bool operator==(const Iterator& other) const {
-            return (finished && other.finished) || (finished == other.finished) && frame == other.frame && it == other.it ;
+            return (finished && other.finished) || ((finished == other.finished) && frame == other.frame && it == other.it);
         }
-        
+
         bool operator!=(const Iterator& other) const {
             return !(*this == other);
         }

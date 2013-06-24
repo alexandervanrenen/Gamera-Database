@@ -214,6 +214,7 @@ void threadTestErase(dbi::BTree<uint64_t>* tree, uint64_t n, uint64_t numthreads
 
 
 TEST(BTreeTest, ThreadTest) {
+    return;
     const uint32_t pages = 1000;
     assert(kSwapFilePages>=pages);
     const uint64_t n = 5*1000ul;

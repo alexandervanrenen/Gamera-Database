@@ -26,8 +26,8 @@ public:
       std::unique_ptr<ColumnAccessInfo> column;
    };
 
-   Result resolveSelection(std::unique_ptr<harriet::Expression>& variable, const std::vector<TableAccessInfo>& tableAccessVec) const;
-   ColumnAccessInfo resolveProjection(ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
+   Result resolveSelection(const ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
+   ColumnAccessInfo resolveProjection(const ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
 
 private:
    const harriet::Environment& env;

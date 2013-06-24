@@ -85,16 +85,16 @@ Projection = s:ColumnReference                             { s.columnReferenceVe
            (- COMMA - i:ColumnReference                    { s.columnReferenceVec.push_back(i.columnReference); }
            )*                                              { $$ = move(s); }
 ColumnReference = tid:ID POINT cid:ID                      { $$.columnReference = ColumnReference{tid.str, cid.str}; }
-                 | cid:ID                                  { $$.columnReference = ColumnReference{"", cid.str}; }
+                | cid:ID                                   { $$.columnReference = ColumnReference{"", cid.str}; }
 Tables = t:TableName                                       { t.tableReferenceVec.push_back(t.tableReference); }
        (- COMMA - i:TableName                              { t.tableReferenceVec.push_back(i.tableReference); }
        )*                                                  { $$ = move(t);}
 TableName = tid:ID ' ' alias:ID                            { $$.tableReference = TableReference{tid.str, alias.str}; }
           | tid:ID                                         { $$.tableReference = TableReference{tid.str, ""}; }
 Predicates = p:Predicate                                   { p.expressionVec.push_back(move(p.expression)); }
-           (- AND - i:Predicate                            { p.expressionVec.push_back(move(i.expression)); }
+           (- SQL_AND - i:Predicate                        { p.expressionVec.push_back(move(i.expression)); }
            )*                                              { $$.expressionVec = move(p.expressionVec); }
-Predicate = b:Bool                                         { $$.expression = move(b.expression); }
+Predicate = e:Expression                                   { $$.expression = move(e.expression); }
 # --------------------------------------------------------------------------------------------------------------
 CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
@@ -107,24 +107,26 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* CLOSE                                            { $$ = move(a); }
 # --------------------------------------------------------------------------------------------------------------
-Expression = b:Bool                                        { $$.expression = move(b.expression); }
-           | s:Sum                                         { $$.expression = move(s.expression); }
-Bool = t:TRUE                                              { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
-     | f:FALSE                                             { $$.expression = util::make_unique<harriet::ValueExpression>(move(t.value)); }
-     | b:Sum                                               { }
-     ( - EQ - i:Sum                                        { b.expression = util::make_unique<harriet::EqualOperator>(move(b.expression), move(i.expression)); }
-     )+                                                    { $$.expression = move(b.expression); }
+Expression = c:Conjuction                                  { }
+            ( - EQ - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TEqualOperator, move(c.expression), move(i.expression)); }
+            | - GEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TGreaterEqualOperator, move(c.expression), move(i.expression)); }
+            | - LEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TLessEqualOperator, move(c.expression), move(i.expression)); }
+            )*                                             { $$.expression = move(c.expression); }
+Conjuction = s:Sum                                         { }
+           ( - L_AND - i:Sum                               { s.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TAndOperator, move(s.expression), move(i.expression)); }
+           | - L_OR - i:Sum                                { s.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TOrOperator, move(s.expression), move(i.expression)); }
+           )*                                              { $$.expression = move(s.expression); }
 Sum = p:Product                                            { }
-    ( - PLUS - i:Product                                   { p.expression = util::make_unique<harriet::PlusOperator>(move(p.expression), move(i.expression)); }
-    | - MINUS - i:Product                                  { p.expression = util::make_unique<harriet::MinusOperator>(move(p.expression), move(i.expression)); }
+    ( - PLUS - i:Product                                   { p.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TPlusOperator, move(p.expression), move(i.expression)); }
+    | - MINUS - i:Product                                  { p.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TMinusOperator, move(p.expression), move(i.expression)); }
     )*                                                     { $$.expression = move(p.expression); }
-Product = v:Factor                                         { }
-        ( - TIMES - i:Product                              { v.expression = util::make_unique<harriet::MultiplicationOperator>(move(v.expression), move(i.expression)); }
-        | - DIVIDE - i:Product                             { v.expression = util::make_unique<harriet::DivisionOperator>(move(v.expression), move(i.expression)); }
-        )*                                                 { $$.expression = move(v.expression); }
+Product = f:Factor                                         { }
+        ( - TIMES - i:Product                              { f.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TMultiplicationOperator, move(f.expression), move(i.expression)); }
+        | - DIVIDE - i:Product                             { f.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TDivisionOperator, move(f.expression), move(i.expression)); }
+        )*                                                 { $$.expression = move(f.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
-       | v:VALUE                                           { $$.expression = util::make_unique<harriet::ValueExpression>(move(v.value)); }
-       | c:ColumnReference                                 { $$.expression = util::make_unique<harriet::Variable>(c.columnReference.tableQualifier + "." + c.columnReference.columnName); }
+       | v:VALUE                                           { $$.expression = harriet::Expression::createValueExpression(move(v.value)); }
+       | c:ColumnReference                                 { $$.expression = harriet::Expression::createVariableExpression(c.columnReference.str()); }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
@@ -156,6 +158,10 @@ MINUS = '-'                                                { }
 TIMES = '*'                                                { }
 DIVIDE = '/'                                               { }
 EQ = "=" | "=="                                            { }
+GEQ = ">="                                                 { }
+LEQ = "<="                                                 { }
+L_AND = "&"                                                { }
+L_OR = "|"                                                 { }
 # --------------------------------------------------------------------------------------------------------------
 KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE { }
 SELECT = "select"                     ![a-z|A-Z]           { }
@@ -168,7 +174,7 @@ VALUES = "values"                     ![a-z|A-Z]           { }
 WHERE = "where"                       ![a-z|A-Z]           { }
 TRUE = "true"                         ![a-z|A-Z]           { }
 FALSE = "false"                       ![a-z|A-Z]           { }
-AND = "and"                           ![a-z|A-Z]           { }
+SQL_AND = "and"                       ![a-z|A-Z]           { }
 INTEGER_ID = "integer"                ![a-z|A-Z]           { }
 FLOAT_ID = "float"                    ![a-z|A-Z]           { }
 CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
@@ -193,15 +199,18 @@ unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
   input.clear();
   input.str(query);
 
+  GREG g;
   try {
-    GREG g;
     yyinit(&g);
     while (yyparse(&g));
     yydeinit(&g);
   } catch (int) {
+    yydeinit(&g);
     throw ParserException("parser error: ", lineNumber+1, columnNumber);
   }
 
+  if(result == nullptr)
+     return util::make_unique<RootStatement>(std::vector<std::unique_ptr<Statement>>());
   return move(result);
 }
 

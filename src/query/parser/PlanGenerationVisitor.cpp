@@ -53,7 +53,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    qopt::ColumnResolver resolver(environment);
    set<qopt::ColumnAccessInfo> requiredProjectionColums;
    vector<qopt::ColumnAccessInfo> projectionTargets; // These tow are redundant... this will change with the Projection class
-   for(auto& iter : select.selections) {
+   for(auto& iter : select.projections) {
       requiredProjectionColums.insert(resolver.resolveProjection(iter, select.tableAccessVec));
       projectionTargets.push_back(resolver.resolveProjection(iter, select.tableAccessVec));
    }
@@ -64,7 +64,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    predicates = predicateGenerator.createPredicates(select.conditions, select.tableAccessVec);
 
    // Let the optimizer build a nice access tree from the table access' and the predicates
-   qopt::ChainOptimizer opty(select.globalRegister);
+   qopt::ChainOptimizer opty(select.globalRegister, environment);
    auto plan = opty.optimize(select.tableAccessVec, predicates, requiredProjectionColums);
 
    plan = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);

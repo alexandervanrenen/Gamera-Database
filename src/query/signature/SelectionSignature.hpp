@@ -11,7 +11,7 @@ namespace dbi {
 class SelectionSignature : public Signature {
 public:
    /// Create signature using the supplied signature of the underlying operator and the predicate
-   SelectionSignature(const Signature& source, std::unique_ptr<qopt::Predicate> predicate);
+   SelectionSignature(const Signature& source, std::unique_ptr<qopt::Predicate> predicate, std::vector<harriet::Value>& golbalRegister);
 
    bool fullfillsPredicates(const std::vector<harriet::Value>& tuple) const;
 
@@ -19,17 +19,7 @@ public:
 
 private:
    std::unique_ptr<qopt::Predicate> predicate;
-
-   struct VariableMapping {
-      std::string name; // Name of the variable
-      uint32_t position; // Position in the tuple
-   };
-   std::vector<VariableMapping> variableMapping;
-
-   enum struct Type : uint8_t {kConstant, kOneColumn, kTwoColumn, kComplex, kUnknown};
-   Type type;
-
-   std::vector<VariableMapping> getFreeVariables(std::unique_ptr<harriet::Expression>& expression) const;
+   std::vector<harriet::Value>& golbalRegister;
 };
 
 }

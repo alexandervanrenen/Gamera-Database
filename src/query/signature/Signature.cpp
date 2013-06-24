@@ -74,12 +74,13 @@ const ColumnSignature& Signature::getAttribute(const vector<ColumnSignature>& at
 const ColumnSignature& Signature::getAttribute(const vector<ColumnSignature>& attributes, uint32_t tableIndex, const string& columnName)
 {
    uint32_t resultIndex = attributes.size(); // invalid index
-   for(uint32_t i=0; i<attributes.size(); i++)
+   for(uint32_t i=0; i<attributes.size(); i++) {
       if(attributes[i].name==columnName && attributes[i].tableIndex==tableIndex) {
          if(resultIndex==attributes.size())
             resultIndex = i; else
             throw harriet::Exception{"ambiguous identifier '" + to_string(tableIndex) + "." + columnName + "', candidates: '" + attributes[i].alias + "." + attributes[i].name + "' or '" + attributes[resultIndex].alias + "." + attributes[resultIndex].name + "'"};
       }
+   }
 
    if(resultIndex != attributes.size())
       return attributes[resultIndex];

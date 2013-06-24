@@ -44,7 +44,7 @@ void QueryResultCollection::setParserError(uint32_t line, uint32_t column)
 {
    assert(!error);
    error = true;
-   errorMessage = "A parser error occurred: " + to_string(line) + " " + to_string(column);
+   errorMessage = "A parser error occurred: line " + to_string(line) + " column " + to_string(column);
 }
 
 void QueryResultCollection::setRuntimeError(const string& message)

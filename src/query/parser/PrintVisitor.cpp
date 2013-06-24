@@ -35,7 +35,7 @@ void PrintVisitor::onPreVisit(SelectStatement& select)
 {
    if(printMode==PrintMode::kAll || printMode==PrintMode::kSelect) {
       out << "select " << endl;
-      for(auto& iter : select.selections)
+      for(auto& iter : select.projections)
          out << "    " << iter.tableQualifier << "." << iter.columnName << endl;
       out << "from " << endl;
       for(auto& iter : select.sources)

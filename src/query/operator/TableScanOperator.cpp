@@ -2,6 +2,7 @@
 #include "harriet/Value.hpp"
 #include "query/signature/ColumnSignature.hpp"
 #include "query/util/TableAccessInfo.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include "schema/RelationSchema.hpp"
 #include "segment_manager/Record.hpp"
 #include "segment_manager/Record.hpp"
@@ -12,17 +13,16 @@ using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister)
+TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
 : tableaccessInfo(tableaccessInfo)
-, signature(tableaccessInfo, requiredColumns, globalRegister.size())
+, signature(tableaccessInfo, requiredColumns, registerOffset)
 , state(kClosed)
 , nextPage(tableaccessInfo.segment.endPageId())
 , positionInCurrentPage(0)
 , globalRegister(globalRegister)
-, registerOffset(globalRegister.size())
+, registerOffset(registerOffset)
 {
-   for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-      globalRegister.emplace_back(harriet::Value::createDefault(harriet::VariableType()));
+   registerOffset += signature.getAttributes().size();
 }
 
 TableScanOperator::~TableScanOperator()

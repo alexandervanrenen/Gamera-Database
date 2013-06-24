@@ -7,10 +7,10 @@ using namespace std;
 
 namespace dbi {
 
-IndexKey::IndexKey(vector<harriet::Value>&& values)
-: values(move(values))
+IndexKey::IndexKey(vector<harriet::Value>&& valuesIn)
+: values(move(valuesIn))
 {
-   valueReferences.reserve(values.size());
+   valueReferences.resize(values.size());
    for(uint32_t i=0; i<values.size(); i++)
       valueReferences[i] = &values[i];
 }
@@ -37,7 +37,7 @@ IndexKey::~IndexKey()
 {
 }
 
-uint64_t IndexKey::size() const
+uint64_t IndexKey::bytes() const
 {
    uint64_t result = 0;
    for(auto iter : valueReferences)

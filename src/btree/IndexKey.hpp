@@ -19,7 +19,7 @@ public:
    IndexKey& operator=(IndexKey&&);
    ~IndexKey();
 
-   uint64_t size() const;
+   uint64_t bytes() const;
 
    void writeToMem(char* mem) const; // Caller has to make sure that there is at least size() byte of vaild memory
    static IndexKey readFromMemory(const char* ptr, const IndexKeySchema& schema); // Copies the memory

@@ -34,6 +34,7 @@ struct RelationSchema {
    RelationSchema& operator=(const RelationSchema&) = delete;
 
    std::vector<harriet::Value> recordToTuple(const Record& record) const;
+   void loadTuple(const Record& record, harriet::Value& target, uint32_t position) const;
    Record tupleToRecord(const std::vector<harriet::Value>& tuple) const;
 
    void setSegmentId(SegmentId sid);

@@ -65,10 +65,10 @@ bool TableScanOperator::next()
 
    // Return if a page was found
    if(positionInCurrentPage < recordsInCurrentPage.size()) {
-      auto tuple = tableaccessInfo.schema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
       auto& mapping = signature.getMapping();
+      auto& record = recordsInCurrentPage[positionInCurrentPage].second;
       for(uint32_t targetIndex=0; targetIndex<mapping.size(); targetIndex++)
-         globalRegister[registerOffset + targetIndex] = move(tuple[mapping[targetIndex]]);
+         tableaccessInfo.schema.loadTuple(record, globalRegister[registerOffset + targetIndex], mapping[targetIndex]);
       positionInCurrentPage++;
       return true;
    }

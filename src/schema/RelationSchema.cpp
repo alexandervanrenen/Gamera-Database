@@ -64,6 +64,11 @@ vector<harriet::Value> RelationSchema::recordToTuple(const Record& record) const
    return result;
 }
 
+void RelationSchema::loadTuple(const Record& record, harriet::Value& target, uint32_t position) const
+{
+   target = harriet::Value::createFromRecord(attributes[position].type, record.data()+attributes[position].offset);
+}
+
 Record RelationSchema::tupleToRecord(const vector<harriet::Value>& tuple) const
 {
    assert(sid != kInvalidSegmentId);

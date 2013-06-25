@@ -14,14 +14,17 @@ TableScanSignature::TableScanSignature(const qopt::TableAccessInfo& tableAccessI
 , globalRegister(globalRegister)
 {
    auto requiredColumnIndexes = globalRegister.getColumnIndexes(tableAccessInfo.tableId);
-   for(auto iter : requiredColumnIndexes)
-      columnMapping.push_back(Mapping{globalRegister.getType(iter).columnIndex, iter});
+   for(auto iter : requiredColumnIndexes) {
+      const qopt::RegisterSlotInfo& slot = globalRegister.getSlotInfo(iter);
+      assert(slot.column != nullptr);
+      columnMapping.push_back(Mapping{slot.column->columnIndex, iter});
+   }
 }
 
 void TableScanSignature::loadRecordIntoGlobalRegister(Record& record) const
 {
    for(auto& iter : columnMapping)
-      tableAccessInfo.schema.loadTuple(record, globalRegister.getValue(iter.registerIndex), iter.tupleIndex);
+      tableAccessInfo.schema.loadTuple(record, globalRegister.getSlotValue(iter.registerIndex), iter.tupleIndex);
 }
 
 void TableScanSignature::dump(ostream& os) const

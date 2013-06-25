@@ -10,16 +10,15 @@ namespace harriet { class VariableType; }
 
 namespace dbi {
 
-namespace qopt { class ColumnAccessInfo; }
+namespace qopt { class Projection; class GlobalRegister; }
 
 /// This operator changes only the signature. It is able to reorder the supplied columns and drop them.
 class ProjectionOperator : public Operator {
 public:
-   ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<qopt::ColumnAccessInfo>& projectedAttributes);
-   ProjectionOperator(std::unique_ptr<Operator> source, std::vector<harriet::VariableType>& projectedTypes);
+   ProjectionOperator(std::unique_ptr<Operator> source, std::vector<std::unique_ptr<qopt::Projection>>&& projections, qopt::GlobalRegister& globalRegister);
    virtual ~ProjectionOperator();
 
-   const std::vector<qopt::ColumnAccessInfo>& getSuppliedColumns() const;
+   std::vector<uint32_t> getRegisterIndexes() const;
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
@@ -29,7 +28,8 @@ public:
 private:
    std::unique_ptr<Operator> source;
    OperatorState state;
-   std::vector<qopt::ColumnAccessInfo> suppliedColumns;
+   std::vector<std::unique_ptr<qopt::Projection>> projections;
+   qopt::GlobalRegister& globalRegister;
 };
 
 }

@@ -40,7 +40,7 @@ bool SingleRecordOperator::next()
    bool result = hasNext;
    hasNext = false;
    for(uint32_t i=0; i<tuple.size(); i++)
-      globalRegister.getValue(i) = tuple[i].createCopy();
+      globalRegister.getSlotValue(i) = tuple[i].createCopy();
    return result;
 }
 

@@ -12,4 +12,4 @@ insert into Relations values('best friends', 0, 2);
 insert into Relations values('best friends', 4, 3);
 insert into Relations values('sex', 1, 0);
 
-select firstname from Persons where Persons.firstname = 'Lenard';
+select p.firstname, firstname from Persons p where id = 0;

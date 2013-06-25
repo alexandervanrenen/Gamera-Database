@@ -21,7 +21,7 @@ public:
 
    void loadRecordIntoGlobalRegister(Record& record) const;
 
-   virtual void dump(std::ostream& os) const;
+   void dump(std::ostream& os) const;
 
 private:
    const qopt::TableAccessInfo& tableAccessInfo;

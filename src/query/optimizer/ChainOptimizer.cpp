@@ -18,7 +18,7 @@ namespace dbi {
 
 namespace qopt {
 
-ChainOptimizer::ChainOptimizer(qopt::GlobalRegister& globalRegister, const harriet::Environment& env)
+ChainOptimizer::ChainOptimizer(const harriet::Environment& env, qopt::GlobalRegister& globalRegister)
 : env(env)
 , globalRegister(globalRegister)
 {

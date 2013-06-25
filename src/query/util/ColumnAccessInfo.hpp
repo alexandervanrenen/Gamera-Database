@@ -8,6 +8,8 @@ namespace harriet { class Variable; class Expression; }
 
 namespace dbi {
 
+class ColumnReference;
+
 namespace qopt {
 
 struct ColumnAccessInfo {

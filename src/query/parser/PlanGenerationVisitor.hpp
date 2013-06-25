@@ -15,7 +15,7 @@ namespace script {
 /// 
 class PlanGenerationVisitor : public Visitor {
 public:
-   PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, const harriet::Environment& environment);
+   PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, harriet::Environment& environment);
    virtual ~PlanGenerationVisitor();
 
    virtual void onPreVisit(SelectStatement& select);
@@ -24,7 +24,7 @@ public:
 private:
    SegmentManager& segmentManager;
    SchemaManager& schemaManager;
-   const harriet::Environment& environment;
+   harriet::Environment& environment;
 };
 
 }

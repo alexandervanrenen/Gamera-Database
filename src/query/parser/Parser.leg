@@ -35,9 +35,9 @@ struct ReturnValue {
    TableReference tableReference;
    AttributeDeclaration attributeDeclaration;
 
+   vector<pair<string, unique_ptr<harriet::Expression>>> projectionVec;
    vector<AttributeDeclaration> attributeDeclarationVec;
    vector<TableReference> tableReferenceVec;
-   vector<ColumnReference> columnReferenceVec;
 
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
@@ -79,13 +79,13 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - c:CreateTableStatement                    { $$ = move(c); }
              | - i:InsertStatement                         { $$ = move(i); }
 # --------------------------------------------------------------------------------------------------------------
-SelectStatement = SELECT - p:Projection - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnReferenceVec), move(t.tableReferenceVec), move(c.expressionVec)); }
-                | SELECT - p:Projection - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.columnReferenceVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
-Projection = s:ColumnReference                             { s.columnReferenceVec.push_back(s.columnReference); }
-           (- COMMA - i:ColumnReference                    { s.columnReferenceVec.push_back(i.columnReference); }
+SelectStatement = SELECT - p:Projections - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
+                | SELECT - p:Projections - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
+Projections = s:Projection                                 { s.projectionVec.push_back(make_pair(s.str, move(s.expression))); }
+           (- COMMA - i:Projection                         { s.projectionVec.push_back(make_pair(i.str, move(i.expression))); }
            )*                                              { $$ = move(s); }
-ColumnReference = tid:ID POINT cid:ID                      { $$.columnReference = ColumnReference{tid.str, cid.str}; }
-                | cid:ID                                   { $$.columnReference = ColumnReference{"", cid.str}; }
+Projection = e:Expression - AS - id:ID                     { $$.expression = move(e.expression); $$.str = move(id.str); }
+           | e:Expression                                  { $$.expression = move(e.expression); }
 Tables = t:TableName                                       { t.tableReferenceVec.push_back(t.tableReference); }
        (- COMMA - i:TableName                              { t.tableReferenceVec.push_back(i.tableReference); }
        )*                                                  { $$ = move(t);}
@@ -127,6 +127,8 @@ Product = f:Factor                                         { }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
        | v:VALUE                                           { $$.expression = harriet::Expression::createValueExpression(move(v.value)); }
        | c:ColumnReference                                 { $$.expression = harriet::Expression::createVariableExpression(c.columnReference.str()); }
+ColumnReference = tid:ID POINT cid:ID                      { $$.columnReference = ColumnReference{tid.str, cid.str}; }
+                | cid:ID                                   { $$.columnReference = ColumnReference{"", cid.str}; }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
@@ -163,7 +165,7 @@ LEQ = "<="                                                 { }
 L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 # --------------------------------------------------------------------------------------------------------------
-KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE { }
+KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS { }
 SELECT = "select"                     ![a-z|A-Z]           { }
 FROM = "from"                         ![a-z|A-Z]           { }
 CREATE = "create"                     ![a-z|A-Z]           { }
@@ -172,6 +174,7 @@ INSERT = "insert"                     ![a-z|A-Z]           { }
 INTO = "into"                         ![a-z|A-Z]           { }
 VALUES = "values"                     ![a-z|A-Z]           { }
 WHERE = "where"                       ![a-z|A-Z]           { }
+AS = "as"                             ![a-z|A-Z]           { }
 TRUE = "true"                         ![a-z|A-Z]           { }
 FALSE = "false"                       ![a-z|A-Z]           { }
 SQL_AND = "and"                       ![a-z|A-Z]           { }

@@ -18,7 +18,7 @@ class AccessTree;
 /// Reasonable optimization sped and fast for common query types. Use this for big query where dynamic programming would be to slow or is not implemented.
 class ChainOptimizer : public Optimizer {
 public:
-   ChainOptimizer(qopt::GlobalRegister& globalRegister, const harriet::Environment& env);
+   ChainOptimizer(const harriet::Environment& env, qopt::GlobalRegister& globalRegister);
    virtual ~ChainOptimizer();
 
    virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates);

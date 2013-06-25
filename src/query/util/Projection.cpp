@@ -1,7 +1,7 @@
-#include "Predicate.hpp"
+#include "Projection.hpp"
 #include "harriet/Expression.hpp"
+#include "query/util/TableAccessInfo.hpp"
 #include "query/util/ColumnAccessInfo.hpp"
-#include <iostream>
 
 using namespace std;
 
@@ -9,19 +9,20 @@ namespace dbi {
 
 namespace qopt {
 
-Predicate::Predicate(unique_ptr<harriet::Expression> condition)
-: condition(move(condition))
+Projection::Projection(std::unique_ptr<harriet::Expression> expression)
+: expression(move(expression))
+, resultRegisterSlot(111111)
 {
    ostringstream os;
-   this->condition->print(os);
-   prettyCondition = os.str();
+   this->expression->print(os);
+   prettyExpression = os.str();
 }
 
-Predicate::~Predicate()
+Projection::~Projection()
 {
 }
 
-set<uint32_t> Predicate::getRequiredTables() const
+set<uint32_t> Projection::getRequiredTables() const
 {
    set<uint32_t> result;
    for(auto& iter : requiredColumns)
@@ -29,9 +30,9 @@ set<uint32_t> Predicate::getRequiredTables() const
    return result;
 }
 
-void Predicate::dump(ostream& os) const
+void Projection::dump(ostream& os) const
 {
-   os << "condition: " << prettyCondition;
+   os << "expression: " << prettyExpression << " --> " << alias << " --> " << resultRegisterSlot;
    os << endl << "columns:";
    for(auto iter : requiredColumns)
       os << " " << iter.columnReference.str() << "(" << iter.tableIndex << "." << iter.columnIndex << ")";
@@ -44,4 +45,3 @@ void Predicate::dump(ostream& os) const
 }
 
 }
-   

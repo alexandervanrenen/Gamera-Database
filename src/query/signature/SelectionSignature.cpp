@@ -4,6 +4,7 @@
 #include "harriet/Value.hpp"
 #include "query/parser/Common.hpp"
 #include "query/util/GlobalRegister.hpp"
+#include "query/analyser/ExpressionOptimizer.hpp"
 #include "util/Utility.hpp"
 #include <algorithm>
 #include <set>
@@ -16,23 +17,9 @@ namespace dbi {
 SelectionSignature::SelectionSignature(unique_ptr<qopt::Predicate> predicateIn, qopt::GlobalRegister& globalRegister)
 : predicate(move(predicateIn))
 {
-   // Replace the column references in the condition with pointer to the global register
-   auto condition = predicate->condition.release();
-   vector<harriet::Expression**> freeVariables = condition->getAllVariables(&condition);
-   for(auto iter : freeVariables) {
-      ColumnReference c((*iter)->identifier);
-      if(globalRegister.hasColumn(c.tableQualifier, c.columnName)) {
-         delete *iter;
-         uint32_t columnIndex = globalRegister.getColumnIndex(c.tableQualifier, c.columnName);
-         *iter = harriet::Expression::createValueReferenceExpression(&globalRegister.getValue(columnIndex)).release();
-      } else {
-         predicate->condition.reset(condition);
-         ostringstream os;
-         dump(os);
-         throw harriet::Exception{"unknown identifier: '" + (*iter)->identifier + "' \ncandidates are: " + (os.str().size()==0?"<none>":os.str())};
-      }
-   }
-   predicate->condition.reset(condition);
+   qgen::ExpressionOptimizer optimizer;
+   harriet::Environment env;
+   predicate->condition = optimizer.fullOptimization(*predicate->condition, globalRegister, env);
 }
 
 bool SelectionSignature::fullfillsPredicates() const

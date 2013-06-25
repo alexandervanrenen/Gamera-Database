@@ -41,8 +41,8 @@ vector<vector<harriet::Value>>&& PrintOperator::getResult()
 vector<string> PrintOperator::getSuppliedColumns()
 {
    vector<string> result;
-   for(auto& iter : source->getSuppliedColumns())
-      result.push_back(iter.columnReference.str());
+   for(auto& iter : source->getRegisterIndexes())
+      result.push_back(globalRegister.getSlotInfo(iter).identifier);
    return result;
 }
 
@@ -53,9 +53,7 @@ chrono::nanoseconds PrintOperator::getExecutionTime() const
 
 void PrintOperator::execute()
 {
-   std::vector<uint32_t> globalRegisterIndexes;
-   for(auto iter : source->getSuppliedColumns())
-      globalRegisterIndexes.push_back(globalRegister.getColumnIndex(iter.tableIndex, iter.columnSchema.name));
+   vector<uint32_t> globalRegisterIndexes = source->getRegisterIndexes();
 
    // Print content
    auto begin = chrono::high_resolution_clock::now();
@@ -63,7 +61,7 @@ void PrintOperator::execute()
    while(source->next()) {
       result.push_back(vector<harriet::Value>());
       for(auto sourceIndex : globalRegisterIndexes)
-         result.back().emplace_back(globalRegister.getValue(sourceIndex).createCopy());
+         result.back().emplace_back(globalRegister.getSlotValue(sourceIndex).createCopy());
    }
    auto end = chrono::high_resolution_clock::now();
    executionTime = chrono::duration_cast<chrono::nanoseconds>(end-begin);

@@ -17,7 +17,7 @@ public:
 
    bool fullfillsPredicates() const;
 
-   virtual void dump(std::ostream& os) const;
+   void dump(std::ostream& os) const;
 
 private:
    std::unique_ptr<qopt::Predicate> predicate;

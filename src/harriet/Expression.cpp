@@ -99,6 +99,34 @@ Expression::Expression(Expression&& other)
    throw "unreachable";
 }
 //---------------------------------------------------------------------------
+unique_ptr<Expression> Expression::createCopy() const
+{
+   switch(type) {
+      case ExpressionType::TUndefined:
+         throw;
+      case ExpressionType::TVariable:
+         return createVariableExpression(identifier);
+      case ExpressionType::TValue:
+         return createValueExpression(value.createCopy());
+      case ExpressionType::TValueReference:
+         return createValueReferenceExpression(data.valueReference);
+      case ExpressionType::TPlusOperator:
+      case ExpressionType::TMinusOperator:
+      case ExpressionType::TMultiplicationOperator:
+      case ExpressionType::TDivisionOperator:
+      case ExpressionType::TAndOperator:
+      case ExpressionType::TOrOperator:
+      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterEqualOperator:
+      case ExpressionType::TLessEqualOperator:
+      case ExpressionType::TEqualOperator:
+      case ExpressionType::TNotEqualOperator:
+         return createBinaryExpression(type, data.lhs->createCopy(), data.rhs->createCopy());
+   }
+   throw "unreachable";
+}
+//---------------------------------------------------------------------------
 Expression& Expression::operator= (Expression&& other)
 {
    type = other.type;

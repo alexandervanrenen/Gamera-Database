@@ -44,6 +44,7 @@ public:
    static std::unique_ptr<Expression> createValueExpression(Value&& value);
    static std::unique_ptr<Expression> createValueReferenceExpression(Value* value);
    static std::unique_ptr<Expression> createBinaryExpression(ExpressionType type, std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs);
+   std::unique_ptr<Expression> createCopy() const;
    Expression(Expression&& other);
    Expression& operator= (Expression&& other);
 

@@ -5,9 +5,11 @@
 #include "query/operator/PrintOperator.hpp"
 #include "query/operator/ProjectionOperator.hpp"
 #include "query/optimizer/ChainOptimizer.hpp"
-#include "query/util/ColumnResolver.hpp"
+#include "query/analyser/DependencyAnalyser.hpp"
 #include "query/util/Predicate.hpp"
-#include "query/util/PredicateGenerator.hpp"
+#include "query/util/Projection.hpp"
+#include "query/analyser/PredicateGenerator.hpp"
+#include "query/analyser/ProjectionGenerator.hpp"
 #include "query/util/TableAccessInfo.hpp"
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
@@ -23,7 +25,7 @@ namespace dbi {
 
 namespace script {
 
-PlanGenerationVisitor::PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, const harriet::Environment& environment)
+PlanGenerationVisitor::PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, harriet::Environment& environment)
 : segmentManager(segmentManager)
 , schemaManager(schemaManager)
 , environment(environment)
@@ -36,7 +38,7 @@ PlanGenerationVisitor::~PlanGenerationVisitor()
 
 void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 {
-   // Build a vector containing all table access'
+   // Build a vector containing all TableAccessInfos
    for(uint32_t i=0; i<select.sources.size(); i++) {
       auto& relationSchema = schemaManager.getRelation(select.sources[i].tableName);
       string qualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
@@ -45,28 +47,23 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    }
 
    // Build a columns needed for the projections
-   qopt::ColumnResolver resolver(environment);
-   set<qopt::ColumnAccessInfo> requiredProjectionColums;
-   vector<qopt::ColumnAccessInfo> projectionTargets; // These tow are redundant... this will change with the Projection class
-   for(auto& iter : select.projections) {
-      if(resolver.resolveColumnReference(iter, select.tableAccessVec).has()) {
-         requiredProjectionColums.insert(resolver.resolveColumnReference(iter, select.tableAccessVec).get());
-         projectionTargets.push_back(resolver.resolveColumnReference(iter, select.tableAccessVec).get());
-      } else {
-         throw;
-      }
-   }
+   qgen::DependencyAnalyser dependencyAnalyser(environment, select.tableAccessVec);
+   select.globalRegister = dependencyAnalyser.createGlobalRegister(select.projections, select.conditions);
 
-   // Build predicates from condition-expressions
-   qopt::PredicateGenerator predicateGenerator(environment);
-   vector<std::unique_ptr<qopt::Predicate>> predicates = predicateGenerator.createPredicates(select.conditions, select.tableAccessVec);
-   select.globalRegister = util::make_unique<qopt::GlobalRegister>(requiredProjectionColums, predicates);
+   // Select clause -- Build projections from selection-expressions
+   qgen::ProjectionGenerator projectionGenerator(environment, *select.globalRegister);
+   vector<std::unique_ptr<qopt::Projection>> projections = projectionGenerator.createProjections(select.projections);
+
+   // Where clause -- Build predicates from condition-expressions
+   qgen::PredicateGenerator predicateGenerator(environment, *select.globalRegister);
+   vector<std::unique_ptr<qopt::Predicate>> predicates = predicateGenerator.createPredicates(select.conditions);
 
    // Let the optimizer build a nice access tree from the table access' and the predicates
-   qopt::ChainOptimizer opty(*select.globalRegister, environment);
+   qopt::ChainOptimizer opty(environment, *select.globalRegister);
    auto plan = opty.optimize(select.tableAccessVec, predicates);
 
-   auto projection = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);
+   // Finally: Add the projection and we are good to go =)
+   auto projection = util::make_unique<ProjectionOperator>(move(plan), move(projections), *select.globalRegister);
    select.queryPlan = util::make_unique<PrintOperator>(move(projection), *select.globalRegister);
 }
 

@@ -3,6 +3,7 @@
 #include "common/SegmentId.hpp"
 #include "harriet/ScriptLanguage.hpp"
 #include "segment_manager/Record.hpp"
+#include "harriet/VariableType.hpp"
 #include <ios>
 #include <set>
 #include <string>

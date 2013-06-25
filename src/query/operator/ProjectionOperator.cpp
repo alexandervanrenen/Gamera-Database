@@ -27,6 +27,8 @@ const vector<qopt::ColumnAccessInfo>& ProjectionOperator::getSuppliedColumns() c
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "Projection ";
+   for(auto iter : suppliedColumns)
+      os << iter.columnReference.str() << " ";
    os << endl;
    source->dump(os, lvl+3);
 }

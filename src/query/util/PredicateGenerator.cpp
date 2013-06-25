@@ -24,9 +24,9 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
    // 1: generate all predicates
    vector<unique_ptr<Predicate>> predicates;
    predicates.reserve(conditions.size());
-   for(auto& expression: conditions) {
+   for(auto& expression: conditions)
       predicates.push_back(createPredicate(move(expression), tableAccessVec));
-   }
+
    // 2: check all predicates if tables match
    for(auto outerIter = predicates.begin(); outerIter != predicates.end(); outerIter++) {    
       for(auto innerIter = outerIter + 1; innerIter != predicates.end();) {
@@ -46,8 +46,7 @@ vector<unique_ptr<Predicate>> PredicateGenerator::createPredicates(vector<unique
 unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Expression> condition, const vector<TableAccessInfo>& tableAccessVec) const
 {
    // Create predicate
-   auto predicate = util::make_unique<Predicate>();
-   predicate->condition = move(condition);
+   auto predicate = util::make_unique<Predicate>(move(condition));
 
    // First -- Resolve all variables in the condition and add to the predicate
    {

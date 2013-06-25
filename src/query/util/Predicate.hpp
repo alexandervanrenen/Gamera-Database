@@ -14,12 +14,14 @@ namespace qopt {
 class ColumnAccessInfo;
 
 struct Predicate {
+   Predicate(std::unique_ptr<harriet::Expression> condition);
    ~Predicate();
 
    /// The columns the predicate depends on
    std::set<ColumnAccessInfo> requiredColumns;
    /// The actual condition
    std::unique_ptr<harriet::Expression> condition;
+   std::string prettyCondition;
 
    /// Find out all tables needed for this predicate
    std::set<uint32_t> getRequiredTables() const;

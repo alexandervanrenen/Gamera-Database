@@ -4,6 +4,7 @@
 #include "query/util/Predicate.hpp"
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace dbi {
 

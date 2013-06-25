@@ -43,7 +43,7 @@ bool SelectionSignature::fullfillsPredicates() const
 
 void SelectionSignature::dump(ostream& os) const
 {
-   predicate->condition->print(os);
+   os << predicate->prettyCondition;
 }
 
 }

@@ -26,10 +26,10 @@ void TableScanSignature::loadRecordIntoGlobalRegister(Record& record) const
 
 void TableScanSignature::dump(ostream& os) const
 {
-   os << " from [";
+   os << "from [";
    for(auto iter : columnMapping)
-      os << " r" << iter.registerIndex << " t" << iter.tupleIndex;
-   os << " ]";
+      os << " " << iter.tupleIndex << "->" << iter.registerIndex << " ";
+   os << "]";
 }
 
 }

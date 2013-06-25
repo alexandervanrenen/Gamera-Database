@@ -2,20 +2,13 @@
 #include "harriet/Environment.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/ScriptLanguage.hpp"
-#include "query/operator/CrossProductOperator.hpp"
-#include "query/operator/InsertOperator.hpp"
 #include "query/operator/PrintOperator.hpp"
 #include "query/operator/ProjectionOperator.hpp"
-#include "query/operator/SelectionOperator.hpp"
-#include "query/operator/SingleRecordOperator.hpp"
-#include "query/operator/TableScanOperator.hpp"
 #include "query/optimizer/ChainOptimizer.hpp"
-#include "query/optimizer/DummyOptimizer.hpp"
 #include "query/util/ColumnResolver.hpp"
 #include "query/util/Predicate.hpp"
 #include "query/util/PredicateGenerator.hpp"
 #include "query/util/TableAccessInfo.hpp"
-#include "schema/RelationSchema.hpp"
 #include "schema/SchemaManager.hpp"
 #include "segment_manager/SegmentManager.hpp"
 #include "Statement.hpp"
@@ -83,7 +76,6 @@ void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
    {
       // Get target relation
       auto& targetSchema = schemaManager.getRelation(insert.tableName);
-      SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
 
       // See if we can insert the provided types into the table
       if(insert.values.size() != targetSchema.getAttributes().size())

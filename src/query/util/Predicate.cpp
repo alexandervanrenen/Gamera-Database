@@ -9,6 +9,14 @@ namespace dbi {
 
 namespace qopt {
 
+Predicate::Predicate(unique_ptr<harriet::Expression> condition)
+: condition(move(condition))
+{
+   ostringstream os;
+   this->condition->print(os);
+   prettyCondition = os.str();
+}
+
 Predicate::~Predicate()
 {
 }

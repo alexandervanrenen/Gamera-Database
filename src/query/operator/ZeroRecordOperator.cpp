@@ -1,6 +1,5 @@
 #include "ZeroRecordOperator.hpp"
 #include "harriet/Value.hpp"
-#include "query/signature/ColumnSignature.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -8,9 +7,8 @@ using namespace std;
 
 namespace dbi {
 
-ZeroRecordOperator::ZeroRecordOperator(set<qopt::ColumnAccessInfo>& projections)
+ZeroRecordOperator::ZeroRecordOperator()
 : state(kClosed)
-, signature(projections)
 {
 }
 
@@ -18,15 +16,9 @@ ZeroRecordOperator::~ZeroRecordOperator()
 {
 }
 
-const Signature& ZeroRecordOperator::getSignature() const
-{
-   return signature;
-}
-
 void ZeroRecordOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << '|' << string(lvl, '.') << "Zero Record " << "[";
-   signature.dump(os);
    os << "]" << endl;
 }
 

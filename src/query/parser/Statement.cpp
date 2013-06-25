@@ -4,6 +4,7 @@
 #include "harriet/Value.hpp"
 #include "query/operator/PrintOperator.hpp"
 #include "query/operator/RootOperator.hpp"
+#include "query/util/GlobalRegister.hpp"
 #include "Visitor.hpp"
 
 using namespace std;

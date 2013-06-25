@@ -1,7 +1,6 @@
 #include "CrossProductOperator.hpp"
 #include "harriet/Expression.hpp"
 #include "harriet/Value.hpp"
-#include "query/signature/ColumnSignature.hpp"
 #include <iostream>
 
 using namespace std;
@@ -13,7 +12,6 @@ CrossProductOperator::CrossProductOperator(unique_ptr<Operator> lhs, unique_ptr<
 , rhs(move(rhs))
 , lhsHasNext(false)
 , state(kClosed)
-, signature(this->lhs->getSignature(), this->rhs->getSignature())
 {
 }
 
@@ -21,15 +19,9 @@ CrossProductOperator::~CrossProductOperator()
 {
 }
 
-const Signature& CrossProductOperator::getSignature() const
-{
-   return signature;
-}
-
 void CrossProductOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "CrossProduct ";
-   signature.dump(os);
    os << endl << "|" << string(lvl+3, '.') << "lhs" << endl;
    lhs->dump(os, lvl+6);
    os << endl << "|" << string(lvl+3, '.') << "rhs" << endl;

@@ -2,7 +2,6 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "query/signature/ZeroRecordSignature.hpp"
 #include <memory>
 #include <set>
 
@@ -14,10 +13,9 @@ namespace qopt { class ColumnAccessInfo; }
 /// Its used for a select statement containing a false predicate which results in no tuples.
 class ZeroRecordOperator : public Operator {
 public:
-   ZeroRecordOperator(std::set<qopt::ColumnAccessInfo>& projections);
+   ZeroRecordOperator();
    virtual ~ZeroRecordOperator();
 
-   virtual const Signature& getSignature() const;
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
@@ -26,7 +24,6 @@ public:
 
 private:
    OperatorState state;
-   const ZeroRecordSignature signature;
 };
 
 }

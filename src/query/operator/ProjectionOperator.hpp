@@ -2,9 +2,11 @@
 
 #include "Operator.hpp"
 #include "OperatorState.hpp"
-#include "query/signature/ProjectionSignature.hpp"
 #include <cstdint>
 #include <memory>
+#include <vector>
+
+namespace harriet { class VariableType; }
 
 namespace dbi {
 
@@ -14,9 +16,10 @@ namespace qopt { class ColumnAccessInfo; }
 class ProjectionOperator : public Operator {
 public:
    ProjectionOperator(std::unique_ptr<Operator> source, const std::vector<qopt::ColumnAccessInfo>& projectedAttributes);
+   ProjectionOperator(std::unique_ptr<Operator> source, std::vector<harriet::VariableType>& projectedTypes);
    virtual ~ProjectionOperator();
 
-   virtual const Signature& getSignature() const;
+   const std::vector<qopt::ColumnAccessInfo>& getSuppliedColumns() const;
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
@@ -26,7 +29,7 @@ public:
 private:
    std::unique_ptr<Operator> source;
    OperatorState state;
-   ProjectionSignature signature;
+   std::vector<qopt::ColumnAccessInfo> suppliedColumns;
 };
 
 }

@@ -176,27 +176,27 @@ void Expression::print(ostream& stream) const
       case ExpressionType::TPlusOperator:
          data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
       case ExpressionType::TMinusOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " - "; data.rhs->print(stream); return;
       case ExpressionType::TMultiplicationOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " * "; data.rhs->print(stream); return;
       case ExpressionType::TDivisionOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " / "; data.rhs->print(stream); return;
       case ExpressionType::TAndOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " & "; data.rhs->print(stream); return;
       case ExpressionType::TOrOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " | "; data.rhs->print(stream); return;
       case ExpressionType::TGreaterOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " > "; data.rhs->print(stream); return;
       case ExpressionType::TLessOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " < "; data.rhs->print(stream); return;
       case ExpressionType::TGreaterEqualOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " >= "; data.rhs->print(stream); return;
       case ExpressionType::TLessEqualOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " <= "; data.rhs->print(stream); return;
       case ExpressionType::TEqualOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " == "; data.rhs->print(stream); return;
       case ExpressionType::TNotEqualOperator:
-         data.lhs->print(stream); stream << " + "; data.rhs->print(stream); return;
+         data.lhs->print(stream); stream << " != "; data.rhs->print(stream); return;
    }
    throw "unreachable";
 }
@@ -251,14 +251,14 @@ ExpressionType Expression::getExpressionType() const
    return type;
 }
 //---------------------------------------------------------------------------
-vector<string> Expression::getAllVariableNames()
+vector<string*> Expression::getAllVariableNames()
 {
-   vector<string> result;
+   vector<string*> result;
    switch(type) {
       case ExpressionType::TUndefined:
          throw;
       case ExpressionType::TVariable:
-         result.push_back(identifier); return result;
+         result.push_back(&identifier); return result;
       case ExpressionType::TValue:
       case ExpressionType::TValueReference:
             return result;

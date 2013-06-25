@@ -1,5 +1,5 @@
 #include "ProjectionOperator.hpp"
-#include "query/signature/ColumnSignature.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -10,9 +10,8 @@ namespace dbi {
 ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, const vector<qopt::ColumnAccessInfo>& projectedAttributes)
 : source(move(source))
 , state(kClosed)
-, signature(projectedAttributes)
+, suppliedColumns(projectedAttributes)
 {
-   signature.prepare(this->source->getSignature());
    state = kClosed;
 }
 
@@ -20,15 +19,14 @@ ProjectionOperator::~ProjectionOperator()
 {
 }
 
-const Signature& ProjectionOperator::getSignature() const
+const vector<qopt::ColumnAccessInfo>& ProjectionOperator::getSuppliedColumns() const
 {
-   return signature;
+   return suppliedColumns;
 }
 
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "Projection ";
-   signature.dump(os);
    os << endl;
    source->dump(os, lvl+3);
 }

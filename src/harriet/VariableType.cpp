@@ -121,6 +121,7 @@ uint32_t VariableType::getMaxValuesASCIIRepresentationSize() const
       case Type::TUndefined:
          throw;
    }
+   throw;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

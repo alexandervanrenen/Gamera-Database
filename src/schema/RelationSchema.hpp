@@ -47,7 +47,8 @@ struct RelationSchema {
    const std::vector<ColumnSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}
 
-   const ColumnSchema* getColumn(const std::string& name) const;
+   bool hasColumn(const std::string& name) const;
+   uint32_t getColumn(const std::string& name) const;
 
    void dump(std::ostream& os) const;
 

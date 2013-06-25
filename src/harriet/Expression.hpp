@@ -52,7 +52,7 @@ public:
    void print(std::ostream& stream) const;
 
    Value evaluate(const Environment& environment) const;
-   std::vector<std::string> getAllVariableNames();
+   std::vector<std::string*> getAllVariableNames();
    std::vector<Expression**> getAllVariables(Expression** self);
 
    ExpressionType getExpressionType() const;

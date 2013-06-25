@@ -52,11 +52,13 @@ unique_ptr<Predicate> PredicateGenerator::createPredicate(unique_ptr<harriet::Ex
    // First -- Resolve all variables in the condition and add to the predicate
    {
       ColumnResolver columnResolver(env);
-      vector<string> freeVariables = predicate->condition->getAllVariableNames();
-      for(auto& variable : freeVariables) {
-         ColumnResolver::Result result = columnResolver.resolveSelection(ColumnReference(variable), tableAccessVec);
-         if(result.has())
+      vector<string*> freeVariables = predicate->condition->getAllVariableNames();
+      for(auto variableName : freeVariables) {
+         ColumnResolver::Result result = columnResolver.resolveColumnReference(ColumnReference(*variableName), tableAccessVec);
+         if(result.has()) {
             predicate->requiredColumns.insert(result.get());
+            *variableName = result.get().columnReference.str();
+         }
       }
    }
 

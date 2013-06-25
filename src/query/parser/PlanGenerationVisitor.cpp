@@ -20,6 +20,8 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "Statement.hpp"
 #include "util/Utility.hpp"
+#include "query/util/GlobalRegister.hpp"
+#include "segment_manager/SPSegment.hpp"
 #include <sstream>
 
 using namespace std;
@@ -54,30 +56,42 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    set<qopt::ColumnAccessInfo> requiredProjectionColums;
    vector<qopt::ColumnAccessInfo> projectionTargets; // These tow are redundant... this will change with the Projection class
    for(auto& iter : select.projections) {
-      requiredProjectionColums.insert(resolver.resolveProjection(iter, select.tableAccessVec));
-      projectionTargets.push_back(resolver.resolveProjection(iter, select.tableAccessVec));
+      if(resolver.resolveColumnReference(iter, select.tableAccessVec).has()) {
+         requiredProjectionColums.insert(resolver.resolveColumnReference(iter, select.tableAccessVec).get());
+         projectionTargets.push_back(resolver.resolveColumnReference(iter, select.tableAccessVec).get());
+      } else {
+         throw;
+      }
    }
 
    // Build predicates from condition-expressions
-   vector<std::unique_ptr<qopt::Predicate>> predicates;
    qopt::PredicateGenerator predicateGenerator(environment);
-   predicates = predicateGenerator.createPredicates(select.conditions, select.tableAccessVec);
+   vector<std::unique_ptr<qopt::Predicate>> predicates = predicateGenerator.createPredicates(select.conditions, select.tableAccessVec);
+   select.globalRegister = util::make_unique<qopt::GlobalRegister>(requiredProjectionColums, predicates);
 
    // Let the optimizer build a nice access tree from the table access' and the predicates
-   qopt::ChainOptimizer opty(select.globalRegister, environment);
-   auto plan = opty.optimize(select.tableAccessVec, predicates, requiredProjectionColums);
+   qopt::ChainOptimizer opty(*select.globalRegister, environment);
+   auto plan = opty.optimize(select.tableAccessVec, predicates);
 
-   plan = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);
-   select.queryPlan = util::make_unique<PrintOperator>(move(plan), select.globalRegister);
+   auto projection = util::make_unique<ProjectionOperator>(move(plan), projectionTargets);
+   select.queryPlan = util::make_unique<PrintOperator>(move(projection), *select.globalRegister);
 }
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
 {
-   auto source = util::make_unique<SingleRecordOperator>(move(insert.values), insert.globalRegister);
+   // Simple case: A single tuple is provided => just insert it
+   {
+      // Get target relation
+      auto& targetSchema = schemaManager.getRelation(insert.tableName);
+      SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
 
-   auto& targetSchema = schemaManager.getRelation(insert.tableName);
-   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
-   insert.queryPlan = util::make_unique<InsertOperator>(move(source), targetSegment, targetSchema, insert.globalRegister);
+      // See if we can insert the provided types into the table
+      if(insert.values.size() != targetSchema.getAttributes().size())
+         throw harriet::Exception{"Insert " + targetSchema.getName() + ": expected " + to_string(targetSchema.getAttributes().size()) + " arguments, " + to_string(insert.values.size()) + " provided."};
+      for(uint32_t i=0; i<insert.values.size(); i++)
+         if(!harriet::isImplicitCastPossible(insert.values[i].type, targetSchema.getAttributes()[i].type))
+            throw harriet::Exception{"Insert into " + targetSchema.getName() + ": invalid conversion from '" + insert.values[i].type.str() + "' to '" + targetSchema.getAttributes()[i].type.str() + "' for argument " + to_string(i) + "."};
+   }
 }
 
 }

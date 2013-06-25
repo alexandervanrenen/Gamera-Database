@@ -18,9 +18,9 @@ namespace dbi {
 
 namespace qopt {
 
-ChainOptimizer::ChainOptimizer(std::vector<harriet::Value>& globalRegister, const harriet::Environment& env)
-: globalRegister(globalRegister)
-, env(env)
+ChainOptimizer::ChainOptimizer(qopt::GlobalRegister& globalRegister, const harriet::Environment& env)
+: env(env)
+, globalRegister(globalRegister)
 {
 }
 
@@ -28,25 +28,17 @@ ChainOptimizer::~ChainOptimizer()
 {
 }
 
-unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates, set<ColumnAccessInfo>& projections)
+unique_ptr<Operator> ChainOptimizer::optimize(const vector<TableAccessInfo>& relations, vector<unique_ptr<Predicate>>& predicates)
 {
    // Create a tree describing the order in which the tables are joined
    auto accessTree = createAccessTree(relations, predicates);
 
    if(accessTree) {
       // A normal access tree was produced
-      set<ColumnAccessInfo> requiredColumns = accessTree->getRequiredColumns();
-      for(auto& iter : projections)
-         requiredColumns.insert(iter);
-      for(auto& iter : requiredColumns)
-         globalRegister.emplace_back(harriet::Value::createDefault(iter.columnSchema.type));
-      uint32_t registerOffset = 0;
-      auto plan = accessTree->toPlan(requiredColumns, globalRegister, registerOffset);
-      assert(globalRegister.size() == registerOffset);
-      return plan;
+      return accessTree->toPlan(globalRegister);
    } else {
       // Some brain dead idiot used 'false' in the where clause
-      return util::make_unique<ZeroRecordOperator>(projections);
+      return util::make_unique<ZeroRecordOperator>();
    }
 }
 

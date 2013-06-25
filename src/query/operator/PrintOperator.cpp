@@ -1,9 +1,9 @@
 #include "PrintOperator.hpp"
 #include "harriet/ScriptLanguage.hpp"
 #include "harriet/Value.hpp"
-#include "Operator.hpp"
-#include "query/signature/ColumnSignature.hpp"
-#include "query/signature/Signature.hpp"
+#include "ProjectionOperator.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
+#include "query/util/GlobalRegister.hpp"
 #include "util/Utility.hpp"
 #include <chrono>
 #include <iomanip>
@@ -13,7 +13,7 @@ using namespace std;
 
 namespace dbi {
 
-PrintOperator::PrintOperator(unique_ptr<Operator> source, vector<harriet::Value>& globalRegister)
+PrintOperator::PrintOperator(unique_ptr<ProjectionOperator> source, qopt::GlobalRegister& globalRegister)
 : globalRegister(globalRegister)
 , source(move(source))
 {
@@ -41,8 +41,8 @@ vector<vector<harriet::Value>>&& PrintOperator::getResult()
 vector<string> PrintOperator::getSuppliedColumns()
 {
    vector<string> result;
-   for(auto& iter : source->getSignature().getAttributes())
-      result.push_back((iter.alias.size()!=0?(iter.alias+"."):"") + iter.name);
+   for(auto& iter : source->getSuppliedColumns())
+      result.push_back(iter.columnReference.str());
    return result;
 }
 
@@ -53,14 +53,17 @@ chrono::nanoseconds PrintOperator::getExecutionTime() const
 
 void PrintOperator::execute()
 {
+   std::vector<uint32_t> globalRegisterIndexes;
+   for(auto iter : source->getSuppliedColumns())
+      globalRegisterIndexes.push_back(globalRegister.getColumnIndex(iter.tableIndex, iter.columnSchema.name));
+
    // Print content
-   auto& signature = source->getSignature();
    auto begin = chrono::high_resolution_clock::now();
    source->open();
    while(source->next()) {
       result.push_back(vector<harriet::Value>());
-      for(uint32_t i=0; i<signature.getAttributes().size(); i++)
-         result.back().emplace_back(globalRegister[signature.getAttributes()[i].index].createCopy());
+      for(auto sourceIndex : globalRegisterIndexes)
+         result.back().emplace_back(globalRegister.getValue(sourceIndex).createCopy());
    }
    auto end = chrono::high_resolution_clock::now();
    executionTime = chrono::duration_cast<chrono::nanoseconds>(end-begin);

@@ -8,6 +8,7 @@
 #include "segment_manager/SegmentManager.hpp"
 #include "Statement.hpp"
 #include "util/Utility.hpp"
+#include "segment_manager/SPSegment.hpp"
 #include <sstream>
 
 using namespace std;
@@ -55,8 +56,13 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
 
 void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
-   insert.queryPlan->checkTypes();
-   insert.queryPlan->execute();
+   // Get target relation
+   auto& targetSchema = schemaManager.getRelation(insert.tableName);
+   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
+
+   // Do the insert
+   targetSegment.insert(targetSchema.tupleToRecord(insert.values));
+
    result.addInsert(chrono::nanoseconds(-1), insert.tableName);
 }
 

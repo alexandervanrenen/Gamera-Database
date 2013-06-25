@@ -26,13 +26,10 @@ public:
       std::unique_ptr<ColumnAccessInfo> column;
    };
 
-   Result resolveSelection(const ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
-   ColumnAccessInfo resolveProjection(const ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
+   Result resolveColumnReference(const ColumnReference& column, const std::vector<TableAccessInfo>& tableAccessVec) const;
 
 private:
    const harriet::Environment& env;
-
-   static std::pair<uint32_t, const ColumnSchema*> tryFindColumn(const ColumnReference& ref, const std::vector<TableAccessInfo>& tableAccessVec);
 };
 
 }

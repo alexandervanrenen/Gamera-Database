@@ -48,6 +48,8 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 {
    // Build a vector containing all TableAccessInfos
    for(uint32_t i=0; i<select.sources.size(); i++) {
+      if(!schemaManager.hasRelation(select.sources[i].tableName))
+         throw harriet::Exception("Unknown table from clause: '" + select.sources[i].tableName + "'.");
       auto& relationSchema = schemaManager.getRelation(select.sources[i].tableName);
       string qualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
       auto& segment = segmentManager.getSPSegment(relationSchema.getSegmentId());

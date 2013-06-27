@@ -33,7 +33,7 @@ int main(int, char**)
 
       auto result = db.executeQuery(query);
       ostringstream os;
-      result->print(os);
+      result->toJSON(os);
 
       string str = os.str();
       msg.rebuild(str.size());

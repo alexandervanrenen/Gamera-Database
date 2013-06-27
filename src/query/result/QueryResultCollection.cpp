@@ -97,4 +97,26 @@ void QueryResultCollection::print(ostream& os) const
       os << errorMessage << endl;
 }
 
+void QueryResultCollection::toJSON(ostream& os) const
+{
+   // Begin {
+   os << "{";
+
+   // Print error (message is empty if no error occured)
+   os << "\"error\":" << "\"" << errorMessage << "\"," << endl;
+
+   // Print all results
+   os << "\"results\":" << "[" << endl;
+   for(uint32_t i=1; i<singleResults.size(); i++) {
+      singleResults[i-1]->toJSON(os);
+      os << "," << endl;
+   }
+   if(!singleResults.empty())
+      singleResults.back()->toJSON(os);
+   os << endl << "]" << endl;
+
+   // Finish }
+   os << "}" << endl;
+}
+
 }

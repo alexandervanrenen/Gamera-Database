@@ -13,6 +13,7 @@ struct QueryResult {
    virtual ~QueryResult();
    virtual QueryType getType() const = 0;
    virtual void print(std::ostream& os) const = 0;
+   virtual void toJSON(std::ostream& os) const = 0;
 };
 
 struct SelectResult : public QueryResult {
@@ -25,6 +26,7 @@ struct SelectResult : public QueryResult {
 
    virtual QueryType getType() const { return QueryType::kSelect; };
    virtual void print(std::ostream& os) const;
+   virtual void toJSON(std::ostream& os) const;
 };
 
 struct CreateResult : public QueryResult {
@@ -36,6 +38,7 @@ struct CreateResult : public QueryResult {
 
    virtual QueryType getType() const { return QueryType::kCreate; };
    virtual void print(std::ostream& os) const;
+   virtual void toJSON(std::ostream& os) const;
 };
 
 struct InsertResult : public QueryResult {
@@ -47,6 +50,7 @@ struct InsertResult : public QueryResult {
 
    virtual QueryType getType() const { return QueryType::kInsert; };
    virtual void print(std::ostream& os) const;
+   virtual void toJSON(std::ostream& os) const;
 };
 
 }

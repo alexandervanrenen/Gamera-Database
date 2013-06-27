@@ -41,22 +41,27 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
 
    // Execute query
    for(auto& root : roots->statements) {
-      // Plan generation
-      script::PlanGenerationVisitor geny(segmentManager, schemaManager, environment);
-      root->acceptVisitor(geny);
+      try {
+         // Plan generation
+         script::PlanGenerationVisitor geny(segmentManager, schemaManager, environment);
+         root->acceptVisitor(geny);
 
-      // Print script
-      ostringstream treeStream;
-      if(showPlan) {
-         script::PrintVisitor printy(treeStream, script::PrintVisitor::PrintMode::kSelect);
-         root->acceptVisitor(printy);
-         if(treeStream.str().size() != 0)
-            result->addPrintOutput(treeStream.str());
+         // Print script
+         ostringstream treeStream;
+         if(showPlan) {
+            script::PrintVisitor printy(treeStream, script::PrintVisitor::PrintMode::kSelect);
+            root->acceptVisitor(printy);
+            if(treeStream.str().size() != 0)
+               result->addPrintOutput(treeStream.str());
+         }
+
+         // Interpret script
+         script::ExecutionVisitor exy(segmentManager, schemaManager, *result);
+         root->acceptVisitor(exy);
+      } catch (harriet::Exception& e) {
+         result->setRuntimeError(e.message);
+         return result;
       }
-
-      // Interpret script
-      script::ExecutionVisitor exy(segmentManager, schemaManager, *result);
-      root->acceptVisitor(exy);
    }
 
    return result;

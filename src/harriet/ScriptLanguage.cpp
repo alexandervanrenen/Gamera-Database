@@ -72,7 +72,7 @@ bool isImplicitCastPossible(VariableType from, VariableType to) throw()
       /* charactor */ {  false,  false,  false,  false,  true }
    };
 
-   return implicitCast[static_cast<uint32_t>(to.type)][static_cast<uint32_t>(from.type)];
+   return implicitCast[static_cast<uint32_t>(to.type)][static_cast<uint32_t>(from.type)] && from.length <= to.length;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

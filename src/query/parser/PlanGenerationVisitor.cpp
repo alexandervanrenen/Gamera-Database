@@ -36,6 +36,14 @@ PlanGenerationVisitor::~PlanGenerationVisitor()
 {
 }
 
+
+void PlanGenerationVisitor::onPreVisit(CreateTableStatement& createTable)
+{
+   // Check if table already exists
+   if(schemaManager.hasRelation(createTable.tableName))
+      throw harriet::Exception("Can not create table with already existing name: '" + createTable.tableName + "'.");
+}
+
 void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 {
    // Build a vector containing all TableAccessInfos
@@ -69,6 +77,10 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
 {
+   // Check if table already exists
+   if(!schemaManager.hasRelation(insert.tableName))
+      throw harriet::Exception("Insert into unknown table: '" + insert.tableName + "'.");
+
    // Simple case: A single tuple is provided => just insert it
    {
       // Get target relation

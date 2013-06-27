@@ -202,6 +202,9 @@ unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
   input.clear();
   input.str(query);
 
+  lineNumber = 1;
+  columnNumber = 0;
+
   GREG g;
   try {
     yyinit(&g);
@@ -209,7 +212,7 @@ unique_ptr<RootStatement> parse(const string& query) throw(ParserException)
     yydeinit(&g);
   } catch (int) {
     yydeinit(&g);
-    throw ParserException("parser error: ", lineNumber+1, columnNumber);
+    throw ParserException("parser error: ", lineNumber, columnNumber);
   }
 
   if(result == nullptr)

@@ -26,13 +26,19 @@ int main(int, char**)
    responder.bind("tcp://*:7854");
 
    while(true) {
-      char buffer[4096];
-      memset(buffer, '\0', 4096);
-      responder.recv(buffer, 4096, 0);
-      string query(buffer);
-      cout << ":> " << query << endl;
-      db.executeQuery(query);
-      responder.send("ok", 2, 0);
+      zmq::message_t msg;
+      responder.recv(&msg);
+      string query((char*)msg.data(), msg.size());
+      cout << query << endl;
+
+      auto result = db.executeQuery(query);
+      ostringstream os;
+      result->print(os);
+
+      string str = os.str();
+      msg.rebuild(str.size());
+      memcpy(msg.data(), str.data(), str.size());
+      responder.send(msg);
    }
    return 0;
 }

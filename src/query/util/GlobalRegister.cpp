@@ -2,7 +2,6 @@
 #include "ColumnAccessInfo.hpp"
 #include "Predicate.hpp"
 #include "harriet/Value.hpp"
-#include "schema/RelationSchema.hpp"
 #include "query/parser/Common.hpp"
 #include "util/Utility.hpp"
 #include <algorithm>
@@ -19,7 +18,7 @@ GlobalRegister::GlobalRegister(const set<ColumnAccessInfo>& requiredColumns)
    // Create register
    for(auto& iter : requiredColumns) {
       values.emplace_back(harriet::Value::createDefault(iter.columnSchema.type));
-      types.emplace_back(RegisterSlotInfo{util::make_unique<ColumnAccessInfo>(iter), iter.columnReference.str(), types.size(), iter.columnSchema.type});
+      types.emplace_back(RegisterSlotInfo(util::make_unique<ColumnAccessInfo>(iter), iter.columnReference.str(), types.size(), iter.columnSchema.type));
    }
 }
 
@@ -29,7 +28,7 @@ void GlobalRegister::addProjectedColumn(const string& identifier, const harriet:
       throw harriet::Exception("Provided name '" + identifier + "' for projection is not unique.");
 
    values.emplace_back(harriet::Value::createDefault(type));
-   types.emplace_back(RegisterSlotInfo{nullptr, identifier, types.size(), type});
+   types.emplace_back(RegisterSlotInfo(nullptr, identifier, types.size(), type));
 }
 
 GlobalRegister::~GlobalRegister()

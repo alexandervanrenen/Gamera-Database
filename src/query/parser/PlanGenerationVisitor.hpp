@@ -18,6 +18,7 @@ public:
    PlanGenerationVisitor(SegmentManager& segmentManager, SchemaManager& schemaManager, harriet::Environment& environment);
    virtual ~PlanGenerationVisitor();
 
+   virtual void onPreVisit(CreateTableStatement& createTable);
    virtual void onPreVisit(SelectStatement& select);
    virtual void onPreVisit(InsertStatement& insert);
 

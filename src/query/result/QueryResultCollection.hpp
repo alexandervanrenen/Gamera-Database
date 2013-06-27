@@ -35,6 +35,7 @@ public:
 
    const std::string& getErrorMessage() const;
    void print(std::ostream& os) const;
+   void toJSON(std::ostream& os) const;
 
 private:
    std::vector<std::unique_ptr<QueryResult>> singleResults;

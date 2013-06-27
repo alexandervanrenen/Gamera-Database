@@ -54,6 +54,32 @@ void SelectResult::print(ostream& os) const
    os << "Fetched " << tupleCount << " tuples in " << util::formatTime(nanos, 3) << endl;
 }
 
+void SelectResult::toJSON(ostream& os) const
+{
+   os << "{\"type\":\"select\",";
+   os << "\"time\":\"" << util::formatTime(nanos, 3) << "\",";
+
+   // Write result table layout
+   os << "\"layout\":[";
+   for(uint32_t i=1; i<columnNames.size(); i++)
+      os << "\"" << columnNames[i-1] << "\",";
+   if(!columnNames.empty())
+      os << "\"" << columnNames.back() << "\"";
+   os << "],";
+
+   // Write result table content
+   os << "\"content\":[" << endl;
+   for(uint32_t rowId=0; rowId<result.size(); rowId++) {
+      os << "[";
+      for(uint32_t columnId=0; columnId<result[rowId].size(); columnId++)
+         os << "\"" << result[rowId][columnId] << "\"" << ((columnId==result[rowId].size()-1)?"":",");
+      os << "]" << ((rowId==result.size()-1)?"":",") << endl;
+   }
+   os << "]";
+
+   os << "}";
+}
+
 CreateResult::CreateResult(chrono::nanoseconds nanos, const string& tableName)
 : nanos(nanos)
 , tableName(tableName)
@@ -69,6 +95,14 @@ void CreateResult::print(ostream& os) const
    os << "Success: Created table '" << tableName << "' in " << util::formatTime(nanos, 3) << endl;
 }
 
+void CreateResult::toJSON(ostream& os) const
+{
+   os << "{\"type\":\"create\",";
+   os << "\"table\":\"" << tableName << "\",";
+   os << "\"time\":\"" << util::formatTime(nanos, 3) << "\"";
+   os << "}";
+}
+
 InsertResult::InsertResult(chrono::nanoseconds nanos, const string& tableName)
 : nanos(nanos)
 , tableName(tableName)
@@ -82,6 +116,14 @@ InsertResult::~InsertResult()
 void InsertResult::print(ostream& os) const
 {
    os << "Success: Insert into '" << tableName << "' in " << util::formatTime(nanos, 3) << endl;
+}
+
+void InsertResult::toJSON(ostream& os) const
+{
+   os << "{\"type\":\"insert\",";
+   os << "\"table\":\"" << tableName << "\",";
+   os << "\"time\":\"" << util::formatTime(nanos, 3) << "\"";
+   os << "}";
 }
 
 }

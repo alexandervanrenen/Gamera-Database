@@ -61,7 +61,7 @@ string VariableType::str() const
       case Type::TFloat:
          return kVariableFloat;
       case Type::TCharacter:
-         return kVariableCharacter;
+         return kVariableCharacter + " (" + to_string(length) + ")";
       case Type::TUndefined:
          return kVariableUndefined;
    }
@@ -121,6 +121,7 @@ uint32_t VariableType::getMaxValuesASCIIRepresentationSize() const
       case Type::TUndefined:
          throw;
    }
+   throw;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

@@ -69,9 +69,9 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue_Hello.computeDiv(boolValue_true), Exception);
 
     // char != char
-    Value neqCharRes = charValue_Hello.computeEq(charValue_world);
-    ASSERT_EQ(neqCharRes.type, boolResType);
-    ASSERT_FALSE(neqCharRes.data.vbool);
+    Value n_eqCharRes = charValue_Hello.computeEq(charValue_world);
+    ASSERT_EQ(n_eqCharRes.type, boolResType);
+    ASSERT_FALSE(n_eqCharRes.data.vbool);
     // char == char
     Value eqCharRes = charValue_Hello.computeEq(charValue_Hello);
     ASSERT_EQ(eqCharRes.type, boolResType);
@@ -80,7 +80,20 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue_Hello.computeEq(intValue_5), Exception);
     ASSERT_THROW(charValue_Hello.computeEq(floatValue_5_0), Exception);
     ASSERT_THROW(charValue_Hello.computeEq(boolValue_true), Exception);
-    
+
+    // char !!= char
+    Value neqCharRes = charValue_Hello.computeNeq(charValue_Hello);
+    ASSERT_EQ(neqCharRes.type, boolResType);
+    ASSERT_FALSE(neqCharRes.data.vbool);
+    // char != char
+    Value n_neqCharRes = charValue_Hello.computeNeq(charValue_world);
+    ASSERT_EQ(n_neqCharRes.type, boolResType);
+    ASSERT_TRUE(n_neqCharRes.data.vbool);
+    // char != (int | float | bool) -> exception
+    ASSERT_THROW(charValue_Hello.computeNeq(intValue_5), Exception);
+    ASSERT_THROW(charValue_Hello.computeNeq(floatValue_5_0), Exception);
+    ASSERT_THROW(charValue_Hello.computeNeq(boolValue_true), Exception);
+
     // char && (int | float | char | bool) -> exception
     ASSERT_THROW(charValue_Hello.computeAnd(intValue_5), Exception);
     ASSERT_THROW(charValue_Hello.computeAnd(floatValue_5_0), Exception);
@@ -109,6 +122,28 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue_Hello.computeLeq(floatValue_5_0), Exception);
     ASSERT_THROW(charValue_Hello.computeLeq(boolValue_false), Exception);
     
+    // char < char
+    Value ltCharRes1 = charValue_Hello.computeLt(charValue_world);
+    ASSERT_EQ(ltCharRes1.type, boolResType);
+    ASSERT_TRUE(ltCharRes1.data.vbool);
+    Value ltCharRes2 = charValue_world.computeLt(charValue_worldx);
+    ASSERT_EQ(ltCharRes2.type, boolResType);
+    ASSERT_TRUE(ltCharRes2.data.vbool);
+    // char !< char
+    Value nltCharRes1 = charValue_world.computeLt(charValue_Hello);
+    ASSERT_EQ(nltCharRes1.type, boolResType);
+    ASSERT_FALSE(nltCharRes1.data.vbool);
+    Value nltCharRes2 = charValue_worldx.computeLt(charValue_world);
+    ASSERT_EQ(nltCharRes2.type, boolResType);
+    ASSERT_FALSE(nltCharRes2.data.vbool);
+    Value nltCharRes3 = charValue_Hello.computeLt(charValue_Hello);
+    ASSERT_EQ(nltCharRes3.type, boolResType);
+    ASSERT_FALSE(nltCharRes3.data.vbool);
+    // char < (int | float | bool) -> exception
+    ASSERT_THROW(charValue_Hello.computeLt(intValue_5), Exception);
+    ASSERT_THROW(charValue_Hello.computeLt(floatValue_5_0), Exception);
+    ASSERT_THROW(charValue_Hello.computeLt(boolValue_false), Exception);
+
     // char >= char
     Value geqCharRes1 = charValue_world.computeGeq(charValue_Hello);
     ASSERT_EQ(geqCharRes1.type, boolResType);
@@ -130,6 +165,28 @@ TEST(Value, CharValueTests) {
     ASSERT_THROW(charValue_Hello.computeGeq(intValue_5), Exception);
     ASSERT_THROW(charValue_Hello.computeGeq(floatValue_5_0), Exception);
     ASSERT_THROW(charValue_Hello.computeGeq(boolValue_false), Exception);
+
+    // char > char
+    Value gtCharRes1 = charValue_world.computeGt(charValue_Hello);
+    ASSERT_EQ(gtCharRes1.type, boolResType);
+    ASSERT_TRUE(gtCharRes1.data.vbool);
+    Value gtCharRes2 = charValue_worldx.computeGt(charValue_world);
+    ASSERT_EQ(gtCharRes2.type, boolResType);
+    ASSERT_TRUE(gtCharRes2.data.vbool);
+    // char !> char
+    Value ngtCharRes1 = charValue_Hello.computeGt(charValue_world);
+    ASSERT_EQ(ngtCharRes1.type, boolResType);
+    ASSERT_FALSE(ngtCharRes1.data.vbool);
+    Value ngtCharRes2 = charValue_world.computeGt(charValue_worldx);
+    ASSERT_EQ(ngtCharRes2.type, boolResType);
+    ASSERT_FALSE(ngtCharRes2.data.vbool);
+    Value ngtCharRes3 = charValue_Hello.computeGt(charValue_Hello);
+    ASSERT_EQ(ngtCharRes3.type, boolResType);
+    ASSERT_FALSE(ngtCharRes3.data.vbool);
+    // char > (int | float | bool) -> exception
+    ASSERT_THROW(charValue_Hello.computeGt(intValue_5), Exception);
+    ASSERT_THROW(charValue_Hello.computeGt(floatValue_5_0), Exception);
+    ASSERT_THROW(charValue_Hello.computeGt(boolValue_false), Exception);
 }
 
 TEST(Value, BoolValueTests) {
@@ -158,17 +215,30 @@ TEST(Value, BoolValueTests) {
     ASSERT_THROW(boolValue_true.computeDiv(boolValue_false), Exception);
 
     // bool != bool
-    Value neqBoolRes = boolValue_true.computeEq(boolValue_false);
-    ASSERT_EQ(neqBoolRes.type, boolResType);
-    ASSERT_FALSE(neqBoolRes.data.vbool);
-    // bool == bool
     Value eqBoolRes = boolValue_true.computeEq(boolValue_true);
     ASSERT_EQ(eqBoolRes.type, boolResType);
     ASSERT_TRUE(eqBoolRes.data.vbool);
+    // bool == bool
+    Value n_eqBoolRes = boolValue_true.computeEq(boolValue_false);
+    ASSERT_EQ(n_eqBoolRes.type, boolResType);
+    ASSERT_FALSE(n_eqBoolRes.data.vbool);
     // bool == (int | float | char) -> exception
     ASSERT_THROW(boolValue_true.computeEq(intValue_5), Exception);
     ASSERT_THROW(boolValue_true.computeEq(floatValue_5_0), Exception);
     ASSERT_THROW(boolValue_true.computeEq(charValue_Hello), Exception);
+
+    // bool !!= bool
+    Value n_neqBoolRes = boolValue_true.computeNeq(boolValue_false);
+    ASSERT_EQ(n_neqBoolRes.type, boolResType);
+    ASSERT_TRUE(n_neqBoolRes.data.vbool);
+    // bool != bool
+    Value neqBoolRes = boolValue_true.computeNeq(boolValue_true);
+    ASSERT_EQ(neqBoolRes.type, boolResType);
+    ASSERT_FALSE(neqBoolRes.data.vbool);
+    // bool != (int | float | char) -> exception
+    ASSERT_THROW(boolValue_true.computeNeq(intValue_5), Exception);
+    ASSERT_THROW(boolValue_true.computeNeq(floatValue_5_0), Exception);
+    ASSERT_THROW(boolValue_true.computeNeq(charValue_Hello), Exception);
     
     // bool && bool
     Value andBoolRes = boolValue_true.computeAnd(boolValue_false);
@@ -184,12 +254,24 @@ TEST(Value, BoolValueTests) {
     ASSERT_THROW(boolValue_true.computeLeq(floatValue_5_0), Exception);
     ASSERT_THROW(boolValue_true.computeLeq(charValue_Hello), Exception);
     ASSERT_THROW(boolValue_false.computeLeq(boolValue_true), Exception);
+
+    // bool < (int | float | char | bool -> exception
+    ASSERT_THROW(boolValue_true.computeLt(intValue_5), Exception);
+    ASSERT_THROW(boolValue_true.computeLt(floatValue_5_0), Exception);
+    ASSERT_THROW(boolValue_true.computeLt(charValue_Hello), Exception);
+    ASSERT_THROW(boolValue_false.computeLt(boolValue_true), Exception);
     
     //bool >= (int | float | char | bool) -> exception
     ASSERT_THROW(boolValue_true.computeGeq(intValue_5), Exception);
     ASSERT_THROW(boolValue_true.computeGeq(floatValue_5_0), Exception);
     ASSERT_THROW(boolValue_true.computeGeq(charValue_Hello), Exception);
     ASSERT_THROW(boolValue_false.computeGeq(boolValue_true), Exception);
+
+    //bool > (int | float | char | bool) -> exception
+    ASSERT_THROW(boolValue_true.computeGt(intValue_5), Exception);
+    ASSERT_THROW(boolValue_true.computeGt(floatValue_5_0), Exception);
+    ASSERT_THROW(boolValue_true.computeGt(charValue_Hello), Exception);
+    ASSERT_THROW(boolValue_false.computeGt(boolValue_true), Exception);
 }
 
 TEST(Value, IntegerValueTests) {
@@ -245,17 +327,17 @@ TEST(Value, IntegerValueTests) {
     ASSERT_THROW(intValue_5.computeDiv(boolValue_true), Exception);
 
     // int != int
-    Value neqIntRes = intValue_5.computeEq(intValue_10);
-    ASSERT_EQ(neqIntRes.type, boolResType);
-    ASSERT_FALSE(neqIntRes.data.vbool);
+    Value n_eqIntRes = intValue_5.computeEq(intValue_10);
+    ASSERT_EQ(n_eqIntRes.type, boolResType);
+    ASSERT_FALSE(n_eqIntRes.data.vbool);
     // int == int
     Value eqIntRes = intValue_5.computeEq(intValue_5);
     ASSERT_EQ(eqIntRes.type, boolResType);
     ASSERT_TRUE(eqIntRes.data.vbool);
     // int != float
-    Value neqFloatRes = intValue_5.computeEq(floatValue_7_1);
-    ASSERT_EQ(neqFloatRes.type, boolResType);
-    ASSERT_FALSE(neqFloatRes.data.vbool);
+    Value n_eqFloatRes = intValue_5.computeEq(floatValue_7_1);
+    ASSERT_EQ(n_eqFloatRes.type, boolResType);
+    ASSERT_FALSE(n_eqFloatRes.data.vbool);
     // int == float
     Value eqFloatRes = intValue_5.computeEq(floatValue_5_0);
     ASSERT_EQ(eqFloatRes.type, boolResType);
@@ -263,6 +345,26 @@ TEST(Value, IntegerValueTests) {
     // int == (char | bool) -> exception
     ASSERT_THROW(intValue_5.computeEq(charValue_Hello), Exception);
     ASSERT_THROW(intValue_5.computeEq(boolValue_true), Exception);
+
+    // int !!= int
+    Value n_neqIntRes = intValue_5.computeNeq(intValue_5);
+    ASSERT_EQ(n_neqIntRes.type, boolResType);
+    ASSERT_FALSE(n_neqIntRes.data.vbool);
+    // int != int
+    Value neqIntRes = intValue_5.computeNeq(intValue_10);
+    ASSERT_EQ(neqIntRes.type, boolResType);
+    ASSERT_TRUE(neqIntRes.data.vbool);
+    // int !!= float
+    Value n_neqFloatRes = intValue_5.computeNeq(floatValue_5_0);
+    ASSERT_EQ(n_neqFloatRes.type, boolResType);
+    ASSERT_FALSE(n_neqFloatRes.data.vbool);
+    // int != float
+    Value neqFloatRes = intValue_5.computeNeq(floatValue_7_1);
+    ASSERT_EQ(neqFloatRes.type, boolResType);
+    ASSERT_TRUE(neqFloatRes.data.vbool);
+    // int != (char | bool) -> exception
+    ASSERT_THROW(intValue_5.computeNeq(charValue_Hello), Exception);
+    ASSERT_THROW(intValue_5.computeNeq(boolValue_true), Exception);
     
     // int && (int | float | char | bool) -> exception
     ASSERT_THROW(intValue_5.computeAnd(intValue_5), Exception);
@@ -294,6 +396,30 @@ TEST(Value, IntegerValueTests) {
     ASSERT_THROW(intValue_5.computeLeq(charValue_Hello), Exception);
     ASSERT_THROW(intValue_5.computeLeq(boolValue_false), Exception);
     
+    // int < (int | float)
+    Value ltIntRes1 = intValue_5.computeLt(intValue_10);
+    ASSERT_EQ(ltIntRes1.type, boolResType);
+    ASSERT_TRUE(ltIntRes1.data.vbool);
+    Value ltFloatRes1 = intValue_5.computeLt(floatValue_7_1);
+    ASSERT_EQ(ltFloatRes1.type, boolResType);
+    ASSERT_TRUE(ltFloatRes1.data.vbool);
+    // int !< (int | float)
+    Value nltIntRes1 = intValue_10.computeLt(intValue_5);
+    ASSERT_EQ(nltIntRes1.type, boolResType);
+    ASSERT_FALSE(nltIntRes1.data.vbool);
+    Value nltFloatRes1 = intValue_10.computeLt(floatValue_7_1);
+    ASSERT_EQ(nltFloatRes1.type, boolResType);
+    ASSERT_FALSE(nltFloatRes1.data.vbool);
+    Value ltIntRes2 = intValue_5.computeLt(intValue_5);
+    ASSERT_EQ(ltIntRes2.type, boolResType);
+    ASSERT_FALSE(ltIntRes2.data.vbool);
+    Value ltFloatRes2 = intValue_5.computeLt(floatValue_5_0);
+    ASSERT_EQ(ltFloatRes2.type, boolResType);
+    ASSERT_FALSE(ltFloatRes2.data.vbool);
+    // int < (char | bool) -> exception
+    ASSERT_THROW(intValue_5.computeLt(charValue_Hello), Exception);
+    ASSERT_THROW(intValue_5.computeLt(boolValue_false), Exception);
+    
     // int >= (int | float)
     Value geqIntRes1 = intValue_10.computeGeq(intValue_5);
     ASSERT_EQ(geqIntRes1.type, boolResType);
@@ -317,6 +443,30 @@ TEST(Value, IntegerValueTests) {
     // int >= (char | bool) -> exception
     ASSERT_THROW(intValue_5.computeGeq(charValue_Hello), Exception);
     ASSERT_THROW(intValue_5.computeGeq(boolValue_false), Exception);
+    
+    // int > (int | float)
+    Value gtIntRes1 = intValue_10.computeGt(intValue_5);
+    ASSERT_EQ(gtIntRes1.type, boolResType);
+    ASSERT_TRUE(gtIntRes1.data.vbool);
+    Value gtFloatRes1 = intValue_10.computeGt(floatValue_7_1);
+    ASSERT_EQ(gtFloatRes1.type, boolResType);
+    ASSERT_TRUE(gtFloatRes1.data.vbool);
+    // int !> (int | float)
+    Value ngtIntRes1 = intValue_5.computeGt(intValue_10);
+    ASSERT_EQ(ngtIntRes1.type, boolResType);
+    ASSERT_FALSE(ngtIntRes1.data.vbool);
+    Value ngtIntRes2 = intValue_5.computeGt(intValue_5);
+    ASSERT_EQ(ngtIntRes2.type, boolResType);
+    ASSERT_FALSE(ngtIntRes2.data.vbool);
+    Value ngtFloatRes1 = intValue_5.computeGt(floatValue_7_1);
+    ASSERT_EQ(ngtFloatRes1.type, boolResType);
+    ASSERT_FALSE(ngtFloatRes1.data.vbool);
+    Value ngtFloatRes2 = intValue_5.computeGt(floatValue_5_0);
+    ASSERT_EQ(ngtFloatRes2.type, boolResType);
+    ASSERT_FALSE(ngtFloatRes2.data.vbool);
+    // int > (char | bool) -> exception
+    ASSERT_THROW(intValue_5.computeGt(charValue_Hello), Exception);
+    ASSERT_THROW(intValue_5.computeGt(boolValue_false), Exception);
 }
 
 TEST(Value, FloatValueTests) {
@@ -372,17 +522,17 @@ TEST(Value, FloatValueTests) {
     ASSERT_THROW(floatValue_5_0.computeDiv(boolValue_true), Exception);
 
     // float != int
-    Value neqIntRes = floatValue_5_0.computeEq(intValue_10);
-    ASSERT_EQ(neqIntRes.type, boolResType);
-    ASSERT_FALSE(neqIntRes.data.vbool);
+    Value n_eqIntRes = floatValue_5_0.computeEq(intValue_10);
+    ASSERT_EQ(n_eqIntRes.type, boolResType);
+    ASSERT_FALSE(n_eqIntRes.data.vbool);
     // float == int
     Value eqIntRes = floatValue_5_0.computeEq(intValue_5);
     ASSERT_EQ(eqIntRes.type, boolResType);
     ASSERT_TRUE(eqIntRes.data.vbool);
     // float != float
-    Value neqFloatRes = floatValue_5_0.computeEq(floatValue_7_1);
-    ASSERT_EQ(neqFloatRes.type, boolResType);
-    ASSERT_FALSE(neqFloatRes.data.vbool);
+    Value n_eqFloatRes = floatValue_5_0.computeEq(floatValue_7_1);
+    ASSERT_EQ(n_eqFloatRes.type, boolResType);
+    ASSERT_FALSE(n_eqFloatRes.data.vbool);
     // float == float
     Value eqFloatRes = floatValue_5_0.computeEq(floatValue_5_0);
     ASSERT_EQ(eqFloatRes.type, boolResType);
@@ -390,6 +540,26 @@ TEST(Value, FloatValueTests) {
     // float == (char | bool) -> exception
     ASSERT_THROW(floatValue_5_0.computeEq(charValue_Hello), Exception);
     ASSERT_THROW(floatValue_5_0.computeEq(boolValue_true), Exception);
+
+    // float !!= int
+    Value n_neqIntRes = floatValue_5_0.computeNeq(intValue_5);
+    ASSERT_EQ(n_neqIntRes.type, boolResType);
+    ASSERT_FALSE(n_neqIntRes.data.vbool);
+    // float != int
+    Value neqIntRes = floatValue_5_0.computeNeq(intValue_10);
+    ASSERT_EQ(neqIntRes.type, boolResType);
+    ASSERT_TRUE(neqIntRes.data.vbool);
+    // float !!= float
+    Value n_neqFloatRes = floatValue_5_0.computeNeq(floatValue_5_0);
+    ASSERT_EQ(n_neqFloatRes.type, boolResType);
+    ASSERT_FALSE(n_neqFloatRes.data.vbool);
+    // float != float
+    Value neqFloatRes = floatValue_5_0.computeNeq(floatValue_7_1);
+    ASSERT_EQ(neqFloatRes.type, boolResType);
+    ASSERT_TRUE(neqFloatRes.data.vbool);
+    // float != (char | bool) -> exception
+    ASSERT_THROW(floatValue_5_0.computeNeq(charValue_Hello), Exception);
+    ASSERT_THROW(floatValue_5_0.computeNeq(boolValue_true), Exception);
     
     // float && (int | float | char | bool) -> exception
     ASSERT_THROW(floatValue_5_0.computeAnd(intValue_5), Exception);
@@ -420,6 +590,30 @@ TEST(Value, FloatValueTests) {
     // float <= (char | bool) -> exception
     ASSERT_THROW(floatValue_5_0.computeLeq(charValue_Hello), Exception);
     ASSERT_THROW(floatValue_5_0.computeLeq(boolValue_false), Exception);
+
+    // int < (int | float)
+    Value ltIntRes1 = floatValue_5_0.computeLt(intValue_10);
+    ASSERT_EQ(ltIntRes1.type, boolResType);
+    ASSERT_TRUE(ltIntRes1.data.vbool);
+    Value ltFloatRes1 = floatValue_5_0.computeLt(floatValue_7_1);
+    ASSERT_EQ(ltFloatRes1.type, boolResType);
+    ASSERT_TRUE(ltFloatRes1.data.vbool);
+    // float !< (int | float)
+    Value nltIntRes1 = floatValue_7_1.computeLt(intValue_5);
+    ASSERT_EQ(nltIntRes1.type, boolResType);
+    ASSERT_FALSE(nltIntRes1.data.vbool);
+    Value nltIntRes2 = floatValue_5_0.computeLt(intValue_5);
+    ASSERT_EQ(nltIntRes2.type, boolResType);
+    ASSERT_FALSE(nltIntRes2.data.vbool);
+    Value nltFloatRes1 = floatValue_7_1.computeLt(floatValue_5_0);
+    ASSERT_EQ(nltFloatRes1.type, boolResType);
+    ASSERT_FALSE(nltFloatRes1.data.vbool);
+    Value nltFloatRes2 = floatValue_5_0.computeLt(floatValue_5_0);
+    ASSERT_EQ(nltFloatRes2.type, boolResType);
+    ASSERT_FALSE(nltFloatRes2.data.vbool);
+    // float < (char | bool) -> exception
+    ASSERT_THROW(floatValue_5_0.computeLt(charValue_Hello), Exception);
+    ASSERT_THROW(floatValue_5_0.computeLt(boolValue_false), Exception);
     
     // float >= (int | float)
     Value geqIntRes1 = floatValue_7_1.computeGeq(intValue_5);
@@ -444,4 +638,28 @@ TEST(Value, FloatValueTests) {
     // float >= (char | bool) -> exception
     ASSERT_THROW(floatValue_5_0.computeGeq(charValue_Hello), Exception);
     ASSERT_THROW(floatValue_5_0.computeGeq(boolValue_false), Exception);
+    
+    // float > (int | float)
+    Value gtIntRes1 = floatValue_7_1.computeGt(intValue_5);
+    ASSERT_EQ(gtIntRes1.type, boolResType);
+    ASSERT_TRUE(gtIntRes1.data.vbool);
+    Value gtFloatRes1 = floatValue_7_1.computeGt(floatValue_5_0);
+    ASSERT_EQ(gtFloatRes1.type, boolResType);
+    ASSERT_TRUE(gtFloatRes1.data.vbool);
+    // float !> (int | float)
+    Value ngtIntRes1 = floatValue_5_0.computeGt(intValue_10);
+    ASSERT_EQ(ngtIntRes1.type, boolResType);
+    ASSERT_FALSE(ngtIntRes1.data.vbool);
+    Value gtIntRes2 = floatValue_5_0.computeGt(intValue_5);
+    ASSERT_EQ(gtIntRes2.type, boolResType);
+    ASSERT_FALSE(gtIntRes2.data.vbool);
+    Value ngtFloatRes1 = floatValue_5_0.computeGt(floatValue_7_1);
+    ASSERT_EQ(ngtFloatRes1.type, boolResType);
+    ASSERT_FALSE(ngtFloatRes1.data.vbool);
+    Value gtFloatRes2 = floatValue_5_0.computeGt(floatValue_5_0);
+    ASSERT_EQ(gtFloatRes2.type, boolResType);
+    ASSERT_FALSE(gtFloatRes2.data.vbool);
+    // float > (char | bool) -> exception
+    ASSERT_THROW(floatValue_5_0.computeGt(charValue_Hello), Exception);
+    ASSERT_THROW(floatValue_5_0.computeGt(boolValue_false), Exception);
 }

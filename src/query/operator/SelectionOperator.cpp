@@ -7,21 +7,15 @@ using namespace std;
 
 namespace dbi {
 
-SelectionOperator::SelectionOperator(unique_ptr<Operator> source, unique_ptr<qopt::Predicate> predicate, vector<harriet::Value>& globalRegister)
+SelectionOperator::SelectionOperator(unique_ptr<Operator> source, unique_ptr<qopt::Predicate> predicate, qopt::GlobalRegister& globalRegister)
 : source(move(source))
 , state(kClosed)
-, signature(this->source->getSignature(), move(predicate), globalRegister)
-, globalRegister(globalRegister)
+, signature(move(predicate), globalRegister)
 {
 }
 
 SelectionOperator::~SelectionOperator()
 {
-}
-
-const Signature& SelectionOperator::getSignature() const
-{
-   return signature;
 }
 
 void SelectionOperator::dump(ostream& os, uint32_t lvl) const
@@ -43,7 +37,7 @@ bool SelectionOperator::next()
 {
    assert(state == kOpen);
    while(source->next()) {
-      if(signature.fullfillsPredicates(globalRegister))
+      if(signature.fullfillsPredicates())
          return true;
    }
    return false;

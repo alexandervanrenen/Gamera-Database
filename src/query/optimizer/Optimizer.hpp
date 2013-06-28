@@ -13,6 +13,8 @@ class Operator;
 class RelationSchema;
 class SPSegment;
 
+namespace qopt { class GlobalRegister; }
+
 namespace qopt {
 
 class Predicate;
@@ -23,7 +25,7 @@ class ColumnAccessInfo;
 class Optimizer {
 public:
    virtual ~Optimizer();
-   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates, std::set<ColumnAccessInfo>& projections) = 0;
+   virtual std::unique_ptr<Operator> optimize(const std::vector<TableAccessInfo>& relations, std::vector<std::unique_ptr<Predicate>>& predicates) = 0;
 };
 
 }

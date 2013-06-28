@@ -1,38 +1,29 @@
 #include "SingleRecordOperator.hpp"
 #include "harriet/Value.hpp"
-#include "query/signature/ColumnSignature.hpp"
+#include "query/util/GlobalRegister.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
 #include <cassert>
 #include <iostream>
 
 using namespace std;
 
 namespace dbi {
-
-SingleRecordOperator::SingleRecordOperator(vector<harriet::Value>&& input, vector<harriet::Value>& globalRegister)
+SingleRecordOperator::SingleRecordOperator(vector<harriet::Value>&& input, qopt::GlobalRegister& globalRegister)
 : state(kClosed)
 , hasNext(false)
-, signature(input)
 , tuple(move(input))
 , globalRegister(globalRegister)
 {
-   registerOffset = globalRegister.size();
-   for(auto iter : signature.getAttributes())
-      globalRegister.emplace_back(harriet::Value::createDefault(harriet::VariableType()));
+   assert(globalRegister.size() == tuple.size());
 }
 
 SingleRecordOperator::~SingleRecordOperator()
 {
 }
 
-const Signature& SingleRecordOperator::getSignature() const
-{
-   return signature;
-}
-
 void SingleRecordOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << '|' << string(lvl, '.') << "Single Record " << "[";
-   signature.dump(os);
    os << "]" << endl;
 }
 
@@ -49,7 +40,7 @@ bool SingleRecordOperator::next()
    bool result = hasNext;
    hasNext = false;
    for(uint32_t i=0; i<tuple.size(); i++)
-      globalRegister[registerOffset+i] = tuple[i].createCopy();
+      globalRegister.getSlotValue(i) = tuple[i].createCopy();
    return result;
 }
 

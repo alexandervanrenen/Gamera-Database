@@ -1,5 +1,10 @@
 #include "ProjectionOperator.hpp"
-#include "query/signature/ColumnSignature.hpp"
+#include "query/util/ColumnAccessInfo.hpp"
+#include "query/util/Projection.hpp"
+#include "harriet/Expression.hpp"
+#include "harriet/Environment.hpp"
+#include "query/util/GlobalRegister.hpp"
+#include "query/analyser/ExpressionOptimizer.hpp"
 #include <cassert>
 #include <iostream>
 
@@ -7,28 +12,38 @@ using namespace std;
 
 namespace dbi {
 
-ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, const vector<qopt::ColumnAccessInfo>& projectedAttributes)
+ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, vector<std::unique_ptr<qopt::Projection>>&& projectionsIn, qopt::GlobalRegister& globalRegister)
 : source(move(source))
 , state(kClosed)
-, signature(projectedAttributes)
+, projections(move(projectionsIn))
+, globalRegister(globalRegister)
 {
-   signature.prepare(this->source->getSignature());
    state = kClosed;
+
+   // Replace the column references in the condition with pointer to the global register
+   qgen::ExpressionOptimizer optimizer;
+   harriet::Environment env;
+   for(auto& projection : projections)
+      projection->expression = optimizer.fullOptimization(*projection->expression, globalRegister, env);
 }
 
 ProjectionOperator::~ProjectionOperator()
 {
 }
 
-const Signature& ProjectionOperator::getSignature() const
+vector<uint32_t> ProjectionOperator::getRegisterIndexes() const
 {
-   return signature;
+   vector<uint32_t> result;
+   for(auto& iter : projections)
+      result.push_back(iter->resultRegisterSlot);
+   return result;
 }
 
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "Projection ";
-   signature.dump(os);
+   for(auto& iter : projections)
+      os << iter->alias << " (" << iter->resultRegisterSlot << ") ";
    os << endl;
    source->dump(os, lvl+3);
 }
@@ -43,7 +58,14 @@ void ProjectionOperator::open()
 bool ProjectionOperator::next()
 {
    assert(state == kOpen);
-   return source->next();
+   if(!source->next())
+      return false;
+
+   // Do the mapping
+   harriet::Environment env;
+   for(auto& iter : projections)
+      globalRegister.getSlotValue(iter->resultRegisterSlot) = iter->expression->evaluate(env);
+   return true;
 }
 
 void ProjectionOperator::close()

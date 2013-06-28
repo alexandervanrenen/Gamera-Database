@@ -25,7 +25,7 @@ AccessTree::AccessTree()
 }
 
 Leafe::Leafe(unique_ptr<Predicate> p, uint32_t tableId, const TableAccessInfo& table)
-: table(table)
+: tableAccessInfo(table)
 {
    predicate=move(p);
    coveredRelations.insert(tableId);
@@ -35,9 +35,9 @@ Leafe::~Leafe()
 {
 }
 
-unique_ptr<Operator> Leafe::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
+unique_ptr<Operator> Leafe::toPlan(GlobalRegister& globalRegister)
 {
-   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(table, requiredColumns, globalRegister, registerOffset);
+   unique_ptr<Operator> result = util::make_unique<TableScanOperator>(tableAccessInfo, globalRegister);
 
    if(predicate != nullptr)
       result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);
@@ -66,10 +66,10 @@ Node::~Node()
 {
 }
 
-unique_ptr<Operator> Node::toPlan(const set<ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
+unique_ptr<Operator> Node::toPlan(GlobalRegister& globalRegister)
 {
-   auto lPlan = lhs->toPlan(requiredColumns, globalRegister, registerOffset);
-   auto rPlan = rhs->toPlan(requiredColumns, globalRegister, registerOffset);
+   auto lPlan = lhs->toPlan(globalRegister);
+   auto rPlan = rhs->toPlan(globalRegister);
    unique_ptr<Operator> result = util::make_unique<CrossProductOperator>(move(lPlan), move(rPlan));
    if(predicate != nullptr)
       result = util::make_unique<SelectionOperator>(move(result), move(predicate), globalRegister);
@@ -80,11 +80,6 @@ set<ColumnAccessInfo> Node::getRequiredColumns() const
 {
    set<ColumnAccessInfo> result;
 
-   // Self
-   if(predicate != nullptr)
-      for(auto& iter : predicate->requiredColumns)
-         result.insert(iter);
-
    // Lhs
    auto lhsResult = lhs->getRequiredColumns();
    for(auto& iter : lhsResult)
@@ -94,6 +89,11 @@ set<ColumnAccessInfo> Node::getRequiredColumns() const
    auto rhsResult = rhs->getRequiredColumns();
    for(auto& iter : rhsResult)
       result.insert(iter);
+
+   // Self
+   if(predicate != nullptr)
+      for(auto& iter : predicate->requiredColumns)
+         result.insert(iter);
 
    return result;
 }

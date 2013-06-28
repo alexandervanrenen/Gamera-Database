@@ -11,8 +11,6 @@ namespace qopt { class ColumnAccessInfo; }
 /// Just define interface for all non root operators
 class Operator {
 public:
-   /// Which columns does the operator provide in which order ?
-   virtual const Signature& getSignature() const = 0;
    /// Print the operator in a single line.
    virtual void dump(std::ostream& os, uint32_t lvl) const = 0;
 

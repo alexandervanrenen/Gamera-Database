@@ -16,6 +16,8 @@ namespace harriet {
 
 namespace dbi {
 
+namespace qopt { class GlobalRegister; }
+
 class RootOperator;
 class PrintOperator;
 
@@ -36,17 +38,17 @@ struct Statement {
 /// 
 struct SelectStatement : public Statement {
 
-   SelectStatement(std::vector<ColumnReference>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions);
+   SelectStatement(std::vector<std::pair<std::string, std::unique_ptr<harriet::Expression>>>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions);
    ~SelectStatement();
 
-   std::vector<ColumnReference> projections;
+   std::vector<std::pair<std::string, std::unique_ptr<harriet::Expression>>> projections;
    std::vector<TableReference> sources;
    std::vector<std::unique_ptr<harriet::Expression>> conditions;
 
    std::unique_ptr<PrintOperator> queryPlan;
 
    std::vector<qopt::TableAccessInfo> tableAccessVec; // Temporary here .. move to script
-   std::vector<harriet::Value> globalRegister; // Temporary here .. move to script
+   std::unique_ptr<qopt::GlobalRegister> globalRegister; // Temporary here .. move to script
 
    virtual Statement::Type getType() const {return Statement::Type::kSelectStatement;}
 
@@ -77,7 +79,7 @@ struct InsertStatement : public Statement {
    std::vector<harriet::Value> values;
 
    std::unique_ptr<RootOperator> queryPlan;
-   std::vector<harriet::Value> globalRegister; // Temporary here .. move to script
+   std::unique_ptr<qopt::GlobalRegister> globalRegister; // Temporary here .. move to script
 
    virtual Statement::Type getType() const {return Statement::Type::kInsertStatement;}
 

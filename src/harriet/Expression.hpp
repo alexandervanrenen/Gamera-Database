@@ -44,6 +44,7 @@ public:
    static std::unique_ptr<Expression> createValueExpression(Value&& value);
    static std::unique_ptr<Expression> createValueReferenceExpression(Value* value);
    static std::unique_ptr<Expression> createBinaryExpression(ExpressionType type, std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs);
+   std::unique_ptr<Expression> createCopy() const;
    Expression(Expression&& other);
    Expression& operator= (Expression&& other);
 
@@ -52,7 +53,7 @@ public:
    void print(std::ostream& stream) const;
 
    Value evaluate(const Environment& environment) const;
-   std::vector<std::string> getAllVariableNames();
+   std::vector<std::string*> getAllVariableNames();
    std::vector<Expression**> getAllVariables(Expression** self);
 
    ExpressionType getExpressionType() const;

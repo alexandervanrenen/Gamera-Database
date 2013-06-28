@@ -1,6 +1,5 @@
 #include "TableScanOperator.hpp"
 #include "harriet/Value.hpp"
-#include "query/signature/ColumnSignature.hpp"
 #include "query/util/TableAccessInfo.hpp"
 #include "query/util/ColumnAccessInfo.hpp"
 #include "schema/RelationSchema.hpp"
@@ -13,32 +12,23 @@ using namespace std;
 
 namespace dbi {
 
-TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const set<qopt::ColumnAccessInfo>& requiredColumns, vector<harriet::Value>& globalRegister, uint32_t& registerOffset)
-: tableaccessInfo(tableaccessInfo)
-, signature(tableaccessInfo, requiredColumns, registerOffset)
+TableScanOperator::TableScanOperator(const qopt::TableAccessInfo& tableAccessInfo, qopt::GlobalRegister& globalRegister)
+: tableaccessInfo(tableAccessInfo)
+, signature(tableAccessInfo, globalRegister)
 , state(kClosed)
-, nextPage(tableaccessInfo.segment.endPageId())
+, nextPage(tableAccessInfo.segment.endPageId())
 , positionInCurrentPage(0)
-, globalRegister(globalRegister)
-, registerOffset(registerOffset)
 {
-   registerOffset += signature.getAttributes().size();
 }
 
 TableScanOperator::~TableScanOperator()
 {
 }
 
-const Signature& TableScanOperator::getSignature() const
-{
-   return signature;
-}
-
 void TableScanOperator::dump(ostream& os, uint32_t lvl) const
 {
    os << "|" << string(lvl, '.') << "TableScan " << tableaccessInfo.schema.getName() << " ";
    signature.dump(os);
-   os << " into [ " << registerOffset << " ]";
 }
 
 void TableScanOperator::open()
@@ -65,10 +55,8 @@ bool TableScanOperator::next()
 
    // Return if a page was found
    if(positionInCurrentPage < recordsInCurrentPage.size()) {
-      auto tuple = tableaccessInfo.schema.recordToTuple(recordsInCurrentPage[positionInCurrentPage].second);
-      auto& mapping = signature.getMapping();
-      for(uint32_t targetIndex=0; targetIndex<mapping.size(); targetIndex++)
-         globalRegister[registerOffset + targetIndex] = move(tuple[mapping[targetIndex]]);
+      auto& record = recordsInCurrentPage[positionInCurrentPage].second;
+      signature.loadRecordIntoGlobalRegister(record);
       positionInCurrentPage++;
       return true;
    }

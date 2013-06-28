@@ -64,6 +64,11 @@ vector<harriet::Value> RelationSchema::recordToTuple(const Record& record) const
    return result;
 }
 
+void RelationSchema::loadTuple(const Record& record, harriet::Value& target, uint32_t position) const
+{
+   target = harriet::Value::createFromRecord(attributes[position].type, record.data()+attributes[position].offset);
+}
+
 Record RelationSchema::tupleToRecord(const vector<harriet::Value>& tuple) const
 {
    assert(sid != kInvalidSegmentId);
@@ -138,12 +143,20 @@ Record RelationSchema::marschall() const
    return Record(out.str());
 }
 
-const ColumnSchema* RelationSchema::getColumn(const string& name) const
+bool RelationSchema::hasColumn(const string& name) const
 {
-   for(auto& iter : attributes)
-      if(iter.name == name)
-         return &iter;
-   return nullptr;
+   for(uint32_t i=0; i<attributes.size(); i++)
+      if(attributes[i].name == name)
+         return true;
+   return false;
+}
+
+uint32_t RelationSchema::getColumn(const string& name) const
+{
+   for(uint32_t i=0; i<attributes.size(); i++)
+      if(attributes[i].name == name)
+         return i;
+   throw;
 }
 /*
 void RelationSchema::dump(ostream& os) const

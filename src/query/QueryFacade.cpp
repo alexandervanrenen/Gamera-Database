@@ -40,8 +40,8 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
    }
 
    // Execute query
-
-      for(auto& root : roots->statements) {
+   for(auto& root : roots->statements) {
+      try {
          // Plan generation
          script::PlanGenerationVisitor geny(segmentManager, schemaManager, environment);
          root->acceptVisitor(geny);
@@ -58,7 +58,11 @@ unique_ptr<QueryResultCollection> QueryFacade::executeQuery(const string& query,
          // Interpret script
          script::ExecutionVisitor exy(segmentManager, schemaManager, *result);
          root->acceptVisitor(exy);
+      } catch (harriet::Exception& e) {
+         result->setRuntimeError(e.message);
+         return result;
       }
+   }
 
    return result;
 }

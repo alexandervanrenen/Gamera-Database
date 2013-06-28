@@ -30,7 +30,7 @@ insert into characters values(2, 'sebseb', 2, 22.22, 22.22, 500);
 insert into characters values(3, 'conscons', 3, 232.6, 45.765, 100);
 insert into characters values(1, 'zweigchen', 1, 80.0, 45.765, 4);
 
-select n.id, n.name
+select n.id*300 as NewId, n.name as PlayerName, 42 as MeeningOfLife
 from characters c, players p, nations n
 where c.player_id = p.id
   and p.nation_id = n.id

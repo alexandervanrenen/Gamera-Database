@@ -9,7 +9,7 @@
 
 namespace dbi {
 
-namespace qopt { class TableAccessInfo; }
+namespace qopt { class TableAccessInfo; class GlobalRegister; }
 
 class SPSegment;
 class Record;
@@ -17,10 +17,9 @@ class Record;
 /// Interprets the records provided by a RecordScanOperator
 class TableScanOperator : public Operator {
 public:
-   TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, const std::set<qopt::ColumnAccessInfo>& requiredColumns, std::vector<harriet::Value>& globalRegister, uint32_t& registerPosition);
+   TableScanOperator(const qopt::TableAccessInfo& tableaccessInfo, qopt::GlobalRegister& globalRegister);
    virtual ~TableScanOperator();
 
-   virtual const Signature& getSignature() const;
    virtual void dump(std::ostream& os, uint32_t lvl) const;
 
    virtual void open();
@@ -35,9 +34,6 @@ private:
    PageIdIterator nextPage;
    std::vector<std::pair<TupleId, Record>> recordsInCurrentPage;
    uint32_t positionInCurrentPage;
-
-   std::vector<harriet::Value>& globalRegister;
-   uint32_t registerOffset;
 };
 
 }

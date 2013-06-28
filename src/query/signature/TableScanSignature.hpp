@@ -1,31 +1,36 @@
 #pragma once
 
 #include "query/parser/Common.hpp"
-#include "Signature.hpp"
 #include <set>
+#include <vector>
 
 namespace harriet { class Value; }
 
 namespace dbi {
 
-namespace qopt { class ColumnAccessInfo; class TableAccessInfo; }
+class Record;
+
+namespace qopt { class TableAccessInfo; class GlobalRegister; }
 
 class RelationSchema;
 
-class TableScanSignature : public Signature {
+class TableScanSignature {
 public:
    // Create named variables from a TableScanOperator
-   TableScanSignature(const qopt::TableAccessInfo& tableAccessInfo, const std::set<qopt::ColumnAccessInfo>& requiredColumns, uint32_t registerOffset);
+   TableScanSignature(const qopt::TableAccessInfo& tableAccessInfo, qopt::GlobalRegister& globalRegister);
 
-   virtual void dump(std::ostream& os) const;
+   void loadRecordIntoGlobalRegister(Record& record) const;
 
-   void prepare(const std::set<qopt::ColumnAccessInfo>& requiredColumns, uint32_t registerOffset);
-
-   const std::vector<uint32_t>& getMapping() const;
+   void dump(std::ostream& os) const;
 
 private:
    const qopt::TableAccessInfo& tableAccessInfo;
-   std::vector<uint32_t> columnMapping; // Maps TableTupleIndex -> GlobalRegisterIndex (columnIndexes[2]=5 means that the column in the tables tuple with index 5 is loaded into global register at index 2)
+   qopt::GlobalRegister& globalRegister;
+   struct Mapping {
+      uint32_t tupleIndex; // Index in the tuple loaded from the table
+      uint32_t registerIndex; // Index in the global register
+   };
+   std::vector<Mapping> columnMapping;
 };
 
 }

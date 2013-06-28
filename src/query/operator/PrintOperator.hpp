@@ -8,13 +8,15 @@
 
 namespace dbi {
 
+namespace qopt { class GlobalRegister; }
+
 class SPSegment;
-class Operator;
+class ProjectionOperator;
 
 /// Print the tuples supplied by the source to the given output stream
 class PrintOperator : public RootOperator {
 public:
-   PrintOperator(std::unique_ptr<Operator> source, std::vector<harriet::Value>& globalRegister);
+   PrintOperator(std::unique_ptr<ProjectionOperator> source, qopt::GlobalRegister& globalRegister);
    virtual ~PrintOperator();
 
    void checkTypes() const throw(harriet::Exception);
@@ -27,8 +29,8 @@ public:
    void execute();
 
 private:
-   std::vector<harriet::Value>& globalRegister;
-   std::unique_ptr<Operator> source;
+   qopt::GlobalRegister& globalRegister;
+   std::unique_ptr<ProjectionOperator> source;
    std::vector<std::vector<harriet::Value>> result;
    std::chrono::nanoseconds executionTime;
 };

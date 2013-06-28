@@ -3,6 +3,7 @@
 #include "common/SegmentId.hpp"
 #include "harriet/ScriptLanguage.hpp"
 #include "segment_manager/Record.hpp"
+#include "harriet/VariableType.hpp"
 #include <ios>
 #include <set>
 #include <string>
@@ -34,6 +35,7 @@ struct RelationSchema {
    RelationSchema& operator=(const RelationSchema&) = delete;
 
    std::vector<harriet::Value> recordToTuple(const Record& record) const;
+   void loadTuple(const Record& record, harriet::Value& target, uint32_t position) const;
    Record tupleToRecord(const std::vector<harriet::Value>& tuple) const;
 
    void setSegmentId(SegmentId sid);
@@ -46,7 +48,8 @@ struct RelationSchema {
    const std::vector<ColumnSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}
 
-   const ColumnSchema* getColumn(const std::string& name) const;
+   bool hasColumn(const std::string& name) const;
+   uint32_t getColumn(const std::string& name) const;
 
    void dump(std::ostream& os) const;
 

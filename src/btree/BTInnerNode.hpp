@@ -17,7 +17,7 @@ class BTInnerNode : public BTNode<Key, C> {
 public:
     typedef CharIterator<PageId> Iterator;
     const static uint64_t headersize = 3 * sizeof(PageId) + 2 * sizeof(uint64_t);
-    const static uint64_t datasize = kPageSize - headersize;
+    const static uint64_t datasize = PAGESIZE - headersize;
     const static uint64_t valuesize = sizeof(PageId);
     typedef std::array<char, datasize> CharArray;
     uint64_t nextindex = 0;

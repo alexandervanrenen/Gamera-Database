@@ -15,7 +15,7 @@ class BTLeafNode : public BTNode<Key,C> {
 public:
     typedef CharIterator<TupleId> Iterator;
     const static uint64_t headersize = 2* sizeof(uint64_t) + 3 * sizeof(PageId);
-    const static uint64_t datasize = kPageSize - headersize;
+    const static uint64_t datasize = PAGESIZE - headersize;
     const static uint64_t valuesize = sizeof(TupleId);
     typedef std::array<char, datasize> CharArray;
     PageId nextpage = PageId(0); // Pointer to next leaf page (to iterate) (0 signals there is no next page)

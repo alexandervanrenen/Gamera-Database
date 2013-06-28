@@ -82,12 +82,10 @@ const IntPair& getKey(const uint64_t& i) {
 }
 
 
-template <>
-const dbi::IndexKey& getKey(const uint64_t& i) {
-    std::vector<harriet::Value>* values = new std::vector<harriet::Value>();
-    values->emplace_back( harriet::Value::createInteger(i));
-    dbi::IndexKey* k = new dbi::IndexKey{std::move(*values)};
-    return *k;
+const dbi::IndexKey getKey(const uint64_t& i) {
+    std::vector<harriet::Value> values;
+    values.emplace_back(harriet::Value::createInteger(i));
+    return dbi::IndexKey{std::move(values)};
 }
 
 template<typename T, typename CMP, typename Schema>
@@ -126,15 +124,15 @@ void test(uint64_t n, Schema schema) {
     TID tid;
     for (uint64_t i=0; i<n; ++i) {
         //std::cout << i << std::endl;
-        ASSERT_TRUE(bTree.insert(getKey<T>(i),TID(i)));
-        ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
+        ASSERT_TRUE(bTree.insert(getKey(i),TID(i)));
+        ASSERT_TRUE(bTree.lookup(getKey(i),tid));
     }
     //ASSERT_EQ(bTree.size(), n);
     // Check if they can be retrieved
     for (uint64_t i=0; i<n; ++i) {
         //std::cout << i << std::endl;
         TID tid;
-        ASSERT_TRUE(Lookup(bTree, getKey<T>(i), tid, i));
+        ASSERT_TRUE(Lookup(bTree, getKey(i), tid, i));
         //ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
         ASSERT_EQ(tid, TID(i));
     }
@@ -142,21 +140,21 @@ void test(uint64_t n, Schema schema) {
     // Delete some values
     for (uint64_t i=0; i<n; ++i)
         if ((i%7)==0) {
-            ASSERT_TRUE(Erase(bTree, getKey<T>(i), i));
+            ASSERT_TRUE(Erase(bTree, getKey(i), i));
         }
     // Check if the right ones have been deleted
     for (uint64_t i=0; i<n; ++i) {
         TID tid;
         if ((i%7)==0) {
-            ASSERT_FALSE(Lookup(bTree, getKey<T>(i), tid, i));
+            ASSERT_FALSE(Lookup(bTree, getKey(i), tid, i));
         } else {
-            ASSERT_TRUE(Lookup(bTree, getKey<T>(i), tid, i));
+            ASSERT_TRUE(Lookup(bTree, getKey(i), tid, i));
             ASSERT_EQ(tid, TID(i));
         }
     }
     // Delete everything
     for (uint64_t i=0; i<n; ++i)
-        bTree.erase(getKey<T>(i));
+        bTree.erase(getKey(i));
     //ASSERT_EQ(bTree.size(), (uint64_t)0);
 }
 

@@ -37,19 +37,19 @@ public:
     }
 
     char* pointer() const {
-        return data;
+        return data.data();
     }
     
     void put(const Key& k, const PageId& value, uint64_t index) {
-        uint64_t off = index*(valuesize+k.size());
+        uint64_t off = index*(valuesize+k.bytes());
         k.writeToMem(data.data()+off);
-        *((PageId*)(data.data()+off+k.size())) = value;
+        *((PageId*)(data.data()+off+k.bytes())) = value;
     }
     
     void put(const Key& k, const PageId& value, Iterator& it) {
         char* p = it.pointer();
         k.writeToMem(p);
-        *((PageId*)(p+k.size())) = value;
+        *((PageId*)(p+k.bytes())) = value;
     }
 
 

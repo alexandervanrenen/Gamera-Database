@@ -90,6 +90,21 @@ const dbi::IndexKey& getKey(const uint64_t& i) {
     return *k;
 }
 
+template<typename T, typename CMP, typename Schema>
+::testing::AssertionResult Lookup(dbi::BTree<T, CMP, Schema>& tree, const dbi::IndexKey& k, dbi::TupleId& tid, uint64_t i) {
+    if (tree.lookup(k, tid))
+        return ::testing::AssertionSuccess();
+    else
+        return ::testing::AssertionFailure() << "Failed at : " << i << "";
+}
+
+template<typename T, typename CMP, typename Schema>
+::testing::AssertionResult Erase(dbi::BTree<T, CMP, Schema>& tree, const dbi::IndexKey& k, uint64_t i) {
+    if (tree.erase(k))
+        return ::testing::AssertionSuccess();
+    else
+        return ::testing::AssertionFailure() << "Failed at : " << i << "";
+}
 
 template <typename T, typename CMP, typename Schema>
 void test(uint64_t n, Schema schema) {
@@ -109,31 +124,34 @@ void test(uint64_t n, Schema schema) {
     //std::cout << "Starting test\n";
     // Insert values
     TID tid;
-    for (uint64_t i=1; i<n; ++i) {
+    for (uint64_t i=0; i<n; ++i) {
         //std::cout << i << std::endl;
-        ASSERT_TRUE(bTree.insert(getKey<T>(i),TID(i*i)));
+        ASSERT_TRUE(bTree.insert(getKey<T>(i),TID(i)));
         ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
     }
     //ASSERT_EQ(bTree.size(), n);
     // Check if they can be retrieved
     for (uint64_t i=0; i<n; ++i) {
+        //std::cout << i << std::endl;
         TID tid;
-        ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-        ASSERT_EQ(tid, TID(i*i));
+        ASSERT_TRUE(Lookup(bTree, getKey<T>(i), tid, i));
+        //ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
+        ASSERT_EQ(tid, TID(i));
     }
    
     // Delete some values
     for (uint64_t i=0; i<n; ++i)
-        if ((i%7)==0)
-            ASSERT_TRUE(bTree.erase(getKey<T>(i)));
+        if ((i%7)==0) {
+            ASSERT_TRUE(Erase(bTree, getKey<T>(i), i));
+        }
     // Check if the right ones have been deleted
     for (uint64_t i=0; i<n; ++i) {
         TID tid;
         if ((i%7)==0) {
-            ASSERT_FALSE(bTree.lookup(getKey<T>(i),tid));
+            ASSERT_FALSE(Lookup(bTree, getKey<T>(i), tid, i));
         } else {
-            ASSERT_TRUE(bTree.lookup(getKey<T>(i),tid));
-            ASSERT_EQ(tid, TID(i*i));
+            ASSERT_TRUE(Lookup(bTree, getKey<T>(i), tid, i));
+            ASSERT_EQ(tid, TID(i));
         }
     }
     // Delete everything

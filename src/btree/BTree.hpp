@@ -146,8 +146,8 @@ public:
     }
     */
     void insertLeafValue(LeafNode* node, const Key& k, const TupleId& tid) {
-        auto it = std::upper_bound(node->begin(k.size()), node->end(k.size()), k, KeyCompare<TupleId>(c));
-        if (it == node->end(k.size())) { // insert value at the end
+        auto it = std::upper_bound(node->begin(k.bytes()), node->end(k.bytes()), k, KeyCompare<TupleId>(c));
+        if (it == node->end(k.bytes())) { // insert value at the end
             node->put(k, tid, node->nextindex++);
         } else { // shift all elements after insert position to make room
             std::memmove(it.pointernext(), it.pointer(), node->nextindex - it.index());
@@ -157,9 +157,9 @@ public:
     }
     
     bool insert(const Key& k, const TID& tid) {
-        const uint64_t keysize = k.size();
-        const uint64_t numleafpairs = LeafNode::datasize / (k.size() + sizeof(TupleId));
-        const uint64_t numinnerpairs = InnerNode::datasize / (k.size() + sizeof(PageId));
+        const uint64_t keysize = k.bytes();
+        const uint64_t numleafpairs = LeafNode::datasize / (k.bytes() + sizeof(TupleId));
+        const uint64_t numinnerpairs = InnerNode::datasize / (k.bytes() + sizeof(PageId));
         assert(rootnode != nullptr);
         guard.lock();
         Node* node = rootnode;
@@ -173,7 +173,7 @@ public:
                 if (innernode->nextindex >= numinnerpairs) { 
                     // Possible overflow -> preemptive split
                     std::pair<BufferFrame*, InnerNode*> p = newInnerNode();
-                    Key up = splitInnerNode(innernode, p.second, k.size());
+                    Key up = splitInnerNode(innernode, p.second, k.bytes());
                     if (parentnode == nullptr) { // Split node was root node -> new root
                         std::pair<BufferFrame*, InnerNode*> proot = newInnerNode();
                         proot.second->put(up, rootnode->pageId, 0);
@@ -232,6 +232,7 @@ public:
                     releaseNode(nodeframe, true);
 					return true;
 				}
+                //std::cout << "LeafNode split " << ki << std::endl;
 				// Node is full -> split
 				auto p = newLeafNode();
 				LeafNode* leaf2 = p.second;
@@ -239,7 +240,8 @@ public:
 				uint64_t leaf2size = numleafpairs-leaf1size;
 				LeafIterator itleaf = std::upper_bound(leaf->begin(keysize), leaf->end(keysize), k, KeyCompare<TID>(c)); // find insert position
 				LeafIterator itleafmiddle = leaf->begin(keysize)+leaf1size; // first element to be moved to new leaf
-				std::memcpy(leaf2->begin(keysize).pointer(), itleafmiddle.pointer(), leaf2size);
+                //std::cout << "First element in new leaf: " << itleafmiddle.second().toInteger() << std::endl;
+				std::memcpy(leaf2->begin(keysize).pointer(), itleafmiddle.pointer(), leaf2size*itleaf.getPairSize());
 				leaf2->nextindex = leaf2size;
 				leaf->nextindex = leaf1size;
 				if (itleaf < itleafmiddle) {
@@ -305,8 +307,8 @@ public:
 
 
     std::pair<Key&, PageId&> insertInLeaf(LeafNode* leaf, const Key& k, const TupleId& tid) {
-        const uint64_t keysize = k.size();
-        const uint64_t numleafpairs = LeafNode::datasize / (k.size() + sizeof(TupleId));
+        const uint64_t keysize = k.bytes();
+        const uint64_t numleafpairs = LeafNode::datasize / (k.bytes() + sizeof(TupleId));
         assert(leaf != nullptr);
         if (leaf->nextindex < numleafpairs) { // node is not full
             insertLeafValue(leaf, k, tid);
@@ -339,7 +341,7 @@ public:
 
 
     std::pair<BufferFrame*, LeafNode*> leafLookup(const Key& k) {
-        const uint64_t keysize = k.size();
+        const uint64_t keysize = k.bytes();
         assert(rootnode != nullptr);
         guard.lock();
         Node* node = rootnode;
@@ -371,7 +373,7 @@ public:
     }
 
     bool lookup(const Key& k, TupleId& tid) {
-        const uint64_t keysize = k.size();
+        const uint64_t keysize = k.bytes();
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
         LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
@@ -387,12 +389,13 @@ public:
 
 
     bool erase(const Key& k) {
-        const uint64_t keysize = k.size();
+        const uint64_t keysize = k.bytes();
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
         LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
         if (it != leafnode->end(keysize)) {
-            std::memmove(it.pointer(), (it+1).pointer(), leafnode->nextindex - it.index());
+            char* pointer = it.pointer();
+            std::memmove(pointer, pointer+it.getPairSize(), (leafnode->nextindex - it.index())*it.getPairSize());
             leafnode->nextindex--;
             releaseNode(p.first, true);
             // TODO: underflow handling
@@ -531,8 +534,7 @@ public:
     Iterator* end() {
         return new Iterator{this, Key()};
     }
-    /* 
-    void visualizeNode(std::ofstream& out, PageId id) {
+    void visualizeNode(uint64_t keysize, std::ofstream& out, PageId id) {
         assert(id != kMetaPageId);
         std::pair<BufferFrame*, Node*> p;
         if (id == rootnode->pageId)
@@ -541,58 +543,57 @@ public:
             p = getNode(id);
         InnerNode* node = castInner(p.second);
         if (node != nullptr) {
-            visualizeInnerNode(out, node, p.first);
+            visualizeInnerNode(keysize, out, node, p.first);
         } else {
             LeafNode* leafnode = castLeaf(p.second);
             assert(leafnode != nullptr);
-            visualizeLeafNode(out, leafnode, p.first);
+            visualizeLeafNode(keysize, out, leafnode, p.first);
         }
     }
 
-    void visualizeLeafNode(std::ofstream& out, LeafNode* node, BufferFrame* frame) {
-        auto it = node->values.begin();
+    void visualizeLeafNode(uint64_t keysize, std::ofstream& out, LeafNode* node, BufferFrame* frame) {
+        LeafIterator it = node->begin(keysize);
         out << "node" << node->pageId << " [shape=record, label= \"<begin>("<< node->pageId << ") ";
-        while (it != node->values.begin()+node->nextindex) {
-            out << " | <key> " << (*it).first; //<< " | <value> " << (*it).second;
+        while (it != node->end(keysize)) {
+            out << " | <key> " << it.second().toInteger(); //<< " | <value> " << (*it).second;
             it++;
         }
         out << "\" ];\n";
         releaseNode(frame, false);
     }
 
-    void visualizeInnerNode(std::ofstream& out, InnerNode* node, BufferFrame* frame) {
-        auto it = node->values.begin();
+    void visualizeInnerNode(uint64_t keysize, std::ofstream& out, InnerNode* node, BufferFrame* frame) {
+        InnerIterator it = node->begin(keysize);
         std::list<PageId> pages;
         out << "node" << node->pageId << " [shape=record, label= \"<begin>("<< node->pageId << ") | ";
-        while (it != node->values.begin()+node->nextindex) {
-            out << "<ptr" << (*it).second << "> * | <key> " << (*it).first << " | ";
-            pages.push_back((*it).second);
+        while (it != node->end(keysize)) {
+            out << "<ptr" << it.second().toInteger() << "> * | <key> " << it.second().toInteger() << " | ";
+            pages.push_back(it.second());
             it++;
         }
         out << "<ptr" << node->rightpointer << ">*\" ];\n\n";
         pages.push_back(node->rightpointer);
         releaseNode(frame, false);
         for (PageId p : pages) {
-            visualizeNode(out, p);
+            visualizeNode(keysize, out, p);
         }
         for (PageId p : pages) {
             out << "node" << node->pageId << ":ptr" << p << " -> node" << p <<":begin;\n";
         }
     }
 
-    void visualize(std::string filename = "bin/var/tree.dot") {
+    void visualize(uint64_t keysize, std::string filename = "bin/var/tree.dot") {
         std::ofstream out;
         out.open(filename.c_str(), std::ofstream::out);
         out << "digraph myBTree {\nnode [shape=record];\n";
         guard.lock();
-        visualizeNode(out, rootnode->pageId);
+        visualizeNode(keysize, out, rootnode->pageId);
         out << "\n}\n";
         out.close();
         if (system("dot -Tpng bin/var/tree.dot -o bin/var/tree.png") != 0) {
             std::cout << "Converting tree.dot to a png-File failed" << std::endl;
         }
     }
-    */
 };
 
 

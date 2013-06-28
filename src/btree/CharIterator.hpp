@@ -29,8 +29,6 @@ public:
  
 
     char* operator*() const {
-        std::cout << "* at index " << nextindex << std::endl;
-        std::cout << "Value: " << *(uint64_t*)data+pairsize*nextindex+keysize << std::endl;
         return data+pairsize*nextindex;
     };
     

@@ -39,20 +39,20 @@ public:
     }
 
     void put(const Key& k, const TupleId& value, uint64_t index) {
-        uint64_t off = index*(valuesize+k.size());
+        uint64_t off = index*(valuesize+k.bytes());
         k.writeToMem(data.data()+off);
-        *((TupleId*)(data.data()+off+k.size())) = value;
+        *((TupleId*)(data.data()+off+k.bytes())) = value;
     }
 
     void put(const Key& k, const TupleId& value, char* p) {
         k.writeToMem(p);
-        *((TupleId*)(p+k.size())) = value;
+        *((TupleId*)(p+k.bytes())) = value;
     }
     
     void put(const Key& k, const TupleId& value, Iterator& it) {
         char* p = it.pointer();
         k.writeToMem(p);
-        *((TupleId*)(p+k.size())) = value;
+        *((TupleId*)(p+k.bytes())) = value;
     }
 
 };

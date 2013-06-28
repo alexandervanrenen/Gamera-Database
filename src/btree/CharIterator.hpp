@@ -54,6 +54,27 @@ public:
         return it;
     }
     
+    int operator+(const CharIterator& other) {
+        return nextindex + other.nextindex;
+    }
+    
+    const CharIterator operator-(uint64_t count) {
+        CharIterator it = *this;
+        it.nextindex -= count;
+        return it;
+    }
+    
+    int operator-(const CharIterator& other) {
+        return nextindex - other.nextindex;
+    }
+
+    //const CharIterator operator>>(int i) {
+    //}
+
+    char* operator[](int i) {
+        return *(this + i);
+    }
+    
     const CharIterator& operator+=(uint64_t count) {
         nextindex += count;
         return *this;

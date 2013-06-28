@@ -2,7 +2,7 @@
 #define BTNODE_HPP
 
 #include "btree/BTreeBase.hpp"
-
+#include "btree/CharIterator.hpp"
 
 namespace dbi {
 

@@ -20,10 +20,69 @@
 #include <thread>
 #include <vector>
 #include <utility>
+#include "btree/Algorithms.hpp"
 
 typedef dbi::TID TID;
 
 const int CHARSIZE = 20;
+
+
+struct MyCompare{
+    bool less(int a, int b) {
+        return a < b;
+    }
+    bool equal(int a, int b) {
+        return a == b;
+    }
+};
+
+
+TEST(SearchTest, Array) {
+    typedef std::array<int, 21> A21;
+    typedef std::array<int, 1> A1;
+    typedef std::array<int, 2> A2;
+    MyCompare c;
+    A21 a{2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 18, 20, 22, 25, 26, 27, 33, 50, 100, 112, 130};
+    A21::iterator it = dbi::search(a.begin(), a.end(), c, 8);
+    ASSERT_TRUE(it != a.end());
+    it = dbi::search(a.begin(), a.end(), c, 22);
+    ASSERT_TRUE(it != a.end());
+    it = dbi::search(a.begin(), a.end(), c, 200);
+    ASSERT_TRUE(it == a.end());
+    it = dbi::search(a.begin(), a.end(), c, 1);
+    ASSERT_TRUE(it == a.end());
+    it = dbi::search(a.begin(), a.end(), c, 19);
+    ASSERT_TRUE(it == a.end());
+    
+    A1 a1{0};
+    A1::iterator it1 = dbi::search(a1.begin(), a1.end(), c, 0);
+    ASSERT_TRUE(it1 != a1.end());
+    A2 a2{0, 1};
+    A2::iterator it2 = dbi::search(a2.begin(), a2.end(), c, 0);
+    ASSERT_TRUE(it2 != a2.end());
+    it2 = dbi::search(a2.begin(), a2.end(), c, 1);
+    ASSERT_TRUE(it2 != a2.end());
+}
+
+TEST(UpperBoundTest, Array) {
+    typedef std::array<int, 21> A21;
+    typedef std::array<int, 1> A1;
+    typedef std::array<int, 2> A2;
+    MyCompare c;
+    A21 a{2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 18, 20, 22, 25, 26, 27, 33, 50, 100, 112, 130};
+    //A1 a1{0};
+    //A2 a2{0, 1};
+    A21::iterator it = dbi::upper_bound(a.begin(), a.end(), c, 8);
+    ASSERT_EQ(*it, 10);
+    it = dbi::upper_bound(a.begin(), a.end(), c, 0);
+    ASSERT_EQ(*it, 2);
+    it = dbi::upper_bound(a.begin(), a.end(), c, 140);
+    ASSERT_EQ(it, a.end());
+    it = dbi::upper_bound(a.begin(), a.end(), c, 130);
+    ASSERT_EQ(it, a.end());
+    it = dbi::upper_bound(a.begin(), a.end(), c, 2);
+    ASSERT_EQ(*it, 3);
+}
 
 
 /* Comparator functor for uint64_t*/
@@ -125,7 +184,8 @@ void test(uint64_t n, Schema schema) {
     for (uint64_t i=0; i<n; ++i) {
         //std::cout << i << std::endl;
         ASSERT_TRUE(bTree.insert(getKey(i),TID(i)));
-        ASSERT_TRUE(bTree.lookup(getKey(i),tid));
+        ASSERT_TRUE(Lookup(bTree, getKey(i), tid, i));
+        //ASSERT_TRUE(bTree.lookup(getKey(i),tid));
     }
     //ASSERT_EQ(bTree.size(), n);
     // Check if they can be retrieved

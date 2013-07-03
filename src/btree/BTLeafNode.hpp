@@ -7,6 +7,7 @@
 
 #include "btree/BTNode.hpp"
 #include "btree/BTreeBase.hpp"
+#include "btree/CharIterator.hpp"
 
 namespace dbi {
 
@@ -27,15 +28,15 @@ public:
     }
 
     Iterator end(uint64_t keysize) const {
-        return Iterator(data.data(), keysize, nextindex, nextindex+1);
+        return Iterator(data.data(), keysize, nextindex, nextindex);
     }
     
     Iterator last(uint64_t keysize) const {
-        return Iterator(data.data(), keysize, nextindex, nextindex);
+        return Iterator(data.data(), keysize, nextindex, nextindex-1);
     }
 
     char* pointer() const {
-        return data;
+        return data.data();
     }
 
     void put(const Key& k, const TupleId& value, uint64_t index) {

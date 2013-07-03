@@ -19,6 +19,7 @@
 #include "btree/BTreeBase.hpp"
 #include "btree/CharIterator.hpp"
 #include "segment_manager/BTreeSegment.hpp"
+#include "btree/Algorithms.hpp"
 
 namespace dbi {
 
@@ -146,7 +147,8 @@ public:
     }
     */
     void insertLeafValue(LeafNode* node, const Key& k, const TupleId& tid) {
-        auto it = std::upper_bound(node->begin(k.bytes()), node->end(k.bytes()), k, KeyCompare<TupleId>(c));
+        //auto it = std::upper_bound(node->begin(k.bytes()), node->end(k.bytes()), k, KeyCompare<TupleId>(c));
+        LeafIterator it = upper_bound(node->begin(k.bytes()), node->end(k.bytes()), c, k);
         if (it == node->end(k.bytes())) { // insert value at the end
             node->put(k, tid, node->nextindex++);
         } else { // shift all elements after insert position to make room
@@ -210,7 +212,8 @@ public:
                 if (parentframe != nullptr) releaseNode(parentframe, true);
                 PageId childId;
                 // Find correct child
-                it = std::upper_bound(innernode->begin(keysize), innernode->end(keysize), k, KeyCompare<PageId>(c));
+                //it = std::upper_bound(innernode->begin(keysize), innernode->end(keysize), k, KeyCompare<PageId>(c));
+                it = upper_bound(innernode->begin(keysize), innernode->end(keysize), c, k);
                 if (it != innernode->end(keysize)) { // Not last pointer
                     assert(it.second() != kMetaPageId);
                     childId = it.second();
@@ -238,7 +241,8 @@ public:
 				LeafNode* leaf2 = p.second;
 				uint64_t leaf1size = numleafpairs/ 2;
 				uint64_t leaf2size = numleafpairs-leaf1size;
-				LeafIterator itleaf = std::upper_bound(leaf->begin(keysize), leaf->end(keysize), k, KeyCompare<TID>(c)); // find insert position
+				//LeafIterator itleaf = std::upper_bound(leaf->begin(keysize), leaf->end(keysize), k, KeyCompare<TID>(c)); // find insert position
+				LeafIterator itleaf = upper_bound(leaf->begin(keysize), leaf->end(keysize), c, k); // find insert position
 				LeafIterator itleafmiddle = leaf->begin(keysize)+leaf1size; // first element to be moved to new leaf
                 //std::cout << "First element in new leaf: " << itleafmiddle.second().toInteger() << std::endl;
 				std::memcpy(leaf2->begin(keysize).pointer(), itleafmiddle.pointer(), leaf2size*itleaf.getPairSize());
@@ -306,40 +310,6 @@ public:
     }
 
 
-    std::pair<Key&, PageId&> insertInLeaf(LeafNode* leaf, const Key& k, const TupleId& tid) {
-        const uint64_t keysize = k.bytes();
-        const uint64_t numleafpairs = LeafNode::datasize / (k.bytes() + sizeof(TupleId));
-        assert(leaf != nullptr);
-        if (leaf->nextindex < numleafpairs) { // node is not full
-            insertLeafValue(leaf, k, tid);
-            Key nk;
-            return {nk, kMetaPageId};
-        }
-        // Node is full -> split
-        //std::cout << "Overflow in leaf node " << leaf->pageId << std::endl;
-        auto p = newLeafNode();
-        LeafNode* leaf2 = p.second;
-        uint64_t leaf1size = numleafpairs/ 2;
-        uint64_t leaf2size = numleafpairs-leaf1size;
-        auto it = std::upper_bound(leaf->begin(keysize), leaf->end(keysize), k, KeyCompare<TID>(c)); // find insert position
-        auto itmiddle = leaf->begin(keysize)+leaf1size; // first element to be moved to new leaf
-        
-        std::memcpy(leaf2->begin(keysize).pointer(), itmiddle.pointer(), leaf2size);
-        leaf2->nextindex = leaf2size;
-        leaf->nextindex = leaf1size;
-        if (it < itmiddle) {
-            insertLeafValue(leaf, k, tid);
-        } else {
-            insertLeafValue(leaf2, k, tid);
-        }
-        leaf->nextpage = leaf2->pageId;
-        PageId id = leaf2->pageId;
-        Key up = Key::readFromMemory((*(leaf2->begin(keysize))), schema);
-        bsm.releasePage(*p.first, true); // Release leaf2
-        return {up, id};
-    }
-
-
     std::pair<BufferFrame*, LeafNode*> leafLookup(const Key& k) {
         const uint64_t keysize = k.bytes();
         assert(rootnode != nullptr);
@@ -350,11 +320,13 @@ public:
         
         InnerNode* castnode = castInner(rootnode);
         while (castnode != nullptr) {
-            auto it = std::upper_bound(castnode->begin(keysize), castnode->end(keysize), k, KeyCompare<PageId>(c));
+            InnerIterator it = std::upper_bound(castnode->begin(keysize), castnode->end(keysize), k, KeyCompare<PageId>(c));
+            //InnerIterator it = upper_bound(castnode->begin(keysize), castnode->end(keysize), c, k);
             PageId childId;
             if (it != castnode->end(keysize)) {
                 assert(it.second() != kMetaPageId);
                 childId = it.second();
+                //std::cout << "Searching in child " << it.index() << std::endl;
             } else {
                 assert(castnode->rightpointer != kMetaPageId);
                 childId = castnode->rightpointer;
@@ -376,7 +348,8 @@ public:
         const uint64_t keysize = k.bytes();
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
-        LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
+        //LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
+        LeafIterator it = search(leafnode->begin(keysize), leafnode->end(keysize), c, k);
         if (it != leafnode->end(keysize)) {
             tid = it.second();
             releaseNode(p.first, false);
@@ -392,7 +365,8 @@ public:
         const uint64_t keysize = k.bytes();
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
-        LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
+        //LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
+        LeafIterator it = search(leafnode->begin(keysize), leafnode->end(keysize), c, k);
         if (it != leafnode->end(keysize)) {
             char* pointer = it.pointer();
             std::memmove(pointer, pointer+it.getPairSize(), (leafnode->nextindex - it.index())*it.getPairSize());

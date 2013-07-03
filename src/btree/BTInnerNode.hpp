@@ -3,7 +3,6 @@
 
 #include <array>
 #include <cstdint>
-#include <functional>
 #include <iostream>
 
 #include "btree/BTNode.hpp"
@@ -20,8 +19,8 @@ public:
     const static uint64_t datasize = PAGESIZE - headersize;
     const static uint64_t valuesize = sizeof(PageId);
     typedef std::array<char, datasize> CharArray;
-    uint64_t nextindex = 0;
     PageId rightpointer;
+    uint64_t nextindex = 0;
     CharArray data;
 
     Iterator begin(uint64_t keysize) const {
@@ -29,11 +28,11 @@ public:
     }
 
     Iterator end(uint64_t keysize) const {
-        return Iterator(data.data(), keysize, nextindex, nextindex+1);
+        return Iterator(data.data(), keysize, nextindex, nextindex);
     }
     
     Iterator last(uint64_t keysize) const {
-        return Iterator(data.data(), keysize, nextindex, nextindex);
+        return Iterator(data.data(), keysize, nextindex, nextindex-1);
     }
 
     char* pointer() const {

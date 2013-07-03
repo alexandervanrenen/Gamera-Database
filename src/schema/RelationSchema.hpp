@@ -22,7 +22,7 @@ struct IndexSchema {
    enum Type: uint8_t { kBTree, kHash, kBit };
    
    SegmentId sid;
-   std::set<uint8_t> indexedColumns;
+   std::vector<uint8_t> indexedColumns;
    Type type;
    bool unique;
 };

@@ -50,6 +50,7 @@ RelationSchema::RelationSchema(const Record& record)
       util::readBinary(iter.sid, in);
       util::readBinary(iter.indexedColumns, in);
       util::readBinary(iter.type, in);
+      util::readBinary(iter.unique, in);
    }
 
    assert(in.good());
@@ -138,6 +139,7 @@ Record RelationSchema::marschall() const
       util::writeBinary(out, iter.sid);
       util::writeBinary(out, iter.indexedColumns);
       util::writeBinary(out, iter.type);
+      util::writeBinary(out, iter.unique);
    }
 
    return Record(out.str());
@@ -158,16 +160,19 @@ uint32_t RelationSchema::getColumn(const string& name) const
          return i;
    throw;
 }
-/*
+
 void RelationSchema::dump(ostream& os) const
 {
    os << "name: " << name << endl;
    os << "sid: " << sid << endl;
    for(auto& attribute : attributes)
       os << attribute.name << " " << attribute.type << " " << attribute.notNull << " " << attribute.offset << endl;
-   for(auto& index : indexes)
-      os << index.sid << " " << index.indexedColumns << " " << index.type << endl;
+   for(auto& index : indexes) {
+      os << index.sid << " " << index.type << ":";
+      for(auto& iter : index.indexedColumns)
+         os << " " << (int)iter;
+      os << endl;
+   }
 }
- */
 
 }

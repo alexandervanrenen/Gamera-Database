@@ -64,10 +64,11 @@ TEST(SearchTest, Array) {
     ASSERT_TRUE(it2 != a2.end());
 }
 
+typedef std::array<int, 1> A1;
+typedef std::array<int, 2> A2;
+
 TEST(UpperBoundTest, Array) {
     typedef std::array<int, 21> A21;
-    typedef std::array<int, 1> A1;
-    typedef std::array<int, 2> A2;
     MyCompare c;
     A21 a{2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 18, 20, 22, 25, 26, 27, 33, 50, 100, 112, 130};
     //A1 a1{0};
@@ -149,7 +150,8 @@ const dbi::IndexKey getKey(const uint64_t& i) {
 
 template<typename T, typename CMP, typename Schema>
 ::testing::AssertionResult Lookup(dbi::BTree<T, CMP, Schema>& tree, const dbi::IndexKey& k, dbi::TupleId& tid, uint64_t i) {
-    if (tree.lookup(k, tid))
+    tid = tree.lookup(k);
+    if (tid != dbi::kInvalidTupleId)
         return ::testing::AssertionSuccess();
     else
         return ::testing::AssertionFailure() << "Failed at : " << i << "";

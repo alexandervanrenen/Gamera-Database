@@ -29,11 +29,11 @@ void ExpressionOptimizer::substitute(harriet::Expression** expression, qopt::Glo
    }
 }
 
-void ExpressionOptimizer::substitute(harriet::Expression** expression, harriet::Environment& environment) const
+void ExpressionOptimizer::substitute(harriet::Expression**, harriet::Environment&) const
 {
 }
 
-void ExpressionOptimizer::optimize(harriet::Expression** expression) const
+void ExpressionOptimizer::optimize(harriet::Expression**) const
 {
 }
 

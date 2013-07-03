@@ -344,19 +344,19 @@ public:
         return {nodeframe, leafnode};
     }
 
-    bool lookup(const Key& k, TupleId& tid) {
+    TupleId lookup(const Key& k) {
         const uint64_t keysize = k.bytes();
         std::pair<BufferFrame*, LeafNode*> p = leafLookup(k);
         LeafNode* leafnode = p.second;
         //LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
         LeafIterator it = search(leafnode->begin(keysize), leafnode->end(keysize), c, k);
         if (it != leafnode->end(keysize)) {
-            tid = it.second();
+            TupleId res = it.second();
             releaseNode(p.first, false);
-            return true;
+            return res;
         } else {
             releaseNode(p.first, false);
-            return false;
+            return dbi::kInvalidTupleId;
         }
     }
 

@@ -35,23 +35,23 @@ bin/tester: libs bin/database.so $(test_files) build/test/tester.o
 # Build driver
 bin/driver: libs bin/database.so build/driver.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/driver build/driver.o bin/database.so libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/driver build/driver.o bin/database.so libs/tbb/libtbb.so.2 $(lf)
 
 # Build server
 bin/server: libs bin/database.so build/server.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
 
 # Build client
 bin/client: libs build/client.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/gflags/libgflags.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
 
 # Ensure latest parser version
 src/query/parser/Parser.cpp: src/query/parser/Parser.leg
 	./libs/greg-cpp/greg -o src/query/parser/Parser.cpp src/query/parser/Parser.leg
 
-libs: libs/gtest libs/zmq libs/greg-cpp libs/gflags libs/tbb
+libs: libs/gtest libs/zmq libs/greg-cpp libs/tbb
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp
@@ -132,25 +132,6 @@ libs/greg-cpp:
 	git clone git@github.com:alexandervanrenen/greg-cpp.git ;\
 	cd greg-cpp ;\
 	make
-
-# Build gflags
-libs/gflags:
-	$(build_dir)
-	cd libs/ ;\
-	wget http://gflags.googlecode.com/files/gflags-2.0-no-svn-files.tar.gz ;\
-	tar -xaf gflags-2.0-no-svn-files.tar.gz ;\
-	cd gflags-2.0 ;\
-	./configure --enable-static --disable-shared --prefix ${PWD}/libs/gflags ;\
-	make -j4 ;\
-	make install ;\
-	cd .. ;\
-	rm gflags-2.0-no-svn-files.tar.gz ;\
-	rm gflags-2.0 -rf ;\
-	mv gflags/lib/libgflags.a gflags/ ;\
-	rm gflags/bin -rf ;\
-	rm gflags/include/google -rf ;\
-	rm gflags/share -rf ;\
-	rm gflags/lib -rf
 
 # Clean up =)
 clean:

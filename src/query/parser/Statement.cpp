@@ -46,9 +46,10 @@ void SelectStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>&& attributes)
+CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>&& attributes, vector<vector<string>>&& uniqueColumns)
 : tableName(name)
 , attributes(move(attributes))
+, uniqueColumns(move(uniqueColumns))
 {
 }
 

@@ -18,6 +18,7 @@
 #include "query/util/GlobalRegister.hpp"
 #include "segment_manager/SPSegment.hpp"
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -42,6 +43,28 @@ void PlanGenerationVisitor::onPreVisit(CreateTableStatement& createTable)
    // Check if table already exists
    if(schemaManager.hasRelation(createTable.tableName))
       throw harriet::Exception("Can not create table with already existing name: '" + createTable.tableName + "'.");
+
+   // Check that the unique constraints are good
+   for(auto uniqueConstraint : createTable.uniqueColumns) {
+      set<string> check;
+      for(auto column : uniqueConstraint) {
+         // Check that column names in the unique constraint are unqiue i.e. unique(id,id) is not valid
+         if(check.count(column) > 0)
+            throw harriet::Exception("Found duplicate column name in unique constraint: '" + column + "'"); else
+            check.insert(column);
+
+         // Check that the column names exist in the table
+         if(createTable.attributes.end() == find_if(createTable.attributes.begin(), createTable.attributes.end(), [&column](const AttributeDeclaration& val){return val.name == column;}))
+            throw harriet::Exception("Unknown column in unique constraint: '" + column + "'");
+      }
+   }
+
+   // Check for minimal tuple size
+   uint32_t size = 0;
+   for(auto& iter : createTable.attributes)
+      size += iter.type.length;
+   if(size < 8)
+      throw harriet::Exception("Table '" + createTable.tableName + "' has a row size of " + to_string(size) + ". Minimum is 8, sorry.");
 }
 
 void PlanGenerationVisitor::onPreVisit(SelectStatement& select)

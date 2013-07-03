@@ -31,10 +31,6 @@ public:
     /// Get extents for this segment (extent is added by the segment inventory)
     virtual const Extent grow();
     virtual const Extent grow(uint64_t numPages);
-
-private:
-    BufferFrame* metadataFrame;
-    BTreeMetadata* metadata;
 };
 
 }

@@ -38,6 +38,7 @@ struct ReturnValue {
    vector<pair<string, unique_ptr<harriet::Expression>>> projectionVec;
    vector<AttributeDeclaration> attributeDeclarationVec;
    vector<TableReference> tableReferenceVec;
+   vector<vector<string>> unqiueColumns;
 
    unique_ptr<Statement> statement;
    vector<unique_ptr<Statement>> statements;
@@ -96,10 +97,14 @@ Predicates = p:Predicate                                   { p.expressionVec.pus
            )*                                              { $$.expressionVec = move(p.expressionVec); }
 Predicate = e:Expression                                   { $$.expression = move(e.expression); }
 # --------------------------------------------------------------------------------------------------------------
-CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec)); }
+CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(id.str, move(l.attributeDeclarationVec), move(l.unqiueColumns)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(a.attributeDeclaration); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(i.attributeDeclaration); }
+       | - COMMA - UNIQUE - OPEN - b:AttributeList - CLOSE { a.unqiueColumns.push_back(move(b.stringVec)); }
        )* - CLOSE                                          { $$ = move(a); }
+AttributeList = id:ID                                      { id.stringVec.push_back(id.str); }
+              ( - COMMA - i:ID                             { id.stringVec.push_back(i.str); }
+              )*                                           { $$.stringVec = move(id.stringVec); }
 Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{id.str, t.type, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
 InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(id.str, move(v.valueVec)); }
@@ -165,7 +170,7 @@ LEQ = "<="                                                 { }
 L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 # --------------------------------------------------------------------------------------------------------------
-KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS { }
+KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE { }
 SELECT = "select"                     ![a-z|A-Z]           { }
 FROM = "from"                         ![a-z|A-Z]           { }
 CREATE = "create"                     ![a-z|A-Z]           { }
@@ -182,6 +187,7 @@ INTEGER_ID = "integer"                ![a-z|A-Z]           { }
 FLOAT_ID = "float"                    ![a-z|A-Z]           { }
 CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
 BOOL_ID = "bool"                      ![a-z|A-Z]           { }
+UNIQUE = "unique"                     ![a-z|A-Z]           { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

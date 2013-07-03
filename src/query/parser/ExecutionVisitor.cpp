@@ -43,7 +43,21 @@ void ExecutionVisitor::onPreVisit(CreateTableStatement& createTable)
       columns.push_back(dbi::ColumnSchema{iter.name, iter.type, iter.notNull, 0});
 
    // Create indexes
-   vector<IndexSchema> indexes;
+   vector<IndexSchema> indexes(createTable.uniqueColumns.size());
+   for(uint32_t k=0; k<createTable.uniqueColumns.size(); k++) {
+      indexes[k].unique = true;
+      indexes[k].sid = segmentManager.createSegment(SegmentType::BT, 1);
+      indexes[k].type = IndexSchema::Type::kBTree;
+
+      for(auto& columnName : createTable.uniqueColumns[k]) {
+         for(uint32_t i=0; i<columns.size(); i++) {
+            if(columnName == columns[i].name) {
+               indexes[k].indexedColumns.push_back(i);
+               break;
+            }
+         }
+      }
+   }
 
    // Add relation
    auto schema = util::make_unique<RelationSchema>(createTable.tableName, move(columns), move(indexes));

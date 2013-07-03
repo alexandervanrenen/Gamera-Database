@@ -115,14 +115,22 @@ Value Value::createCopy() const
 }
 //---------------------------------------------------------------------------
 Value::Value(Value&& other)
-: type(other.type)
-, data(other.data)
 {
+   // Destroy this values
+   if(type.type==VariableType::Type::TCharacter && data.vchar!=nullptr)
+      free(data.vchar);
+   // Move data from other value into this value
+   type = other.type;
+   data = other.data;
    other.data.vchar = nullptr;
 }
 //---------------------------------------------------------------------------
 Value& Value::operator=(Value&& other)
 {
+   // Destroy this values
+   if(type.type==VariableType::Type::TCharacter && data.vchar!=nullptr)
+      free(data.vchar);
+   // Move data from other value into this value
    type = other.type;
    data = other.data;
    other.data.vchar = nullptr;

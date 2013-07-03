@@ -58,11 +58,11 @@ struct SelectStatement : public Statement {
 /// 
 struct CreateTableStatement : public Statement {
 
-   CreateTableStatement(const std::string& name, std::vector<AttributeDeclaration>&& attributes);
+   CreateTableStatement(const std::string& name, std::vector<AttributeDeclaration>&& attributes, std::vector<std::vector<std::string>>&& uniqueColumns);
 
    std::string tableName;
    std::vector<AttributeDeclaration> attributes;
-   // std::vector<unsigned> primaryKey;
+   std::vector<std::vector<std::string>> uniqueColumns;
 
    virtual Statement::Type getType() const {return Statement::Type::kCreateTableStatement;}
 

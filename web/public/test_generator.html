@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <title>Gamera Database</title>
+    <link rel='stylesheet' href='gamera.css'></link>
+    <link rel="stylesheet" href="lib/spinner.css"></link>
+    <script src="lib/ace/ace.js" type="text/javascript"></script>
+    <script src="lib/ace/theme-twilight.js" type="text/javascript"></script>
+    <script src="lib/ace/mode-mysql.js" type="text/javascript"></script>
+    <script src="lib/jquery-1.8.3.js" type="text/javascript"></script>
+    <script src="lib/knockout-2.2.0.js" type="text/javascript"></script>
+    <script src="gamera.js" type="text/javascript"></script>
+  </head>
+
+  <body>
+    <header>Gamera Database</header>
+
+<!--     <div id="cursor">
+      <div style="float: left">column:</div>
+      <div style="float: left" data-bind="text : column">0</div>
+      <div style="float: left">line:</div>
+      <div style="float: left" data-bind="text : line">0</div>
+    </div> -->
+
+    <pre id="editor">select name, name, id from Person where id = 1;</pre>
+
+    <div style="text-align:center; top ">
+      <button data-bind="visible : !logState(), click : sendQueryCompare"> Go ! </button>
+      <button data-bind="visible : logState(), click : logGamera"> gamera </button>
+      <button data-bind="visible : logState(), click : ignoreResult"> ignore </button>
+      <button data-bind="visible : logState(), click : logSqlite"> sqlite </button>
+      <div id="followingBallsG" style="display:inline;">
+        <div id="followingBallsG_1" data-bind="visible : isLoading()" class="followingBallsG"></div>
+        <div id="followingBallsG_2" data-bind="visible : isLoading()" class="followingBallsG"></div>
+        <div id="followingBallsG_3" data-bind="visible : isLoading()" class="followingBallsG"></div>
+      </div>
+    </div>
+
+    <center>
+      <div id="result">
+        <p data-bind="text : g_result">No results</p>
+        <center>
+          <div class="ResultTable">
+            <table>
+              <tbody data-bind="foreach: g_resultRows">
+                <tr data-bind="foreach: $data">
+                  <td data-bind="text: $data"/>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </center>
+      </div>
+      <div id="result">
+        <p data-bind="text : s_result">No results</p>
+        <center>
+          <div class="ResultTable">
+            <table>
+              <tbody data-bind="foreach: s_resultRows">
+                <tr data-bind="foreach: $data">
+                  <td data-bind="text: $data"/>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </center>
+      </div>
+    </center>
+  </body>
+
+  <script>
+    var modle = new window.GameraModel;
+    ko.applyBindings(modle);
+    modle.initialize();
+  </script>
+
+</html>

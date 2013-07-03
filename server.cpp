@@ -18,7 +18,7 @@ int main(int, char**)
       cout << "failed" << endl;
       throw;
    }
-   dbi::Database db(dbi::DatabaseConfig{"bin/swap_file", 128}, true);
+   auto db = dbi::util::make_unique<dbi::Database>(dbi::DatabaseConfig{"bin/swap_file", 128}, true);
 
    // Socket to talk to clients
    zmq::context_t context(2);
@@ -30,8 +30,16 @@ int main(int, char**)
       responder.recv(&msg);
       string query((char*)msg.data(), msg.size());
       cout << query << endl;
+      if(query == "!!!CLEAR") {
+         db = dbi::util::make_unique<dbi::Database>(dbi::DatabaseConfig{"bin/swap_file", 128}, true);
+         string str = "ok";
+         msg.rebuild(str.size());
+         memcpy(msg.data(), str.data(), str.size());
+         responder.send(msg);
+         continue;
+      }
 
-      auto result = db.executeQuery(query);
+      auto result = db->executeQuery(query);
       ostringstream os;
       result->toJSON(os);
 

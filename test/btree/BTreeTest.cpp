@@ -64,6 +64,7 @@ TEST(SearchTest, Array) {
     ASSERT_TRUE(it2 != a2.end());
 }
 
+<<<<<<< HEAD
 typedef std::array<int, 1> A1;
 typedef std::array<int, 2> A2;
 

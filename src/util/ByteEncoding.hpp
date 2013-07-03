@@ -14,7 +14,7 @@ inline uint16_t encodeBytes(uint16_t bytes)
          ld++;
       ld = ld>3 ? ld-3 : 0;
       return ld;
-   } else { // use the remaining 8 bit to encode big values linear
+   } else { // use the remaining 7 bit to encode big values linear
       const uint16_t partitions = (kPageSize-2048) / 7;
       bytes-=2048;
       return 9+bytes/partitions;

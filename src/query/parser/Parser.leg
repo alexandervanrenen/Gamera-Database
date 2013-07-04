@@ -79,6 +79,7 @@ start = - a:GlobalSingle                                   { a.statements.push_b
 GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - c:CreateTableStatement                    { $$ = move(c); }
              | - i:InsertStatement                         { $$ = move(i); }
+             | - d:DropStatement                           { $$ = move(d); }
 # --------------------------------------------------------------------------------------------------------------
 SelectStatement = SELECT - p:Projections - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
                 | SELECT - p:Projections - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
@@ -113,6 +114,8 @@ Values = OPEN - a:VALUE                                    { a.valueVec.push_bac
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* - CLOSE                                          { $$ = move(a); }
 # --------------------------------------------------------------------------------------------------------------
+DropStatement = DROP - TABLE - id:ID - SEM                 { $$.statement = util::make_unique<DropTableStatement>(move(id.str)); }
+# --------------------------------------------------------------------------------------------------------------
 Expression = c:Conjuction                                  { }
             ( - EQ - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TEqualOperator, move(c.expression), move(i.expression)); }
             | - GEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TGreaterEqualOperator, move(c.expression), move(i.expression)); }
@@ -143,7 +146,7 @@ TYPE = INTEGER_ID                                          { $$.type = harriet::
      | BOOL_ID                                             { $$.type = harriet::VariableType::createBoolType(); }
 VALUE = v:INTEGER_VAL                                      { $$.value = harriet::Value::createInteger(v.number); }
       | v:FLOAT_VAL                                        { $$.value = harriet::Value::createFloat(v.numberf); }
-      | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacter(move(v.str)); }
+      | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacterFromString(move(v.str)); }
       | v:BOOL_VAL                                         { $$.value = harriet::Value::createBool(v.boolean); }
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
@@ -172,7 +175,7 @@ L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 ASTERISK = "*"
 # --------------------------------------------------------------------------------------------------------------
-KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE { }
+KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE | DROP { }
 SELECT = "select"                     ![a-z|A-Z]           { }
 FROM = "from"                         ![a-z|A-Z]           { }
 CREATE = "create"                     ![a-z|A-Z]           { }
@@ -190,6 +193,7 @@ FLOAT_ID = "float"                    ![a-z|A-Z]           { }
 CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
 BOOL_ID = "bool"                      ![a-z|A-Z]           { }
 UNIQUE = "unique"                     ![a-z|A-Z]           { }
+DROP = "drop"                         ![a-z|A-Z]           { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

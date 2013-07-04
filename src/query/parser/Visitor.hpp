@@ -8,6 +8,7 @@ class RootStatement;
 class SelectStatement;
 class CreateTableStatement;
 class InsertStatement;
+class DropTableStatement;
 class BlockStatement;
 
 /// 
@@ -23,6 +24,8 @@ public:
    virtual void onPostVisit(CreateTableStatement&) {};
    virtual void onPreVisit(InsertStatement&) {};
    virtual void onPostVisit(InsertStatement&) {};
+   virtual void onPreVisit(DropTableStatement&) {};
+   virtual void onPostVisit(DropTableStatement&) {};
    virtual void onPreVisit(BlockStatement&) {};
    virtual void onPostVisit(BlockStatement&) {};
 };

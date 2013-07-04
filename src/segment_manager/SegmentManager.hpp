@@ -28,7 +28,7 @@ public:
    void growSegment(Segment& id, uint32_t numPages);
 
    /// Remove the segment with the given id from the segment inventory
-   void dropSegment(Segment& id);
+   void dropSegmentById(SegmentId id);
 
    // Access segment with given id and cast to SPSegment
    SPSegment& getSPSegment(const SegmentId id);

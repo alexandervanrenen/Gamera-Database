@@ -75,7 +75,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
          throw harriet::Exception("Unknown table in from clause: '" + select.sources[i].tableName + "'.");
       auto& relationSchema = schemaManager.getRelation(select.sources[i].tableName);
       string qualifier = select.sources[i].tableQualifier!=""?select.sources[i].tableQualifier:select.sources[i].tableName;
-      auto& segment = segmentManager.getSPSegment(relationSchema.getSegmentId());
+      auto& segment = segmentManager.getSPSegment(relationSchema.getRelationSegmentId());
       select.tableAccessVec.push_back(qopt::TableAccessInfo{relationSchema, segment, qualifier, i});
    }
 
@@ -108,7 +108,7 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
 
 void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
 {
-   // Check if table already exists
+   // Check that table already exists
    if(!schemaManager.hasRelation(insert.tableName))
       throw harriet::Exception("Insert into unknown table: '" + insert.tableName + "'.");
 
@@ -124,6 +124,13 @@ void PlanGenerationVisitor::onPreVisit(InsertStatement& insert)
          if(!harriet::isImplicitCastPossible(insert.values[i].type, targetSchema.getAttributes()[i].type))
             throw harriet::Exception{"Insert into " + targetSchema.getName() + ": invalid conversion from '" + insert.values[i].type.str() + "' to '" + targetSchema.getAttributes()[i].type.str() + "' for argument " + to_string(i) + "."};
    }
+}
+
+void PlanGenerationVisitor::onPreVisit(DropTableStatement& dropTable)
+{
+   // Check that table already exists
+   if(!schemaManager.hasRelation(dropTable.tableName))
+      throw harriet::Exception("Drop unknown table: '" + dropTable.tableName + "'.");
 }
 
 }

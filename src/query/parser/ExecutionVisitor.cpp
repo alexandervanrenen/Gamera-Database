@@ -72,12 +72,21 @@ void ExecutionVisitor::onPreVisit(InsertStatement& insert)
 {
    // Get target relation
    auto& targetSchema = schemaManager.getRelation(insert.tableName);
-   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getSegmentId());
+   SPSegment& targetSegment = segmentManager.getSPSegment(targetSchema.getRelationSegmentId());
 
    // Do the insert
    targetSegment.insert(targetSchema.tupleToRecord(insert.values));
 
    result.addInsert(chrono::nanoseconds(-1), insert.tableName);
+}
+
+void ExecutionVisitor::onPreVisit(DropTableStatement& dropTable)
+{
+   auto& schema = schemaManager.getRelation(dropTable.tableName);
+   segmentManager.dropSegmentById(schema.getRelationSegmentId());
+   for(auto& index : schema.getIndexes())
+      segmentManager.dropSegmentById(index.sid);
+   schemaManager.dropRelation(dropTable.tableName);
 }
 
 }

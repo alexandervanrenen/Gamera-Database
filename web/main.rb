@@ -49,5 +49,6 @@ post '/query/log' do
   require "./logger.rb" # Need to include here to trigger the END blocks
   $logger ||= LoggerDB.new
   $logger.logQuery query
+  "ok"
 end
 # -----------------------------------------------

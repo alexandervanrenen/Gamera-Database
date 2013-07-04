@@ -17,7 +17,7 @@ using namespace dbi;
 void compare(const RelationSchema& lhs, const RelationSchema& rhs)
 {
    ASSERT_EQ(lhs.getName(), rhs.getName());
-   ASSERT_EQ(lhs.getSegmentId(), rhs.getSegmentId());
+   ASSERT_EQ(lhs.getRelationSegmentId(), rhs.getRelationSegmentId());
 
    // Check attributes
    ASSERT_EQ(lhs.getAttributes().size(), rhs.getAttributes().size());

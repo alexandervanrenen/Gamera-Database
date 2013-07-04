@@ -36,7 +36,7 @@ public:
    static Value createInteger(int32_t value, bool isNull = false);
    static Value createFloat(float value, bool isNull = false);
    static Value createCharacter(const std::string& value, uint16_t max, bool isNull = false);
-   static Value createCharacter(std::string&& value, bool isNull = false); // Used by the parser
+   static Value createCharacterFromString(std::string&& value, bool isNull = false); // Used by the parser
    static Value createCharacter(char* value, uint16_t max, bool isNull = false); // Transfers ownership of the memory pointed to by value
    Value createCopy() const;
    Value(Value&& other);

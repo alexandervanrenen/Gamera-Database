@@ -31,7 +31,7 @@ struct hash<std::vector<dbi::qopt::TableAccessInfo*>> {
    size_t operator()(const std::vector<dbi::qopt::TableAccessInfo*>& input) const {
       size_t result = 0;
       for(auto iter : input)
-         result ^= iter->schema.getSegmentId().toInteger();
+         result ^= iter->schema.getRelationSegmentId().toInteger();
       return result;
    }
 };

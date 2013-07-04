@@ -37,7 +37,7 @@ TEST(SegmentManager, Simple)
    ASSERT_EQ(segment.numPages(), 40ul);
 
    // Drop
-   segmentManager.dropSegment(segment);
+   segmentManager.dropSegmentById(id);
    SegmentId id_b = segmentManager.createSegment(SegmentType::SP, 98);
    SPSegment& segment_b = segmentManager.getSPSegment(id_b);
    ASSERT_EQ(segment_b.numPages(), 98ul);
@@ -150,7 +150,7 @@ TEST(SegmentManager, Randomized)
             advance(iter, ranny.rand()%reference.size());
             // cout << "drop " << iter->first << endl;
             ASSERT_EQ(segmentManager->getSPSegment(iter->first).numPages(), iter->second);
-            segmentManager->dropSegment(segmentManager->getSPSegment(iter->first));
+            segmentManager->dropSegmentById(iter->first);
             reference.erase(iter);
          }
 

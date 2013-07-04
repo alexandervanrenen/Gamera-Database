@@ -31,7 +31,7 @@ struct Statement {
    bool isLocal() const;
    bool isGlobal() const;
 
-   enum struct Type : uint8_t {kSelectStatement, kCreateTableStatement, kInsertStatement, kBlockStatement, kRootStatement};
+   enum struct Type : uint8_t {kSelectStatement, kCreateTableStatement, kInsertStatement, kDropTableStatement, kBlockStatement, kRootStatement};
    virtual Statement::Type getType() const = 0;
 };
 
@@ -87,6 +87,19 @@ struct InsertStatement : public Statement {
 };
 
 /// 
+struct DropTableStatement : public Statement {
+
+   DropTableStatement(std::string&& tableName);
+   ~DropTableStatement();
+
+   std::string tableName;
+
+   virtual Statement::Type getType() const {return Statement::Type::kDropTableStatement;}
+
+   virtual void acceptVisitor(Visitor& visitor);
+};
+
+///
 struct BlockStatement : public Statement {
 
    std::vector<std::unique_ptr<Statement>> statements;

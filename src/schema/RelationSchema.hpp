@@ -43,7 +43,7 @@ struct RelationSchema {
 
    Record marschall() const;
 
-   const SegmentId getSegmentId() const {return sid;}
+   const SegmentId getRelationSegmentId() const {return sid;}
    const std::string& getName() const {return name;}
    const std::vector<ColumnSchema>& getAttributes() const {return attributes;}
    const std::vector<IndexSchema>& getIndexes() const {return indexes;}

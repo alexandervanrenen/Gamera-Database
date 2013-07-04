@@ -21,6 +21,7 @@ public:
    virtual void onPreVisit(CreateTableStatement& createTable);
    virtual void onPreVisit(SelectStatement& select);
    virtual void onPreVisit(InsertStatement& insert);
+   virtual void onPreVisit(DropTableStatement& insert);
 
 private:
    SegmentManager& segmentManager;

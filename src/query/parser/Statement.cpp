@@ -75,6 +75,21 @@ void InsertStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
+DropTableStatement::DropTableStatement(string&& tableName)
+: tableName(move(tableName))
+{
+}
+
+DropTableStatement::~DropTableStatement()
+{
+}
+
+void DropTableStatement::acceptVisitor(Visitor& visitor)
+{
+   visitor.onPreVisit(*this);
+   visitor.onPostVisit(*this);
+}
+
 BlockStatement::BlockStatement(vector<unique_ptr<Statement>> statements)
 : statements(move(statements))
 {

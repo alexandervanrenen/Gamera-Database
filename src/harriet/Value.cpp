@@ -94,7 +94,7 @@ Value Value::createCharacter(const string& value, uint16_t max, bool)
    return result;
 }
 //---------------------------------------------------------------------------
-Value Value::createCharacter(string&& val, bool)
+Value Value::createCharacterFromString(string&& val, bool)
 {
    auto value = move(val);
    Value result(VariableType::createCharacterType(value.size()));

@@ -65,10 +65,10 @@ void SegmentManager::growSegment(Segment& segment, uint32_t numPages)
    segment.grow(numPages);
 }
 
-void SegmentManager::dropSegment(Segment& segment)
+void SegmentManager::dropSegmentById(SegmentId sid)
 {
-   segmentInventory->dropSegment(segment.getId());
-   segments.erase(segment.getId());
+   segmentInventory->dropSegment(sid);
+   segments.erase(sid);
 }
 
 SPSegment& SegmentManager::getSPSegment(const SegmentId id)

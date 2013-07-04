@@ -38,6 +38,8 @@ int main(int, char**)
          responder.send(msg);
          continue;
       }
+      if(query == "!!!KILL")
+         break;
 
       auto result = db->executeQuery(query);
       ostringstream os;

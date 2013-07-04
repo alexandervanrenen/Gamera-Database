@@ -66,7 +66,6 @@ window.GameraModel = ->
          else return self.result("Error unknown result type '#{lastResult.type}'")
 
    @receiveQueryLoggingResult = (response) ->
-      alert response
       # Handle errors
       window.setTimeout (() -> self.isLoading(false).logState(true)) , 1400
       self.g_resultRows([[]]).s_resultRows([[]])

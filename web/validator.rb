@@ -37,17 +37,17 @@ module Validator
 
     # Check for errors
     if actual["error"].size==0 && expexted["error"].size!=0
-      return assert_equal(expexted["error"], actual["error"])
+      return assert_equal(expexted["error"], actual["error"], input["query"])
     elsif actual["error"].size!=0 && expexted["error"].size==0
-      return assert_equal(expexted["error"], actual["error"])
+      return assert_equal(expexted["error"], actual["error"], input["query"])
     elsif (actual["error"].size!=0 && expexted["error"].size!=0)
-      return assert_equal(expexted["error"], actual["error"])
+      return assert_equal(expexted["error"], actual["error"], input["query"])
     end
 
     # Prapare nice content matching
     actual["query"] = input["query"]
     expexted["query"] = input["query"]
-    assert_equal(expexted, actual)
+    assert_equal(expexted, actual, input["query"])
   end
 
   def destroy

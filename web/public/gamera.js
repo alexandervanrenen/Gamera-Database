@@ -131,7 +131,6 @@
     };
     this.receiveQueryLoggingResult = function(response) {
       var data, doGamera, doSqlite;
-      alert(response);
       window.setTimeout((function() {
         return self.isLoading(false).logState(true);
       }), 1400);

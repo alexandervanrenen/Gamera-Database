@@ -58,7 +58,7 @@ struct SelectStatement : public Statement {
 /// 
 struct CreateTableStatement : public Statement {
 
-   CreateTableStatement(const std::string& name, std::vector<AttributeDeclaration>&& attributes, std::vector<std::vector<std::string>>&& uniqueColumns);
+   CreateTableStatement(std::string&& name, std::vector<AttributeDeclaration>&& attributes, std::vector<std::vector<std::string>>&& uniqueColumns);
 
    std::string tableName;
    std::vector<AttributeDeclaration> attributes;
@@ -72,7 +72,7 @@ struct CreateTableStatement : public Statement {
 /// 
 struct InsertStatement : public Statement {
 
-   InsertStatement(const std::string& tableName, std::vector<harriet::Value>&& values);
+   InsertStatement(std::string&& tableName, std::vector<harriet::Value>&& values);
    ~InsertStatement();
 
    std::string tableName;

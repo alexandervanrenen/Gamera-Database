@@ -28,7 +28,7 @@ struct ReturnValue {
    int number;
    float numberf;
 
-   unique_ptr<string> rrrr;
+   string qqqq;
    vector<string> stringVec;
 
    ColumnReference columnReference;
@@ -82,32 +82,32 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
 # --------------------------------------------------------------------------------------------------------------
 SelectStatement = SELECT - p:Projections - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
                 | SELECT - p:Projections - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
-Projections = s:Projection                                 { s.projectionVec.push_back(make_pair(s.rrrr==nullptr?"":*s.rrrr, move(s.expression))); s.rrrr=nullptr; }
-           (- COMMA - i:Projection                         { s.projectionVec.push_back(make_pair(i.rrrr==nullptr?"":*i.rrrr, move(i.expression))); i.rrrr=nullptr; }
+Projections = s:Projection                                 { s.projectionVec.push_back(make_pair(move(s.qqqq), move(s.expression))); }
+           (- COMMA - i:Projection                         { s.projectionVec.push_back(make_pair(move(i.qqqq), move(i.expression))); }
            )*                                              { $$ = move(s); }
-Projection = e:Expression - AS - id:ID                     { $$.expression = move(e.expression); $$.rrrr = move(id.rrrr); }
+Projection = e:Expression - AS - id:ID                     { $$.expression = move(e.expression); }
            | e:Expression                                  { $$.expression = move(e.expression); }
 Tables = t:TableName                                       { t.tableReferenceVec.push_back(move(t.tableReference)); }
        (- COMMA - i:TableName                              { t.tableReferenceVec.push_back(move(i.tableReference)); }
        )*                                                  { $$ = move(t);}
-TableName = tid:ID ' ' alias:ID                            { $$.tableReference = TableReference{*tid.rrrr, string(*alias.rrrr)}; tid.rrrr=nullptr; alias.rrrr=nullptr;}
-          | tid:ID                                         { $$.tableReference = TableReference{*tid.rrrr, ""}; tid.rrrr=nullptr; }
+TableName = tid:ID ' ' alias:ID                            { $$.tableReference = TableReference{move(tid.qqqq), string(move(alias.qqqq))}; }
+          | tid:ID                                         { $$.tableReference = TableReference{move(tid.qqqq), ""}; }
 Predicates = p:Predicate                                   { p.expressionVec.push_back(move(p.expression)); }
            (- SQL_AND - i:Predicate                        { p.expressionVec.push_back(move(i.expression)); }
            )*                                              { $$.expressionVec = move(p.expressionVec); }
 Predicate = e:Expression                                   { $$.expression = move(e.expression); }
 # --------------------------------------------------------------------------------------------------------------
-CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(*id.rrrr, move(l.attributeDeclarationVec), move(l.unqiueColumns)); id.rrrr=nullptr; }
+CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(move(id.qqqq), move(l.attributeDeclarationVec), move(l.unqiueColumns)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(move(a.attributeDeclaration)); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(move(i.attributeDeclaration)); }
        | - COMMA - UNIQUE - OPEN - b:AttributeList - CLOSE { a.unqiueColumns.push_back(move(b.stringVec)); }
        )* - CLOSE                                          { $$ = move(a); }
-AttributeList = id:ID                                      { id.stringVec.push_back(*id.rrrr); id.rrrr=nullptr; }
-              ( - COMMA - i:ID                             { id.stringVec.push_back(*i.rrrr); i.rrrr=nullptr; }
+AttributeList = id:ID                                      { id.stringVec.push_back(move(id.qqqq)); }
+              ( - COMMA - i:ID                             { id.stringVec.push_back(move(i.qqqq)); }
               )*                                           { $$.stringVec = move(id.stringVec); }
-Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{*id.rrrr, t.type, n.boolean}; id.rrrr=nullptr; }
+Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{move(id.qqqq), t.type, n.boolean}; }
 # --------------------------------------------------------------------------------------------------------------
-InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(*id.rrrr, move(v.valueVec)); id.rrrr=nullptr; }
+InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(move(id.qqqq), move(v.valueVec)); }
 Values = OPEN - a:VALUE                                    { a.valueVec.push_back(move(a.value)); }
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* CLOSE                                            { $$ = move(a); }
@@ -131,9 +131,9 @@ Product = f:Factor                                         { }
         )*                                                 { $$.expression = move(f.expression); }
 Factor = OPEN - e:Expression - CLOSE                       { $$.expression = move(e.expression); }
        | v:VALUE                                           { $$.expression = harriet::Expression::createValueExpression(move(v.value)); }
-       | c:ColumnReference                                 { auto ref = move(c.columnReference); $$.expression = harriet::Expression::createVariableExpression(ref.str()); }
-ColumnReference = tid:ID POINT cid:ID                      { $$.columnReference = ColumnReference{*tid.rrrr, *cid.rrrr}; tid.rrrr=nullptr; cid.rrrr=nullptr; }
-                | cid:ID                                   { $$.columnReference = ColumnReference{"", *cid.rrrr}; cid.rrrr=nullptr; }
+       | c:ColumnReference                                 { $$.expression = harriet::Expression::createVariableExpression(c.columnReference.str()); auto ref=move(c.columnReference); }
+ColumnReference = tid:ID POINT cid:ID                      { $$.columnReference = ColumnReference{move(tid.qqqq), move(cid.qqqq)}; }
+                | cid:ID                                   { $$.columnReference = ColumnReference{"", move(cid.qqqq)}; }
 # --------------------------------------------------------------------------------------------------------------
 TYPE = INTEGER_ID                                          { $$.type = harriet::VariableType::createIntegerType(); }
      | FLOAT_ID                                            { $$.type = harriet::VariableType::createFloatType(); }
@@ -142,16 +142,16 @@ TYPE = INTEGER_ID                                          { $$.type = harriet::
      | BOOL_ID                                             { $$.type = harriet::VariableType::createBoolType(); }
 VALUE = v:INTEGER_VAL                                      { $$.value = harriet::Value::createInteger(v.number); }
       | v:FLOAT_VAL                                        { $$.value = harriet::Value::createFloat(v.numberf); }
-      | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacter(*v.rrrr, v.rrrr->size()); v.rrrr=nullptr; }
+      | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacter(move(v.qqqq)); }
       | v:BOOL_VAL                                         { $$.value = harriet::Value::createBool(v.boolean); }
 NULLABLE = "not null"                                      { $$.boolean = false; }
          | "null"                                          { $$.boolean = true; }
          | ""                                              { $$.boolean = true; }
 # --------------------------------------------------------------------------------------------------------------
-ID = !KEYWORDS < [a-z|A-Z][a-z|A-Z|0-9|_]* >               { $$.rrrr = util::make_unique<string>(yytext); cerr << yytext << endl; }
+ID = !KEYWORDS < [a-z|A-Z][a-z|A-Z|0-9|_]* >               { $$.qqqq = yytext; }
 INTEGER_VAL = (PLUS|MINUS)* < [0-9]+ > !'.'                { $$.number = harriet::to_number<int32_t>(yytext); }
 FLOAT_VAL = (PLUS|MINUS)* < [0-9]*'.'[0-9]+ >              { $$.numberf = harriet::to_number<float>(yytext); }
-STRING_VAL = '\'' < [^\']* > '\''                          { $$.rrrr = util::make_unique<string>(yytext); }
+STRING_VAL = '\'' < [^\']* > '\''                          { $$.qqqq = yytext; }
 BOOL_VAL = TRUE                                            { $$.boolean = true; }
          | FALSE                                           { $$.boolean = false; }
 - = (' '|'\n'|'\t')*                                       { }

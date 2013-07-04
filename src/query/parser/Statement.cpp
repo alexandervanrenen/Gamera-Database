@@ -46,8 +46,8 @@ void SelectStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-CreateTableStatement::CreateTableStatement(const string& name, vector<AttributeDeclaration>&& attributes, vector<vector<string>>&& uniqueColumns)
-: tableName(name)
+CreateTableStatement::CreateTableStatement(string&& name, vector<AttributeDeclaration>&& attributes, vector<vector<string>>&& uniqueColumns)
+: tableName(move(name))
 , attributes(move(attributes))
 , uniqueColumns(move(uniqueColumns))
 {
@@ -59,8 +59,8 @@ void CreateTableStatement::acceptVisitor(Visitor& visitor)
    visitor.onPostVisit(*this);
 }
 
-InsertStatement::InsertStatement(const string& tableName, vector<harriet::Value>&& values)
-: tableName(tableName)
+InsertStatement::InsertStatement(string&& tableName, vector<harriet::Value>&& values)
+: tableName(move(tableName))
 , values(move(values))
 {
 }

@@ -94,6 +94,16 @@ Value Value::createCharacter(const string& value, uint16_t max, bool)
    return result;
 }
 //---------------------------------------------------------------------------
+Value Value::createCharacter(string&& val, bool)
+{
+   auto value = move(val);
+   Value result(VariableType::createCharacterType(value.size()));
+   result.data.vchar = static_cast<char*>(malloc(value.size()));
+   memset(result.data.vchar, '\0', value.size()); // TODO: dont copy put figure out how to extract the memory directly from the string
+   memcpy(result.data.vchar, value.data(), value.size());
+   return result;
+}
+//---------------------------------------------------------------------------
 Value Value::createCharacter(char* value, uint16_t max, bool)
 {
    Value result(VariableType::createCharacterType(max));

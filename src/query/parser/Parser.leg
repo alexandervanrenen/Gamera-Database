@@ -82,8 +82,9 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
 # --------------------------------------------------------------------------------------------------------------
 SelectStatement = SELECT - p:Projections - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
                 | SELECT - p:Projections - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
-Projections = s:Projection                                 { s.projectionVec.push_back(make_pair(move(s.str), move(s.expression))); }
-           (- COMMA - i:Projection                         { s.projectionVec.push_back(make_pair(move(i.str), move(i.expression))); }
+Projections = ASTERISK                                     { }
+           | s:Projection                                  { s.projectionVec.push_back(make_pair(move(s.str), move(s.expression))); }
+           ( - COMMA - i:Projection                        { s.projectionVec.push_back(make_pair(move(i.str), move(i.expression))); }
            )*                                              { $$ = move(s); }
 Projection = e:Expression - AS - id:ID                     { $$.expression = move(e.expression); $$.str = move(id.str); }
            | e:Expression                                  { $$.expression = move(e.expression); }
@@ -169,6 +170,7 @@ GEQ = ">="                                                 { }
 LEQ = "<="                                                 { }
 L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
+ASTERISK = "*"
 # --------------------------------------------------------------------------------------------------------------
 KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE { }
 SELECT = "select"                     ![a-z|A-Z]           { }

@@ -19,7 +19,6 @@ namespace harriet {
 //---------------------------------------------------------------------------
 class Environment;
 class Value;
-class Variable;
 //---------------------------------------------------------------------------
 enum struct ExpressionType : uint8_t {TUndefined, TVariable, TValue, TValueReference, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator};
 //---------------------------------------------------------------------------

@@ -79,6 +79,12 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
       select.tableAccessVec.push_back(qopt::TableAccessInfo{relationSchema, segment, qualifier, i});
    }
 
+   // Handle asterisk
+   if(select.projections.empty())
+      for(auto& table : select.tableAccessVec)
+         for(auto& column : table.schema.getAttributes())
+            select.projections.push_back(make_pair(column.name, harriet::Expression::createVariableExpression(column.name)));
+
    // Build a columns needed for the projections
    qgen::DependencyAnalyser dependencyAnalyser(environment, select.tableAccessVec);
    select.globalRegister = dependencyAnalyser.createGlobalRegister(select.projections, select.conditions);

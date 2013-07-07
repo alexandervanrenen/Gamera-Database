@@ -5,6 +5,8 @@ config.local
 *.swp
 *.png
 *.dot
-
+datain
+dataout
 src/query/parser/Parser.cpp
-
+.project
+.cproject

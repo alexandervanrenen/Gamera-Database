@@ -81,25 +81,25 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - i:InsertStatement                         { $$ = move(i); }
              | - d:DropStatement                           { $$ = move(d); }
 # --------------------------------------------------------------------------------------------------------------
-SelectStatement = SELECT - p:Projections - FROM - t:Tables - WHERE - c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
-                | SELECT - p:Projections - FROM - t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
+SelectStatement = SELECT -- p:Projections -- FROM -- t:Tables -- WHERE -- c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
+                | SELECT -- p:Projections -- FROM -- t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
 Projections = ASTERISK                                     { }
            | s:Projection                                  { s.projectionVec.push_back(make_pair(move(s.str), move(s.expression))); }
            ( - COMMA - i:Projection                        { s.projectionVec.push_back(make_pair(move(i.str), move(i.expression))); }
            )*                                              { $$ = move(s); }
-Projection = e:Expression - AS - id:ID                     { $$.expression = move(e.expression); $$.str = move(id.str); }
+Projection = e:Expression -- AS -- id:ID                   { $$.expression = move(e.expression); $$.str = move(id.str); }
            | e:Expression                                  { $$.expression = move(e.expression); }
 Tables = t:TableName                                       { t.tableReferenceVec.push_back(move(t.tableReference)); }
-       (- COMMA - i:TableName                              { t.tableReferenceVec.push_back(move(i.tableReference)); }
+       ( - COMMA - i:TableName                             { t.tableReferenceVec.push_back(move(i.tableReference)); }
        )*                                                  { $$ = move(t);}
-TableName = tid:ID ' ' alias:ID                            { $$.tableReference = TableReference{move(tid.str), string(move(alias.str))}; }
+TableName = tid:ID -- alias:ID                             { $$.tableReference = TableReference{move(tid.str), string(move(alias.str))}; }
           | tid:ID                                         { $$.tableReference = TableReference{move(tid.str), ""}; }
 Predicates = p:Predicate                                   { p.expressionVec.push_back(move(p.expression)); }
-           (- SQL_AND - i:Predicate                        { p.expressionVec.push_back(move(i.expression)); }
+           ( -- SQL_AND -- i:Predicate                     { p.expressionVec.push_back(move(i.expression)); }
            )*                                              { $$.expressionVec = move(p.expressionVec); }
 Predicate = e:Expression                                   { $$.expression = move(e.expression); }
 # --------------------------------------------------------------------------------------------------------------
-CreateTableStatement = CREATE - TABLE - id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(move(id.str), move(l.attributeDeclarationVec), move(l.unqiueColumns)); }
+CreateTableStatement = CREATE -- TABLE -- id:ID - l:Layout - SEM { $$.statement = util::make_unique<CreateTableStatement>(move(id.str), move(l.attributeDeclarationVec), move(l.unqiueColumns)); }
 Layout = OPEN - a:Attribute                                { a.attributeDeclarationVec.push_back(move(a.attributeDeclaration)); }
        ( - COMMA - i:Attribute                             { a.attributeDeclarationVec.push_back(move(i.attributeDeclaration)); }
        | - COMMA - UNIQUE - OPEN - b:AttributeList - CLOSE { a.unqiueColumns.push_back(move(b.stringVec)); }
@@ -107,14 +107,14 @@ Layout = OPEN - a:Attribute                                { a.attributeDeclarat
 AttributeList = id:ID                                      { id.stringVec.push_back(move(id.str)); }
               ( - COMMA - i:ID                             { id.stringVec.push_back(move(i.str)); }
               )*                                           { $$.stringVec = move(id.stringVec); }
-Attribute = id:ID - t:TYPE - n:NULLABLE                    { $$.attributeDeclaration = AttributeDeclaration{move(id.str), t.type, n.boolean}; }
+Attribute = id:ID -- t:TYPE                                { $$.attributeDeclaration = AttributeDeclaration{move(id.str), t.type, false}; }
 # --------------------------------------------------------------------------------------------------------------
-InsertStatement = INSERT - INTO - id:ID - VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(move(id.str), move(v.valueVec)); }
+InsertStatement = INSERT -- INTO -- id:ID -- VALUES - v:Values - SEM { $$.statement = util::make_unique<InsertStatement>(move(id.str), move(v.valueVec)); }
 Values = OPEN - a:VALUE                                    { a.valueVec.push_back(move(a.value)); }
        ( - COMMA - i:VALUE                                 { a.valueVec.push_back(move(i.value)); }
        )* - CLOSE                                          { $$ = move(a); }
 # --------------------------------------------------------------------------------------------------------------
-DropStatement = DROP - TABLE - id:ID - SEM                 { $$.statement = util::make_unique<DropTableStatement>(move(id.str)); }
+DropStatement = DROP -- TABLE -- id:ID - SEM               { $$.statement = util::make_unique<DropTableStatement>(move(id.str)); }
 # --------------------------------------------------------------------------------------------------------------
 Expression = c:Conjuction                                  { }
             ( - EQ - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TEqualOperator, move(c.expression), move(i.expression)); }
@@ -148,17 +148,15 @@ VALUE = v:INTEGER_VAL                                      { $$.value = harriet:
       | v:FLOAT_VAL                                        { $$.value = harriet::Value::createFloat(v.numberf); }
       | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacterFromString(move(v.str)); }
       | v:BOOL_VAL                                         { $$.value = harriet::Value::createBool(v.boolean); }
-NULLABLE = "not null"                                      { $$.boolean = false; }
-         | "null"                                          { $$.boolean = true; }
-         | ""                                              { $$.boolean = true; }
 # --------------------------------------------------------------------------------------------------------------
-ID = !(KEYWORDS ' ') < [a-z|A-Z][a-z|A-Z|0-9|_]* >         { $$.str = yytext; }
+ID = !(KEYWORDS ' ' ) < [a-z|A-Z][a-z|A-Z|0-9|_]* >         { $$.str = yytext; }
 INTEGER_VAL = (PLUS|MINUS)* < [0-9]+ > !'.'                { $$.number = harriet::to_number<int32_t>(yytext); }
 FLOAT_VAL = (PLUS|MINUS)* < [0-9]*'.'[0-9]+ >              { $$.numberf = harriet::to_number<float>(yytext); }
 STRING_VAL = '\'' < [^\']* > '\''                          { $$.str = yytext; }
 BOOL_VAL = TRUE                                            { $$.boolean = true; }
          | FALSE                                           { $$.boolean = false; }
 - = (' '|'\n'|'\t')*                                       { }
+-- = (' '|'\n'|'\t')+                                      { }
 COMMA = ','                                                { }
 POINT = "."                                                { }
 SEM = ';'                                                  { }

@@ -59,7 +59,7 @@ bool foreachInFileImpl(const string& fileName, function<void(T)> callback)
    // Loop over each entry
    T entry;
    while(true) {
-      in.read(reinterpret_cast<char*>(&entry), sizeof(uint64_t));
+      in.read(reinterpret_cast<char*>(&entry), sizeof(uint32_t));
       if(!in.good())
          break;
       callback(entry);
@@ -73,9 +73,9 @@ int32_t(int32_t)> factory)
    return createTestFileImpl<int32_t>(fileName, count, factory);
 }
 
-bool foreachInFile(const string& fileName, function<void(uint64_t)> callback)
+bool foreachInFile(const string& fileName, function<void(uint32_t)> callback)
 {
-   return foreachInFileImpl<uint64_t>(fileName, callback);
+   return foreachInFileImpl<uint32_t>(fileName, callback);
 }
 
 bool createFile(const string& fileName, const uint64_t bytes)

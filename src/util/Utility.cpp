@@ -33,13 +33,13 @@ bool createTestFileImpl(const string& fileName, uint64_t count, function<T(int)>
 
    // Write file in buffered fashion
    const uint32_t kMaxBufferSize = 1 << 22;
-   vector<T> buffer(kMaxBufferSize / sizeof(uint64_t));
+   vector<T> buffer(kMaxBufferSize / sizeof(uint32_t));
    for(uint64_t i = 0; i < count;) {
       // Fill buffer and write
       uint64_t limit = i + buffer.size();
       for(; i < count && i < limit; i++)
          buffer[i % buffer.size()] = factory(i);
-      of.write(reinterpret_cast<char*>(buffer.data()), (buffer.size() - (limit - i)) * sizeof(uint64_t));
+      of.write(reinterpret_cast<char*>(buffer.data()), (buffer.size() - (limit - i)) * sizeof(uint32_t));
    }
 
    // Finish up
@@ -68,9 +68,9 @@ bool foreachInFileImpl(const string& fileName, function<void(T)> callback)
 }
 
 bool createTestFile(const string& fileName, uint64_t count, function<
-uint64_t(uint64_t)> factory)
+int32_t(int32_t)> factory)
 {
-   return createTestFileImpl<uint64_t>(fileName, count, factory);
+   return createTestFileImpl<int32_t>(fileName, count, factory);
 }
 
 bool foreachInFile(const string& fileName, function<void(uint64_t)> callback)

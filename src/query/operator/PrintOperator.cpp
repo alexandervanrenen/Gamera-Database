@@ -3,6 +3,7 @@
 #include "harriet/Value.hpp"
 #include "ProjectionOperator.hpp"
 #include "query/util/ColumnAccessInfo.hpp"
+#include "query/util/Projection.hpp"
 #include "query/util/GlobalRegister.hpp"
 #include "util/Utility.hpp"
 #include <chrono>
@@ -41,8 +42,8 @@ vector<vector<harriet::Value>>&& PrintOperator::getResult()
 vector<string> PrintOperator::getSuppliedColumns()
 {
    vector<string> result;
-   for(auto& iter : source->getRegisterIndexes())
-      result.push_back(globalRegister.getSlotInfo(iter).identifier);
+   for(auto& iter : source->getProjections())
+      result.push_back(iter->alias);
    return result;
 }
 
@@ -53,15 +54,15 @@ chrono::nanoseconds PrintOperator::getExecutionTime() const
 
 void PrintOperator::execute()
 {
-   vector<uint32_t> globalRegisterIndexes = source->getRegisterIndexes();
+   auto& projections = source->getProjections();
 
    // Print content
    auto begin = chrono::high_resolution_clock::now();
    source->open();
    while(source->next()) {
       result.push_back(vector<harriet::Value>());
-      for(auto sourceIndex : globalRegisterIndexes)
-         result.back().emplace_back(globalRegister.getSlotValue(sourceIndex).createCopy());
+      for(auto& projection : projections)
+         result.back().emplace_back(globalRegister.getSlotValue(projection->resultRegisterSlot).createCopy());
    }
    auto end = chrono::high_resolution_clock::now();
    executionTime = chrono::duration_cast<chrono::nanoseconds>(end-begin);

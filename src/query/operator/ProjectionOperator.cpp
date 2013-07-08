@@ -12,7 +12,7 @@ using namespace std;
 
 namespace dbi {
 
-ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, vector<std::unique_ptr<qopt::Projection>>&& projectionsIn, qopt::GlobalRegister& globalRegister)
+ProjectionOperator::ProjectionOperator(unique_ptr<Operator> source, vector<unique_ptr<qopt::Projection>>&& projectionsIn, qopt::GlobalRegister& globalRegister)
 : source(move(source))
 , state(kClosed)
 , projections(move(projectionsIn))
@@ -31,12 +31,9 @@ ProjectionOperator::~ProjectionOperator()
 {
 }
 
-vector<uint32_t> ProjectionOperator::getRegisterIndexes() const
+const vector<unique_ptr<qopt::Projection>>& ProjectionOperator::getProjections() const
 {
-   vector<uint32_t> result;
-   for(auto& iter : projections)
-      result.push_back(iter->resultRegisterSlot);
-   return result;
+   return projections;
 }
 
 void ProjectionOperator::dump(ostream& os, uint32_t lvl) const

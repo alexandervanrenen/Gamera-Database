@@ -6,7 +6,7 @@ CXX ?= g++
 opt = -g3 -O0
 #opt = -g0 -O3
 cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -I./libs/tbb/include/ -fPIC
-lf = $(opt) --std=c++0x -ldl -lpthread -lrt -L./libs/tbb/ -ltbb
+lf = $(opt) --std=c++0x -ldl -lpthread -lrt -L./libs/tbb/ -ltbb -Wl,-rpath,libs/tbb
 
 # Object director
 objDir:= build/

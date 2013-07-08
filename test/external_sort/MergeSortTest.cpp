@@ -9,7 +9,8 @@
 
 void runComplexSort(uint64_t entriesCount, uint64_t pagesize, uint64_t maxMemory)
 {
-    EXPECT_TRUE(dbi::util::createTestFile("datain", entriesCount, [&](uint64_t) {return rand();}));
+    EXPECT_TRUE(dbi::util::createTestFile("datain", entriesCount, [&](uint32_t) {return rand();}));
+    //return;
     std::vector<harriet::VariableType> columns;
     columns.push_back(harriet::VariableType::createIntegerType());
     dbi::IndexKeySchema schema{columns};
@@ -17,20 +18,14 @@ void runComplexSort(uint64_t entriesCount, uint64_t pagesize, uint64_t maxMemory
     dbi::IndexKeyComparator c{schema};
     dbi::MergeSort sorty(pagesize, maxMemory, schema, c);
     EXPECT_EQ(sorty.externalsort("datain", "dataout"), 0);
-    /*
-    uint64_t last = 0;
-    bool check = true;
-    uint64_t i = 0;
-    EXPECT_TRUE(dbi::util::foreachInFile("bin/dataout", [&](uint64_t data) {check&=last<=data; last=data; i++;}));
-    EXPECT_TRUE(check);
-    EXPECT_EQ(i, entriesCount);
-    */
+    EXPECT_TRUE(sorty.checksort("dataout"));
     remove("bin/datain");
     remove("bin/dataout");
 }
 
-TEST(NewTest, ComplexSmall)
+TEST(MergeSortTest, External)
 {
-   runComplexSort(1 << 10, 10* 64, 100 * 64);
+   runComplexSort(1 << 11, 2 * 64, 10 * 64);
+   runComplexSort(1 << 11, 2 * 64, 20 * 64);
 }
 

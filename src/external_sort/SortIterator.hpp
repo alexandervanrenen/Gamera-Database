@@ -99,24 +99,25 @@ private:
 };
 
 template <typename I, typename Compare>
-void sort(I first, I last, Compare& c) {
-    char* tmp = new char[first.bytes()];
+void sort(I first, I last, Compare& c, uint64_t bytes) {
+    char* tmp = new char[bytes];
     while (last != first) {
         I cur = first;
         while (cur != last) {
             I next = cur+1;
             if (c.less(*(next), *cur)) {
-                std::cout << "Swapping values\n";
-                std::memcpy(tmp, *cur, first.bytes());
-                std::memcpy(*cur, *(cur+1), first.bytes());
-                std::memcpy(*(cur+1), tmp, first.bytes());
-                std::cout << "Swapped values\n";
+                //std::cout << "Swapping values\n";
+                std::memcpy(tmp, *cur, bytes);
+                std::memcpy(*cur, *(cur+1), bytes);
+                std::memcpy(*(cur+1), tmp, bytes);
+                //std::cout << "Swapped values\n";
                 //std::swap_ranges(*cur, *(cur+1), *(cur+1));
             }
             ++cur;
         }
         --last;
     }
+    delete[] tmp;
 }
 
 

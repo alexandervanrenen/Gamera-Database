@@ -1,6 +1,6 @@
 #include "harriet/VariableType.hpp"
 #include "harriet/Value.hpp"
-#include "extsort/MergeSort.hpp"
+#include "external_sort/MergeSort.hpp"
 #include "gtest/gtest.h"
 #include "test/TestConfig.hpp"
 #include "util/Utility.hpp"

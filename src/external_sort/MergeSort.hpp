@@ -64,7 +64,7 @@ public:
     }
     
     Chunk* mergesingle(fstream* outfile, vector<Chunk*> chunks) {
-        std::cout << "Mergesingle, pagesize: " << pagesize << std::endl;
+        //std::cout << "Mergesingle, pagesize: " << pagesize << std::endl;
         assert(chunks.size() * pagesize <= (memsize-pagesize));
         int i = 0;
         // assign each chunk a part of the buffer
@@ -116,7 +116,7 @@ public:
             outfile->write(saveoutbuf, (char*)outbuf - saveoutbuf);
         }
         outfile->flush();
-        std::cout << "Size of outfile: " << filesize(outfile) << std::endl;
+        //std::cout << "Size of outfile: " << filesize(outfile) << std::endl;
         outfile->seekg(0, outfile->beg);
         assert(size > 0);
         delete[] minval;
@@ -124,7 +124,7 @@ public:
     }
 
     Chunk* mergechunks(fstream* out, vector<Chunk*> chunks) {
-        std::cout << "mergechunks aufruf\n";
+        //std::cout << "mergechunks aufruf\n";
         vector<Chunk*> secondrun;
         // Merge as many chunks as possible at once 
         while ((memsize-pagesize) / chunks.size() < pagesize && chunks.size() > 1) {
@@ -132,18 +132,16 @@ public:
             chunks.pop_back();
         }
         assert(chunks.size() > 1);
-        std::cout << "Chunks in first run: " << chunks.size() << std::endl;
-        std::cout << "Chunks in second run: " << secondrun.size() << std::endl;
+        //std::cout << "Chunks in first run: " << chunks.size() << std::endl;
+        //std::cout << "Chunks in second run: " << secondrun.size() << std::endl;
         Chunk* mergechunk1 = mergesingle(secondrun.size() != 0 ? tf->getStream() : out, chunks);
         Chunk* mergechunk2;
         // Merge the remaining chunks and then merge the two result chunks
         if (secondrun.size() > 0) {
             if (secondrun.size() > 1) 
                 mergechunk2 = mergechunks(tf->getStream(), secondrun);
-            else {
-                std::cout << "Mergechunk2: " << secondrun.size() << std::endl;
+            else
                 mergechunk2 = secondrun.back();
-            }
             vector<Chunk*> finalrun = {mergechunk1, mergechunk2};
             Chunk* finalchunk = mergesingle(out, finalrun);
             mergechunk1->close(tf);
@@ -162,7 +160,7 @@ public:
         if (stat(in.c_str(), &st) != 0)
             return 1;
         uint length = st.st_size;
-        std::cout << "Length of file: " << length << ", buffersize: " << memsize  <<  std::endl;
+        //std::cout << "Length of file: " << length << ", buffersize: " << memsize  <<  std::endl;
 
         fstream infile;
         fstream* infilep = new fstream();
@@ -185,7 +183,7 @@ public:
         }
 
         // do a merge on the chunks
-        std::cout << "Merging chunks\n";
+        //std::cout << "Merging chunks\n";
         Chunk* finalchunk = mergechunks(&outfile, chunks);
         // cleanup
         infile.close();
@@ -204,7 +202,7 @@ public:
         file.open(filename, ios::binary | ios::in);
         file.seekg (0, file.end);
         uint64_t length = file.tellg();
-        std::cout << "Length of file: " << length << std::endl;
+        //std::cout << "Length of file: " << length << std::endl;
         file.seekg (0, file.beg);
         char* buf = new char[length];
         file.read(buf, length);
@@ -213,9 +211,9 @@ public:
         for (uint64_t i=bytes; i < length; i+=bytes) {
             //std::cout << *((uint32_t*)bufp2) << std::endl;
             if (c.less(bufp2, bufp1)) {
-                std::cout << *((int32_t*)bufp1) << std::endl;
-                std::cout << *((int32_t*)bufp2) << std::endl;
-                std::cout << "Wrong number at " << i << std::endl;
+                //std::cout << *((int32_t*)bufp1) << std::endl;
+                //std::cout << *((int32_t*)bufp2) << std::endl;
+                //std::cout << "Wrong number at " << i << std::endl;
                 return false;
             }
             bufp1 += bytes;

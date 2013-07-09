@@ -84,8 +84,8 @@ Expression::Expression(Expression&& other)
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -116,8 +116,8 @@ unique_ptr<Expression> Expression::createCopy() const
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -151,8 +151,8 @@ Expression& Expression::operator= (Expression&& other)
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -175,8 +175,8 @@ Expression::~Expression()
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -213,9 +213,9 @@ void Expression::print(ostream& stream) const
          data.lhs->print(stream); stream << " & "; data.rhs->print(stream); return;
       case ExpressionType::TOrOperator:
          data.lhs->print(stream); stream << " | "; data.rhs->print(stream); return;
-      case ExpressionType::TGreaterOperator:
+      case ExpressionType::TGreaterThanOperator:
          data.lhs->print(stream); stream << " > "; data.rhs->print(stream); return;
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TLessThanOperator:
          data.lhs->print(stream); stream << " < "; data.rhs->print(stream); return;
       case ExpressionType::TGreaterEqualOperator:
          data.lhs->print(stream); stream << " >= "; data.rhs->print(stream); return;
@@ -252,10 +252,10 @@ Value Expression::evaluate(const Environment& environment) const
          return data.lhs->evaluate(environment).computeAnd(data.rhs->evaluate(environment));
       case ExpressionType::TOrOperator:
          throw;
-      case ExpressionType::TGreaterOperator:
-         throw;
-      case ExpressionType::TLessOperator:
-         throw;
+      case ExpressionType::TGreaterThanOperator:
+         return data.lhs->evaluate(environment).computeGt(data.rhs->evaluate(environment));
+      case ExpressionType::TLessThanOperator:
+         return data.lhs->evaluate(environment).computeLt(data.rhs->evaluate(environment));
       case ExpressionType::TGreaterEqualOperator:
          return data.lhs->evaluate(environment).computeGeq(data.rhs->evaluate(environment));
       case ExpressionType::TLessEqualOperator:
@@ -296,8 +296,8 @@ vector<string*> Expression::getAllVariableNames()
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -330,8 +330,8 @@ vector<Expression**> Expression::getAllVariables(Expression** self)
       case ExpressionType::TDivisionOperator:
       case ExpressionType::TAndOperator:
       case ExpressionType::TOrOperator:
-      case ExpressionType::TGreaterOperator:
-      case ExpressionType::TLessOperator:
+      case ExpressionType::TGreaterThanOperator:
+      case ExpressionType::TLessThanOperator:
       case ExpressionType::TGreaterEqualOperator:
       case ExpressionType::TLessEqualOperator:
       case ExpressionType::TEqualOperator:
@@ -350,7 +350,7 @@ vector<Expression**> Expression::getAllVariables(Expression** self)
 bool Expression::isLogicOperator() const
 {
    ExpressionType t = getExpressionType();
-   return t==ExpressionType::TAndOperator || t==ExpressionType::TOrOperator || t==ExpressionType::TGreaterOperator || t==ExpressionType::TLessOperator || t==ExpressionType::TGreaterEqualOperator || t==ExpressionType::TLessEqualOperator || t==ExpressionType::TEqualOperator || t==ExpressionType::TNotEqualOperator;
+   return t==ExpressionType::TAndOperator || t==ExpressionType::TOrOperator || t==ExpressionType::TGreaterThanOperator || t==ExpressionType::TLessThanOperator || t==ExpressionType::TGreaterEqualOperator || t==ExpressionType::TLessEqualOperator || t==ExpressionType::TEqualOperator || t==ExpressionType::TNotEqualOperator;
 }
 //---------------------------------------------------------------------------
 } // end of namespace harriet

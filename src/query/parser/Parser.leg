@@ -119,6 +119,8 @@ Expression = c:Conjuction                                  { }
             ( - EQ - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TEqualOperator, move(c.expression), move(i.expression)); }
             | - GEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TGreaterEqualOperator, move(c.expression), move(i.expression)); }
             | - LEQ - i:Conjuction                         { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TLessEqualOperator, move(c.expression), move(i.expression)); }
+            | - GT - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TGreaterThanOperator, move(c.expression), move(i.expression)); }
+            | - LT - i:Conjuction                          { c.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TLessThanOperator, move(c.expression), move(i.expression)); }
             )*                                             { $$.expression = move(c.expression); }
 Conjuction = s:Sum                                         { }
            ( - L_AND - i:Sum                               { s.expression = harriet::Expression::createBinaryExpression(harriet::ExpressionType::TAndOperator, move(s.expression), move(i.expression)); }
@@ -168,6 +170,8 @@ DIVIDE = '/'                                               { }
 EQ = "=" | "=="                                            { }
 GEQ = ">="                                                 { }
 LEQ = "<="                                                 { }
+GT = ">"                                                   { }
+LT = "<"                                                   { }
 L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 ASTERISK = "*"

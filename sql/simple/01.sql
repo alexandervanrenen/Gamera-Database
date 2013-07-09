@@ -7,5 +7,5 @@ insert into studenten values(2, 6, 'cons', 'gers', 24);
 
 select id, name
 from studenten
-where id <= 4
+where id < 5
 order by name, id;

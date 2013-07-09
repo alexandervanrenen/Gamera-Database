@@ -20,7 +20,7 @@ namespace harriet {
 class Environment;
 class Value;
 //---------------------------------------------------------------------------
-enum struct ExpressionType : uint8_t {TUndefined, TVariable, TValue, TValueReference, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TAndOperator, TOrOperator, TGreaterOperator, TLessOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator};
+enum struct ExpressionType : uint8_t {TUndefined, TVariable, TValue, TValueReference, TPlusOperator, TMinusOperator, TMultiplicationOperator, TDivisionOperator, TAndOperator, TOrOperator, TGreaterThanOperator, TLessThanOperator, TGreaterEqualOperator, TLessEqualOperator, TEqualOperator, TNotEqualOperator};
 //---------------------------------------------------------------------------
 class Expression {
    Expression(ExpressionType type);

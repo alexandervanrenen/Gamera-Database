@@ -27,10 +27,12 @@ public:
     ~TempFile() {
         for (auto p : filemap) {
             p.first->close();
+            remove(p.second.c_str());
             delete p.first;
         }
     }
     
+
     string get() {
         return filename + "." + to_string(currentnum++);
     };

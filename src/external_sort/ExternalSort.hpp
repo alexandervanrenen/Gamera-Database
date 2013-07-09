@@ -25,7 +25,11 @@ public:
 
   void addTuple(const IndexKey& tuple);
 
-  IndexKey nextTuple();
+  bool hasNextTuple() const;
+
+  IndexKey readNextTuple();
+
+  void readNextTuple(IndexKey& key);
 
   void sort();
 

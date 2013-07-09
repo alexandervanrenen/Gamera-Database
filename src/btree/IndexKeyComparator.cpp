@@ -6,7 +6,7 @@
 
 namespace dbi {
 
-IndexKeyComparator::IndexKeyComparator(IndexKeySchema& schema)
+IndexKeyComparator::IndexKeyComparator(const IndexKeySchema& schema)
 : schema(schema)
 {
 }
@@ -18,6 +18,10 @@ bool IndexKeyComparator::less(const IndexKey& lhs, const IndexKey& rhs) const
    for(uint32_t i=0; i<schema.getSchema().size(); i++)
       if(lhs.valueReferences[i]->computeLt(*rhs.valueReferences[i]).data.vbool)
          return true;
+      else if(lhs.valueReferences[i]->computeEq(*rhs.valueReferences[i]).data.vbool)
+         continue;
+      else
+         return false;
    return false;
 }
 

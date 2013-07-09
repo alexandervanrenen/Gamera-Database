@@ -4,6 +4,7 @@
 #include "harriet/ScriptLanguage.hpp"
 #include "query/operator/PrintOperator.hpp"
 #include "query/operator/ProjectionOperator.hpp"
+#include "query/operator/SortOperator.hpp"
 #include "query/optimizer/ChainOptimizer.hpp"
 #include "query/analyser/DependencyAnalyser.hpp"
 #include "query/util/Predicate.hpp"
@@ -85,11 +86,11 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
          for(auto& column : table.schema.getAttributes())
             select.projections.push_back(make_pair(column.name, harriet::Expression::createVariableExpression(column.name)));
 
-   // Build a columns needed for the projections
+   // Build global register -- contains all columns needed by the select (also does name resolution)
    qgen::DependencyAnalyser dependencyAnalyser(environment, select.tableAccessVec);
-   select.globalRegister = dependencyAnalyser.createGlobalRegister(select.projections, select.conditions);
+   select.globalRegister = dependencyAnalyser.createGlobalRegister(select.projections, select.conditions, select.orderBy);
 
-   // Select clause -- Build projections from selection-expressions
+   // Select clause -- Build projections from selection-expressions (may add entries to the global register)
    qgen::ProjectionGenerator projectionGenerator(environment, *select.globalRegister);
    vector<std::unique_ptr<qopt::Projection>> projections = projectionGenerator.createProjections(select.projections);
 
@@ -101,7 +102,9 @@ void PlanGenerationVisitor::onPreVisit(SelectStatement& select)
    qopt::ChainOptimizer opty(environment, *select.globalRegister);
    auto plan = opty.optimize(select.tableAccessVec, predicates);
 
-   // Finally: Add the projection and we are good to go =)
+   // Finally: Add the projection and sort order. Then we are good to go =)
+   if(!select.orderBy.empty())
+      plan = util::make_unique<SortOperator>(move(plan), select.orderBy, *select.globalRegister);
    auto projection = util::make_unique<ProjectionOperator>(move(plan), move(projections), *select.globalRegister);
    select.queryPlan = util::make_unique<PrintOperator>(move(projection), *select.globalRegister);
 }

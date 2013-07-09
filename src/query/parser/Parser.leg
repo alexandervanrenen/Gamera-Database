@@ -81,8 +81,7 @@ GlobalSingle = - s:SelectStatement                         { $$ = move(s); }
              | - i:InsertStatement                         { $$ = move(i); }
              | - d:DropStatement                           { $$ = move(d); }
 # --------------------------------------------------------------------------------------------------------------
-SelectStatement = SELECT -- p:Projections -- FROM -- t:Tables -- WHERE -- c:Predicates - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec)); }
-                | SELECT -- p:Projections -- FROM -- t:Tables - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), vector<unique_ptr<harriet::Expression>>()); }
+SelectStatement = SELECT -- p:Projections -- FROM -- t:Tables ( -- WHERE -- c:Predicates)? ( -- ORDER -- BY -- a:AttributeList)? - SEM { $$.statement = util::make_unique<SelectStatement>(move(p.projectionVec), move(t.tableReferenceVec), move(c.expressionVec), move(a.stringVec)); }
 Projections = ASTERISK                                     { }
            | s:Projection                                  { s.projectionVec.push_back(make_pair(move(s.str), move(s.expression))); }
            ( - COMMA - i:Projection                        { s.projectionVec.push_back(make_pair(move(i.str), move(i.expression))); }
@@ -149,7 +148,7 @@ VALUE = v:INTEGER_VAL                                      { $$.value = harriet:
       | v:STRING_VAL                                       { $$.value = harriet::Value::createCharacterFromString(move(v.str)); }
       | v:BOOL_VAL                                         { $$.value = harriet::Value::createBool(v.boolean); }
 # --------------------------------------------------------------------------------------------------------------
-ID = !(KEYWORDS ' ' ) < [a-z|A-Z][a-z|A-Z|0-9|_]* >         { $$.str = yytext; }
+ID = !(KEYWORDS ' ' ) < [a-z|A-Z][a-z|A-Z|0-9|_]* >        { $$.str = yytext; }
 INTEGER_VAL = (PLUS|MINUS)* < [0-9]+ > !'.'                { $$.number = harriet::to_number<int32_t>(yytext); }
 FLOAT_VAL = (PLUS|MINUS)* < [0-9]*'.'[0-9]+ >              { $$.numberf = harriet::to_number<float>(yytext); }
 STRING_VAL = '\'' < [^\']* > '\''                          { $$.str = yytext; }
@@ -173,7 +172,7 @@ L_AND = "&"                                                { }
 L_OR = "|"                                                 { }
 ASTERISK = "*"
 # --------------------------------------------------------------------------------------------------------------
-KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE | DROP { }
+KEYWORDS = SELECT | FROM | CREATE | TABLE | INSERT | INTO | VALUES | WHERE | TYPE | AS | TRUE | FALSE | SQL_AND | INTEGER_ID | FLOAT_ID | CHARACTER_ID | BOOL_ID | UNIQUE | DROP | ORDER | BY { }
 SELECT = "select"                     ![a-z|A-Z]           { }
 FROM = "from"                         ![a-z|A-Z]           { }
 CREATE = "create"                     ![a-z|A-Z]           { }
@@ -192,6 +191,8 @@ CHARACTER_ID = "character"|"char"     ![a-z|A-Z]           { }
 BOOL_ID = "bool"                      ![a-z|A-Z]           { }
 UNIQUE = "unique"                     ![a-z|A-Z]           { }
 DROP = "drop"                         ![a-z|A-Z]           { }
+ORDER = "order"                       ![a-z|A-Z]           { }
+BY = "by"                             ![a-z|A-Z]           { }
 # --------------------------------------------------------------------------------------------------------------
 
 %%

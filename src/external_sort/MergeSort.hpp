@@ -23,7 +23,7 @@ uint64_t filesize(fstream* f) {
 
 class MergeSort {
 private:
-    IndexKeySchema& schema;
+    IndexKeySchema schema;
     IndexKeyComparator c;
     uint64_t bytes;
     uint64_t memsize;

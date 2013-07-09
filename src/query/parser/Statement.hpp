@@ -38,12 +38,13 @@ struct Statement {
 /// 
 struct SelectStatement : public Statement {
 
-   SelectStatement(std::vector<std::pair<std::string, std::unique_ptr<harriet::Expression>>>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions);
+   SelectStatement(std::vector<std::pair<std::string, std::unique_ptr<harriet::Expression>>>&& selectors, std::vector<TableReference>&& sources, std::vector<std::unique_ptr<harriet::Expression>>&& conditions, std::vector<std::string>&& orderBy);
    ~SelectStatement();
 
    std::vector<std::pair<std::string, std::unique_ptr<harriet::Expression>>> projections;
    std::vector<TableReference> sources;
    std::vector<std::unique_ptr<harriet::Expression>> conditions;
+   std::vector<std::string> orderBy;
 
    std::unique_ptr<PrintOperator> queryPlan;
 

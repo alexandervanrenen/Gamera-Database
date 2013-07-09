@@ -2,6 +2,7 @@
 #include "harriet/VariableType.hpp"
 #include "harriet/Value.hpp"
 #include "IndexKeySchema.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -53,6 +54,14 @@ void IndexKey::writeToMem(char* mem) const
    }
 }
 
+void IndexKey::readFromMemory(const char* ptr)
+{
+   for(auto iter : valueReferences) {
+      *iter = harriet::Value::createFromRecord(iter->type, ptr);
+      ptr += iter->type.length;
+   }
+}
+
 IndexKey IndexKey::readFromMemory(const char* ptr, const IndexKeySchema& schema)
 {
    vector<harriet::Value> values;
@@ -61,6 +70,12 @@ IndexKey IndexKey::readFromMemory(const char* ptr, const IndexKeySchema& schema)
       ptr += iter.length;
    }
    return IndexKey(move(values));
+}
+
+void IndexKey::dump(ostream& os, harriet::Value* offset) const
+{
+   for(auto iter : valueReferences)
+      os << " " << iter-offset;
 }
 
 }

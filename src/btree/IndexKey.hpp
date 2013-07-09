@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <ios>
 
 namespace harriet { class Value; }
 
@@ -22,7 +23,10 @@ public:
    uint64_t bytes() const;
 
    void writeToMem(char* mem) const; // Caller has to make sure that there is at least size() byte of valid memory
+   void readFromMemory(const char* ptr); // Copies the memory
    static IndexKey readFromMemory(const char* ptr, const IndexKeySchema& schema); // Copies the memory
+
+   void dump(std::ostream& os, harriet::Value* offset) const;
 
 private:
    std::vector<harriet::Value> values;

@@ -19,7 +19,7 @@ DependencyAnalyser::DependencyAnalyser(const harriet::Environment& environment, 
 {
 }
 
-unique_ptr<qopt::GlobalRegister> DependencyAnalyser::createGlobalRegister(vector<pair<string, unique_ptr<harriet::Expression>>>& projections, vector<unique_ptr<harriet::Expression>>& predicates)
+unique_ptr<qopt::GlobalRegister> DependencyAnalyser::createGlobalRegister(vector<pair<string, unique_ptr<harriet::Expression>>>& projections, vector<unique_ptr<harriet::Expression>>& predicates, vector<string>& orderBy)
 {
    // Resolve all projections
    for(auto& projection : projections) {
@@ -34,6 +34,10 @@ unique_ptr<qopt::GlobalRegister> DependencyAnalyser::createGlobalRegister(vector
       for(auto variableName : variableNames)
          *variableName = resolveColumnReference(ColumnReference(*variableName));
    }
+
+   // Resolve all order columns
+   for(auto& columnName : orderBy)
+      columnName = resolveColumnReference(ColumnReference(columnName));
    
    // Construct global register
    return util::make_unique<qopt::GlobalRegister>(requiredColumns);

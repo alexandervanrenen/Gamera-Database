@@ -2,6 +2,7 @@
 #include "harriet/Value.hpp"
 #include "MergeSort.hpp"
 #include "btree/IndexKey.hpp"
+#include "btree/IndexKeyComparator.hpp"
 #include "common/Config.hpp"
 #include "util/Utility.hpp"
 #include <fstream>
@@ -34,7 +35,7 @@ void ExternalSort::addTuple(const IndexKey& tuple)
    tuplesWritten++;
 }
 
-IndexKey ExternalSort::nextTuple()
+IndexKey ExternalSort::readNextTuple()
 {
    assert(tuplesRead < tuplesWritten);
    tuplesRead++;
@@ -43,13 +44,28 @@ IndexKey ExternalSort::nextTuple()
    return IndexKey::readFromMemory(buffer.data(), schema);
 }
 
+void ExternalSort::readNextTuple(IndexKey& key)
+{
+   assert(tuplesRead < tuplesWritten);
+   tuplesRead++;
+   vector<char> buffer(schema.bytes());
+   file->read(buffer.data(), buffer.size());
+   key.readFromMemory(buffer.data());
+}
+
 void ExternalSort::sort()
 {
    file->close();
-   sortEngine->externalsort(kSortInputFileName, kSortOutputFileName);
+   if(sortEngine->externalsort(kSortInputFileName, kSortOutputFileName) != 0)
+      throw;
    file = util::make_unique<fstream>(kSortOutputFileName.c_str());
    assert(file->good());
    tuplesRead = 0;
+}
+
+bool ExternalSort::hasNextTuple() const
+{
+   return tuplesRead != tuplesWritten;
 }
 
 void ExternalSort::rewind()

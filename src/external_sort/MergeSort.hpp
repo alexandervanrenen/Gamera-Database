@@ -175,16 +175,19 @@ public:
         if (!outfile.is_open())
             return 1;
         vector<Chunk*> chunks;
-        // split input file into chunks and sort them individually
-        for (uint64_t i = 0; i < length; i+=memsize) {
-            chunks.push_back(sortchunk(&infile, tf->getStream(), i, i+memsize > length ? length - i: memsize));
-            //std::cout << "Sorted chunk " << i << std::endl;
-            //chunks.push_back(new Chunk(infilep, i, i+memsize > length ? length - i: memsize, bytes));
-        }
+        Chunk* finalchunk;
+        // Entire file fits into memory
+        if (length <= memsize) {
+            finalchunk = sortchunk(&infile, &outfile, 0, length);
 
-        // do a merge on the chunks
-        //std::cout << "Merging chunks\n";
-        Chunk* finalchunk = mergechunks(&outfile, chunks);
+        } else {
+            // split input file into chunks and sort them individually
+            for (uint64_t i = 0; i < length; i+=memsize) {
+                chunks.push_back(sortchunk(&infile, tf->getStream(), i, i+memsize > length ? length - i: memsize));
+            }
+            // do a merge on the chunks
+            finalchunk = mergechunks(&outfile, chunks);
+        }
         // cleanup
         infile.close();
         infilep->close();

@@ -33,4 +33,10 @@ static const uint16_t kMaximumRecordSize = kPageSize - 16 - 4; // 16 == Slotted 
 
 /// Number of pages for each new relation segment
 static const uint64_t kInitialPagesPerRelation = 8;
+
+/// Define the external sort algorithm properties
+static const uint64_t kSortPageSize = kPageSize;
+static const uint64_t kSortMemorySize = 1<<29; // 512 MB
+static const std::string kSortInputFileName = "bin/sortdatain";
+static const std::string kSortOutputFileName = "bin/sortdataout";
 }

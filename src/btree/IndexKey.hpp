@@ -21,7 +21,7 @@ public:
 
    uint64_t bytes() const;
 
-   void writeToMem(char* mem) const; // Caller has to make sure that there is at least size() byte of vaild memory
+   void writeToMem(char* mem) const; // Caller has to make sure that there is at least size() byte of valid memory
    static IndexKey readFromMemory(const char* ptr, const IndexKeySchema& schema); // Copies the memory
 
 private:

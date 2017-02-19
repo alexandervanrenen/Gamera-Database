@@ -92,7 +92,7 @@ public:
         return nextindex < other.nextindex;
     }
 
-    char* pointer() const {
+    char* ptr() const {
         return data+pairsize*nextindex;
     }
 
@@ -109,11 +109,11 @@ public:
     }
     
     void second(Value& v) {
-        *(Value*)(pointer()+keysize) = v;
+        *(Value*)(ptr()+keysize) = v;
     }
 
     Value second() const {
-        return *(Value*)(pointer()+keysize);
+        return *(Value*)(ptr()+keysize);
     }
 
 private:

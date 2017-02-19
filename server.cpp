@@ -24,6 +24,7 @@ int main(int, char**)
    zmq::context_t context(2);
    zmq::socket_t responder(context, ZMQ_REP);
    responder.bind("tcp://*:7854");
+   cout << "started" << endl;
 
    while(true) {
       zmq::message_t msg;

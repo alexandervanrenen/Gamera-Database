@@ -152,7 +152,7 @@ public:
         if (it == node->end(k.bytes())) { // insert value at the end
             node->put(k, tid, node->nextindex++);
         } else { // shift all elements after insert position to make room
-            std::memmove(it.pointernext(), it.pointer(), node->nextindex - it.index());
+            std::memmove(it.pointernext(), it.ptr(), node->nextindex - it.index());
             node->put(k, tid, it);
             node->nextindex++;
         }
@@ -192,7 +192,7 @@ public:
                             innerparent->rightpointer = p.second->pageId;
                         } else { // shift all elements after insert position to make room
                             PageId tmp = it.second();
-                            std::memmove(it.pointernext(), it.pointer(), (innerparent->nextindex - it.index())*it.getPairSize());
+                            std::memmove(it.pointernext(), it.ptr(), (innerparent->nextindex - it.index())*it.getPairSize());
                             InnerIterator ittarget {it};
                             ittarget++;
                             ittarget.second(p.second->pageId);
@@ -245,7 +245,7 @@ public:
 				LeafIterator itleaf = upper_bound(leaf->begin(keysize), leaf->end(keysize), c, k); // find insert position
 				LeafIterator itleafmiddle = leaf->begin(keysize)+leaf1size; // first element to be moved to new leaf
                 //std::cout << "First element in new leaf: " << itleafmiddle.second().toInteger() << std::endl;
-				std::memcpy(leaf2->begin(keysize).pointer(), itleafmiddle.pointer(), leaf2size*itleaf.getPairSize());
+				std::memcpy(leaf2->begin(keysize).ptr(), itleafmiddle.ptr(), leaf2size*itleaf.getPairSize());
 				leaf2->nextindex = leaf2size;
 				leaf->nextindex = leaf1size;
 				if (itleaf < itleafmiddle) {
@@ -277,7 +277,7 @@ public:
                         innerparent->rightpointer = id;
                     } else { // shift all elements after insert position to make room
                         PageId tmp = it.second();
-                        std::memmove(it.pointernext(), it.pointer(), (innerparent->nextindex - it.index())*it.getPairSize());
+                        std::memmove(it.pointernext(), it.ptr(), (innerparent->nextindex - it.index())*it.getPairSize());
                         InnerIterator ittarget {it};
                         ittarget++;
                         ittarget.second(id);
@@ -300,7 +300,7 @@ public:
         InnerIterator itmiddle = (node1->begin(keysize))+node1size; // first value to be copied to second node
         InnerIterator itlastnode1 {itmiddle}; // last element in first node after split
         --itlastnode1;
-        std::memcpy(node2->begin(keysize).pointer(), itmiddle.pointer(), node2size*itmiddle.getPairSize());
+        std::memcpy(node2->begin(keysize).ptr(), itmiddle.ptr(), node2size*itmiddle.getPairSize());
         node2->nextindex = node2size;
         node1->nextindex = node1size-1;
         node2->rightpointer = node1->rightpointer;
@@ -368,7 +368,7 @@ public:
         //LeafIterator it = std::find_if(leafnode->begin(keysize), leafnode->end(keysize), KeyEqual<TID>(k, c));
         LeafIterator it = search(leafnode->begin(keysize), leafnode->end(keysize), c, k);
         if (it != leafnode->end(keysize)) {
-            char* pointer = it.pointer();
+            char* pointer = it.ptr();
             std::memmove(pointer, pointer+it.getPairSize(), (leafnode->nextindex - it.index())*it.getPairSize());
             leafnode->nextindex--;
             releaseNode(p.first, true);
@@ -450,7 +450,7 @@ public:
                     node = nullptr; 
                 }
             }
-            if (c.less(last, *it)) { // next value smaller than last in Range, finish
+            if (tree->c.less(last, *it)) { // next value smaller than last in Range, finish
                 finished = true;
             }
         }

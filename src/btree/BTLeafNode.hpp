@@ -51,7 +51,7 @@ public:
     }
     
     void put(const Key& k, const TupleId& value, Iterator& it) {
-        char* p = it.pointer();
+        char* p = it.ptr();
         k.writeToMem(p);
         *((TupleId*)(p+k.bytes())) = value;
     }

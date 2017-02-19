@@ -2,6 +2,10 @@
 
 #include <pthread.h>
 
+#ifdef __APPLE__
+#include <libkern/OSAtomic.h>
+#endif
+
 namespace dbi {
 
 namespace util {
@@ -15,7 +19,11 @@ public:
    void unlock();
 
 private:
-   pthread_spinlock_t spinlock;
+	#ifdef __APPLE__
+   	OSSpinLock spinlock;
+   #else
+		pthread_spinlock_t spinlock;
+   #endif
 };
 
 }

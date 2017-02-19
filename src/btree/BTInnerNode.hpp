@@ -46,7 +46,7 @@ public:
     }
     
     void put(const Key& k, const PageId& value, Iterator& it) {
-        char* p = it.pointer();
+        char* p = it.ptr();
         k.writeToMem(p);
         *((PageId*)(p+k.bytes())) = value;
     }

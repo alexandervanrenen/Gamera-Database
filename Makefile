@@ -5,8 +5,8 @@ all: bin/tester bin/server bin/client bin/driver
 CXX ?= g++
 opt = -g3 -O0
 #opt = -g0 -O3
-cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -I./libs/tbb/include/ -fPIC
-lf = $(opt) --std=c++0x -ldl -lpthread -lrt -L./libs/tbb/ -ltbb -Wl,-rpath,libs/tbb
+cf = $(opt) -Wall -Wextra -Wuninitialized --std=c++0x -I./src -I. -I./libs/gtest/include -I./libs/zmq/include/ -I./libs/gflags/include/ -fPIC
+lf = $(opt) --std=c++0x -ldl -lpthread
 
 # Object director
 objDir:= build/
@@ -25,33 +25,34 @@ test_files := $(patsubst test/%,build/test/%, $(patsubst %.cpp,%.o,$(wildcard te
 # Build database
 bin/database.so: libs src/query/parser/Parser.cpp $(src_files)
 	$(build_dir) bin/gen bin/var
-	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -shared -o bin/database.so $(src_files) libs/zmq/libzmq.a $(lf)
 
 # Build tester
 bin/tester: libs bin/database.so $(test_files) build/test/tester.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/tester $(test_files) bin/database.so libs/gtest/libgtest.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/tester $(test_files) bin/database.so libs/gtest/libgtest.a $(lf)
 
 # Build driver
 bin/driver: libs bin/database.so build/driver.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/driver build/driver.o bin/database.so libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/driver build/driver.o bin/database.so $(lf)
 
 # Build server
 bin/server: libs bin/database.so build/server.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/server build/server.o bin/database.so libs/zmq/libzmq.a $(lf)
 
 # Build client
 bin/client: libs build/client.o
 	$(build_dir) bin/gen bin/var
-	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a libs/tbb/libtbb.so.2 $(lf)
+	$(CXX) -o bin/client build/client.o libs/zmq/libzmq.a $(lf)
 
 # Ensure latest parser version
 src/query/parser/Parser.cpp: src/query/parser/Parser.leg
 	./libs/greg-cpp/greg -o src/query/parser/Parser.cpp src/query/parser/Parser.leg
 
-libs: libs/gtest libs/zmq libs/greg-cpp libs/tbb
+LIBS := libs/gtest libs/zmq libs/greg-cpp
+libs: $(LIBS)
 
 # Command for building and keeping track of changed files 
 $(objDir)%.o: %.cpp
@@ -71,77 +72,62 @@ $(objDir)%.o: %.cpp
 libs/gtest:
 	$(build_dir)
 	cd libs/ ;\
-	wget -O gtest-1.6.0.zip https://googletest.googlecode.com/files/gtest-1.6.0.zip ;\
-	unzip -q gtest-1.6.0.zip ;\
-	cd gtest-1.6.0 ;\
+	git clone https://github.com/google/googletest.git;\
+	mv googletest gtest-1.7.0;\
+	cd gtest-1.7.0;\
+	git checkout release-1.7.0;\
 	mkdir -p build ;\
 	cd build ;\
 	cmake -G"Unix Makefiles" .. ;\
 	make ;\
 	ar -r libgtest.a libgtest_main.a
 	mkdir -p libs/gtest/include/gtest
-	mv libs/gtest-1.6.0/include/gtest/* libs/gtest/include/gtest
-	mv libs/gtest-1.6.0/build/libgtest.a libs/gtest/
-	rm libs/gtest-1.6.0.zip
-	rm -rf libs/gtest-1.6.0
-
-# Build tbb library
-libs/tbb:
-	$(build_dir)
-	cd libs/ ;\
-	wget http://threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb41_20130116oss_src.tgz ;\
-	tar -xaf tbb41_20130116oss_src.tgz ;\
-	cd tbb41_20130116oss ;\
-	make tbb -j4 ;\
-	rm build/*_debug/* -rf ;\
-	cd .. ;\
-	mkdir -p tbb ;\
-	find . -name "libtbb*.*" -exec mv {} ./tbb/ \; ;\
-	mv tbb41_20130116oss/include/ tbb/ ;\
-	rm tbb41_20130116oss* -rf
+	mv libs/gtest-1.7.0/include/gtest/* libs/gtest/include/gtest
+	mv libs/gtest-1.7.0/build/libgtest.a libs/gtest/
+	rm -rf libs/gtest-1.7.0
 
 # Build zmq
 libs/zmq:
 	$(build_dir)
 	cd libs/ ;\
 	wget http://download.zeromq.org/zeromq-3.2.3.tar.gz ;\
-	tar -xaf zeromq-3.2.3.tar.gz ;\
+	tar -xf zeromq-3.2.3.tar.gz ;\
 	cd zeromq-3.2.3 ;\
 	./configure --enable-static --disable-shared --prefix ${PWD}/libs/zmq ;\
 	make -j4 ;\
 	make install ;\
 	cd .. ;\
 	rm zeromq-3.2.3.tar.gz ;\
-	rm zeromq-3.2.3 -rf ;\
-	rm zmq/share -rf ;\
+	rm -rf zeromq-3.2.3 ;\
+	rm -rf zmq/share ;\
 	mv zmq/lib/libzmq.a zmq/ ;\
-	rm zmq/lib -rf ;\
+	rm -rf zmq/lib ;\
 	mkdir zmq/include/zmq ;\
 	mv zmq/include/*.h zmq/include/zmq/
 	# now get c++ header files for zmq
 	cd libs ;\
 	git clone https://github.com/zeromq/cppzmq.git ;\
 	mv cppzmq/zmq.hpp zmq/include/zmq/ ;\
-	sed -i "s/#include <zmq.h>/#include \"zmq.h\"/g" zmq/include/zmq/zmq.hpp ;\
-	rm cppzmq -rf
+	ruby -pi -e 'gsub("#include <zmq.h>", "#include \"zmq.h\"")' zmq/include/zmq/zmq.hpp ;\
+	rm -rf cppzmqx
 
 # Build greg
 libs/greg-cpp:
 	$(build_dir)
 	cd libs/ ;\
-	git clone git@github.com:alexandervanrenen/greg-cpp.git ;\
+	git clone https://github.com/alexandervanrenen/greg-cpp.git ;\
 	cd greg-cpp ;\
 	make
 
 # Clean up =)
 clean:
-	rm bin -rf
-	rm build -rf
+	rm -rf bin
+	rm -rf build
 	touch src/query/parser/Parser.cpp
 
 # Clean up =)
 clean-complete:
-	rm bin -rf
-	rm build -rf
-	rm libs -rf
-	rm src/query/parser/Parser.cpp
+	rm -rf bin
+	rm -rf build
+	rm -rf libs
+	rm -rf src/query/parser/Parser.cpp

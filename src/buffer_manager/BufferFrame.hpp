@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
-#include "util/ReadWriteSpinLock.hpp"
+#include "util/ReadWriteLock.hpp"
 #include <array>
 #include <condition_variable>
 #include <cstdint>
@@ -19,7 +19,7 @@ private:
    std::array<char, kPageSize> pageContent;
    bool isDirty = false;
    PageId pageId = kInvalidPageId;
-   using BufferFrameLockType = util::ReadWriteSpinLock;
+   using BufferFrameLockType = util::ReadWriteLock;
    BufferFrameLockType accessGuard;
 
    // Second chance algorithm specific data

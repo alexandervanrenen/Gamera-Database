@@ -6,23 +6,23 @@ namespace util {
 
 SpinLock::SpinLock()
 {
-   if(pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE) == -1)
-      throw;
+   // if(pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE) == -1)
+   throw;
 }
 
 SpinLock::~SpinLock()
 {
-   pthread_spin_destroy(&spinlock);
+   // pthread_spin_destroy(&spinlock);
 }
 
 void SpinLock::lock()
 {
-   pthread_spin_lock(&spinlock);
+   // pthread_spin_lock(&spinlock);
 }
 
 void SpinLock::unlock()
 {
-   pthread_spin_unlock(&spinlock);
+   // pthread_spin_unlock(&spinlock);
 }
 
 }

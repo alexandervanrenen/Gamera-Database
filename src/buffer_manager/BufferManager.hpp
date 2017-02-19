@@ -47,7 +47,7 @@ public:
 
 private:
    /// Configuration
-   using LockType = util::SpinLock; // Use std::mutex when profiling with valgrind
+   using LockType = std::mutex; // Use std::mutex when profiling with valgrind
    using SwapOutAlgorithm = SwapOutSecondChance;
 
    // Constants

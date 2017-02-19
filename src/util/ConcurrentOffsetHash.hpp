@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <mutex>
 
 namespace dbi {
 
@@ -139,7 +140,7 @@ private:
    SizeType nextOffset;
    std::vector<Entry> entries;
    std::vector<SizeType> offsets;
-   std::vector<util::SpinLock> locks;
+   std::vector<std::mutex> locks;
 };
 
 }

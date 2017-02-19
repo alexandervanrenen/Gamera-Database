@@ -21,8 +21,8 @@ int main(int, char**)
         query = query + ";";
         responder.send(query.data(), query.size(), 0);
 
-        char buffer [10];
-        responder.recv(buffer, 10, 0);
+        char buffer [1024];
+        responder.recv(buffer, 1024, 0);
         cout << buffer << endl;
     }
     return 0;

@@ -10,3 +10,5 @@ dataout
 src/query/parser/Parser.cpp
 .project
 .cproject
+.DS_STORE
+.idea

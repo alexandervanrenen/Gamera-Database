@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdint.h>
+#include <numeric>
 
 using namespace std;
 

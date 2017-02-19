@@ -1,4 +1,4 @@
-all: bin/tester bin/server bin/client bin/driver
+all: bin/tester bin/server bin/client bin/driver bin/sql
 
 # Define compile and link flags
 -include config.local
@@ -36,6 +36,11 @@ bin/tester: libs bin/database.so $(test_files) build/test/tester.o
 bin/driver: libs bin/database.so build/driver.o
 	$(build_dir) bin/gen bin/var
 	$(CXX) -o bin/driver build/driver.o bin/database.so $(lf)
+
+# Build sql
+bin/sql: libs bin/database.so build/sql.o
+	$(build_dir) bin/gen bin/var
+	$(CXX) -o bin/sql build/sql.o bin/database.so $(lf)
 
 # Build server
 bin/server: libs bin/database.so build/server.o

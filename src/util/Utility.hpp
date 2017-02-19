@@ -44,6 +44,8 @@ class Random;
 /// Create random word
 std::string randomWord(util::Random& ranny, uint32_t min, uint32_t max);
 
+bool fileExists(const std::string &fileName);
+
 }
 
 }

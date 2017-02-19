@@ -161,6 +161,12 @@ string randomWord(util::Random& ranny, uint32_t min, uint32_t max)
    return word;
 }
 
+bool fileExists(const string &fileName)
+{
+   ifstream in(fileName);
+   return in.good();
+}
+
 }
 
 }
